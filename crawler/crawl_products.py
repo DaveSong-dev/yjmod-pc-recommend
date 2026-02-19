@@ -567,6 +567,23 @@ def main():
     products_list = list(all_products.values())
     print(f"\n[INFO] 총 {len(products_list)}개 제품 수집 완료")
 
+    # 0건 수집 시 기존 데이터 보존 (사이트 구조 변경 / 일시적 오류 대비)
+    if len(products_list) == 0:
+        print("[WARNING] 수집된 제품이 0개입니다. 기존 데이터를 보존합니다.")
+        existing_path = Path(OUTPUT_PRODUCTS)
+        if existing_path.exists():
+            try:
+                with open(existing_path, "r", encoding="utf-8") as f:
+                    existing = json.load(f)
+                existing_count = len(existing.get("products", []))
+                if existing_count > 0:
+                    print(f"[INFO] 기존 데이터 유지: {existing_count}개 제품 (덮어쓰기 안 함)")
+                    import sys
+                    sys.exit(0)
+            except Exception:
+                pass
+        print("[WARNING] 기존 데이터도 없음. 빈 파일로 저장합니다.")
+
     kst = timezone(timedelta(hours=9))
     now_kst = datetime.now(kst).isoformat()
 
