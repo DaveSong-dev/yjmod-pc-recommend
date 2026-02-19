@@ -1,0 +1,16 @@
+# 영재컴퓨터 PC 추천 페이지 크롤러 의존성
+# pip install -r requirements.txt
+
+# HTTP 요청
+requests>=2.31.0
+
+# HTML 파싱
+beautifulsoup4>=4.12.0
+lxml>=5.1.0
+
+# Selenium (헤드리스 브라우저)
+selenium>=4.18.0
+webdriver-manager>=4.0.0
+
+# 유틸리티
+python-dotenv>=1.0.0

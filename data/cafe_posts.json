@@ -1,0 +1,102 @@
+{
+  "last_updated": "2026-02-19T12:00:00+09:00",
+  "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
+  "posts": [
+    {
+      "id": "1",
+      "title": "RTX 5090 + i9-14900K 커스텀 수냉 하이엔드 게이밍PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98234",
+      "thumbnail": "https://via.placeholder.com/400x300/1a1a2e/e94560?text=RTX+5090+출고",
+      "date": "2026-02-19",
+      "tags": ["RTX 5090", "i9-14900K", "커스텀수냉", "하이엔드"]
+    },
+    {
+      "id": "2",
+      "title": "RTX 5080 + 라이젠9 9900X 영상편집 워크스테이션 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98201",
+      "thumbnail": "https://via.placeholder.com/400x300/16213e/e94560?text=RTX+5080+출고",
+      "date": "2026-02-19",
+      "tags": ["RTX 5080", "라이젠9 9900X", "영상편집", "워크스테이션"]
+    },
+    {
+      "id": "3",
+      "title": "RTX 5070 Ti + i7-14700KF 배틀그라운드 퍼포먼스PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98178",
+      "thumbnail": "https://via.placeholder.com/400x300/0f3460/e94560?text=RTX+5070Ti+출고",
+      "date": "2026-02-18",
+      "tags": ["RTX 5070 Ti", "i7-14700KF", "배틀그라운드", "퍼포먼스"]
+    },
+    {
+      "id": "4",
+      "title": "LIAN LI 화이트 케이스 풀커스텀 RGB 게이밍PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98155",
+      "thumbnail": "https://via.placeholder.com/400x300/1a1a2e/ffffff?text=화이트+RGB+출고",
+      "date": "2026-02-18",
+      "tags": ["LIAN LI", "화이트", "RGB", "RTX 5070"]
+    },
+    {
+      "id": "5",
+      "title": "라이젠5 7600X + RX 9070 XT 로스트아크 가성비PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98122",
+      "thumbnail": "https://via.placeholder.com/400x300/16213e/00d4ff?text=RX+9070XT+출고",
+      "date": "2026-02-18",
+      "tags": ["라이젠5 7600X", "RX 9070 XT", "로스트아크", "가성비"]
+    },
+    {
+      "id": "6",
+      "title": "RTX 5090 AI 딥러닝 서버용 워크스테이션 2대 동시 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98100",
+      "thumbnail": "https://via.placeholder.com/400x300/0f0f0f/e94560?text=AI+서버+출고",
+      "date": "2026-02-17",
+      "tags": ["RTX 5090", "AI딥러닝", "서버", "워크스테이션"]
+    },
+    {
+      "id": "7",
+      "title": "CORSAIR 5000D 블랙 RTX 5070 롤/배그 게이밍PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98079",
+      "thumbnail": "https://via.placeholder.com/400x300/16213e/e94560?text=CORSAIR+5000D+출고",
+      "date": "2026-02-17",
+      "tags": ["CORSAIR", "RTX 5070", "롤", "배그"]
+    },
+    {
+      "id": "8",
+      "title": "MSI MEG 케이스 + RTX 4090 하이엔드 스팀 게이밍PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98050",
+      "thumbnail": "https://via.placeholder.com/400x300/1a1a2e/00ff88?text=MSI+RTX4090+출고",
+      "date": "2026-02-17",
+      "tags": ["MSI", "RTX 4090", "하이엔드", "스팀"]
+    },
+    {
+      "id": "9",
+      "title": "i5-13400F + RTX 5060 사무용 조립PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98022",
+      "thumbnail": "https://via.placeholder.com/400x300/0f3460/ffffff?text=사무용PC+출고",
+      "date": "2026-02-16",
+      "tags": ["i5-13400F", "RTX 5060", "사무용", "가성비"]
+    },
+    {
+      "id": "10",
+      "title": "NZXT H9 화이트 + RTX 5080 프리미엄 게이밍PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/98001",
+      "thumbnail": "https://via.placeholder.com/400x300/f0f0f0/0f3460?text=NZXT+H9+출고",
+      "date": "2026-02-16",
+      "tags": ["NZXT", "화이트", "RTX 5080", "프리미엄"]
+    },
+    {
+      "id": "11",
+      "title": "라이젠7 7800X3D + RTX 5070 Ti 발로란트 경쟁용PC 출고",
+      "url": "https://cafe.naver.com/no1yjmod/97980",
+      "thumbnail": "https://via.placeholder.com/400x300/16213e/ffaa00?text=7800X3D+출고",
+      "date": "2026-02-16",
+      "tags": ["라이젠7 7800X3D", "RTX 5070 Ti", "발로란트", "경쟁용"]
+    },
+    {
+      "id": "12",
+      "title": "Phanteks NV9 풀타워 + RTX 5090 커스텀수냉 출고",
+      "url": "https://cafe.naver.com/no1yjmod/97955",
+      "thumbnail": "https://via.placeholder.com/400x300/0f0f0f/e94560?text=Phanteks+NV9+출고",
+      "date": "2026-02-15",
+      "tags": ["Phanteks", "RTX 5090", "커스텀수냉", "풀타워"]
+    }
+  ]
+}
