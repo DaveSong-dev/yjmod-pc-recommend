@@ -1,102 +1,150 @@
 {
-  "last_updated": "2026-02-19T12:00:00+09:00",
+  "last_updated": "2026-02-19T23:40:38.552537+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
       "id": "1",
-      "title": "RTX 5090 + i9-14900K 커스텀 수냉 하이엔드 게이밍PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98234",
-      "thumbnail": "https://via.placeholder.com/400x300/1a1a2e/e94560?text=RTX+5090+출고",
+      "title": "영재컴퓨터 프리미엄 배송 관련",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/51?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
       "date": "2026-02-19",
-      "tags": ["RTX 5090", "i9-14900K", "커스텀수냉", "하이엔드"]
+      "tags": []
     },
     {
       "id": "2",
-      "title": "RTX 5080 + 라이젠9 9900X 영상편집 워크스테이션 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98201",
-      "thumbnail": "https://via.placeholder.com/400x300/16213e/e94560?text=RTX+5080+출고",
+      "title": "배송 받은 컴퓨터가 작동이 잘 안되신다구요?",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/52?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfNDgg/MDAxNzIxMTE4MTE3MjAz.N44ZlGR2E7hbdXRKktDEPhXbOhWvIJXWUWxA5Xr8ZGcg.j_Mb2LPau1R3vTDUKNkoiSsp20yZIR0DaYRnzNwP0-Eg.JPEG/20231120163026_38db3.jpg?type=w1600",
       "date": "2026-02-19",
-      "tags": ["RTX 5080", "라이젠9 9900X", "영상편집", "워크스테이션"]
+      "tags": []
     },
     {
       "id": "3",
-      "title": "RTX 5070 Ti + i7-14700KF 배틀그라운드 퍼포먼스PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98178",
-      "thumbnail": "https://via.placeholder.com/400x300/0f3460/e94560?text=RTX+5070Ti+출고",
-      "date": "2026-02-18",
-      "tags": ["RTX 5070 Ti", "i7-14700KF", "배틀그라운드", "퍼포먼스"]
+      "title": "배송, 출고 관련 공지사항",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/2752?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "4",
-      "title": "LIAN LI 화이트 케이스 풀커스텀 RGB 게이밍PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98155",
-      "thumbnail": "https://via.placeholder.com/400x300/1a1a2e/ffffff?text=화이트+RGB+출고",
-      "date": "2026-02-18",
-      "tags": ["LIAN LI", "화이트", "RGB", "RTX 5070"]
+      "title": "[조립컴퓨터]안*훈님 (010-****-5681) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6869?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTlfMzgg/MDAxNzcxNDk0MTAyNDE1.k72xcOGSRm-nngn50DkpHC_W4pt_nqQgRBl8NptbOlAg.AUeggjx2HUGTK-OWTI0xeU06nBJoFWV99Fvf13MxcQsg.JPEG/KakaoTalk_20260219_152826444_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "5",
-      "title": "라이젠5 7600X + RX 9070 XT 로스트아크 가성비PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98122",
-      "thumbnail": "https://via.placeholder.com/400x300/16213e/00d4ff?text=RX+9070XT+출고",
-      "date": "2026-02-18",
-      "tags": ["라이젠5 7600X", "RX 9070 XT", "로스트아크", "가성비"]
+      "title": "[조립컴퓨터]오*수님 (010-****-8636) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6868?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTlfMjQ3/MDAxNzcxNDkzOTU3MDE4.2r6iz0SvTNo_GABAyhsTaFtVQBS4Jh6JSgxe4ARa8lYg.Se2y1qFww1evKk1VigzvjXmPH2ZEEK_pn-TALXv_sD8g.JPEG/KakaoTalk_20260219_164633279_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "6",
-      "title": "RTX 5090 AI 딥러닝 서버용 워크스테이션 2대 동시 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98100",
-      "thumbnail": "https://via.placeholder.com/400x300/0f0f0f/e94560?text=AI+서버+출고",
-      "date": "2026-02-17",
-      "tags": ["RTX 5090", "AI딥러닝", "서버", "워크스테이션"]
+      "title": "[조립컴퓨터]성*엽님 (010-****-7441) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6867?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTlfMTA4/MDAxNzcxNDkzOTM1Mzc3.iV27RmufxKvRnKvu-RZsAg0cgMD4kyLcgALr_oF9e8Yg.0rHPQ6puelnT7KbJJqpnOnqeBl6447Bw51_vaEXlRTUg.JPEG/KakaoTalk_20260219_162527129_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "7",
-      "title": "CORSAIR 5000D 블랙 RTX 5070 롤/배그 게이밍PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98079",
-      "thumbnail": "https://via.placeholder.com/400x300/16213e/e94560?text=CORSAIR+5000D+출고",
-      "date": "2026-02-17",
-      "tags": ["CORSAIR", "RTX 5070", "롤", "배그"]
+      "title": "[조립컴퓨터]와***로 (010-****-5263) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6866?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTlfMjQ2/MDAxNzcxNDkzOTA3MDYz.-EETX45VnzAO5NRNPdtcDchuwE2w8XcAu1n-kaAOjM8g.BNlJTXzeQwatODTmcUswzKtBnkTYXosIW864nnUOSiog.JPEG/KakaoTalk_20260219_110732332_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "8",
-      "title": "MSI MEG 케이스 + RTX 4090 하이엔드 스팀 게이밍PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98050",
-      "thumbnail": "https://via.placeholder.com/400x300/1a1a2e/00ff88?text=MSI+RTX4090+출고",
-      "date": "2026-02-17",
-      "tags": ["MSI", "RTX 4090", "하이엔드", "스팀"]
+      "title": "[조립컴퓨터]서*건님 (010-****-6528) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6865?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTNfMjAz/MDAxNzcwOTc2NDEyNDc1.ymFD0p-TTPquYfM9Jx3GASN1fkdAlMgQcg6I3InAAIIg.7cpWJpwqr9-ChJfpGXCIjSLbh9p7hbX72dgIwyffTdYg.JPEG/KakaoTalk_20260213_120441942_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "9",
-      "title": "i5-13400F + RTX 5060 사무용 조립PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98022",
-      "thumbnail": "https://via.placeholder.com/400x300/0f3460/ffffff?text=사무용PC+출고",
-      "date": "2026-02-16",
-      "tags": ["i5-13400F", "RTX 5060", "사무용", "가성비"]
+      "title": "[조립컴퓨터]오*환님 (010-****-1080) 총 2대 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6864?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTNfMjU2/MDAxNzcwOTc2MzgxNjg3.Hzwllu1fbyTFSfJKoIV38pgVA7DgVggpi5u7T8Mpo3Mg.dmhO0RpRcWqaPeeaK43_L6QQC7-P2obWoxFNS4wa3T4g.JPEG/KakaoTalk_20260213_155608007_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "10",
-      "title": "NZXT H9 화이트 + RTX 5080 프리미엄 게이밍PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/98001",
-      "thumbnail": "https://via.placeholder.com/400x300/f0f0f0/0f3460?text=NZXT+H9+출고",
-      "date": "2026-02-16",
-      "tags": ["NZXT", "화이트", "RTX 5080", "프리미엄"]
+      "title": "[조립컴퓨터]강*호님 (010-****-9830) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6863?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTNfNTMg/MDAxNzcwOTc2MzU1NjYz.q5T3PxAcjw3A6i1tDFrKGaHrXq-U96rN_nzYjV4nYU8g.gmNx7AUQoW4Z9Mb_Vis9CtJuvIPvCvKO4uqupCNgNMkg.JPEG/KakaoTalk_20260213_151000719_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "11",
-      "title": "라이젠7 7800X3D + RTX 5070 Ti 발로란트 경쟁용PC 출고",
-      "url": "https://cafe.naver.com/no1yjmod/97980",
-      "thumbnail": "https://via.placeholder.com/400x300/16213e/ffaa00?text=7800X3D+출고",
-      "date": "2026-02-16",
-      "tags": ["라이젠7 7800X3D", "RTX 5070 Ti", "발로란트", "경쟁용"]
+      "title": "[조립컴퓨터]나*균님 (010-****-6111) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6862?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTNfMjk5/MDAxNzcwOTc2MzM0NzIy.4fdhZosmlywURYD7l-_zpmVOXSQ_ed8dmwUzeHf5nukg._oVprVwV8Os8c5WdDUWkXrV8B-q3MT0TOrDqFiQQgdUg.JPEG/KakaoTalk_20260213_135925159.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
     },
     {
       "id": "12",
-      "title": "Phanteks NV9 풀타워 + RTX 5090 커스텀수냉 출고",
-      "url": "https://cafe.naver.com/no1yjmod/97955",
-      "thumbnail": "https://via.placeholder.com/400x300/0f0f0f/e94560?text=Phanteks+NV9+출고",
-      "date": "2026-02-15",
-      "tags": ["Phanteks", "RTX 5090", "커스텀수냉", "풀타워"]
+      "title": "[조립컴퓨터]김*훈님 (010-****-3650) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6861?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMTNfMjY0/MDAxNzcwOTc2MzEzMjIw.N2VBWya52FG3LRHhMQBOYAbY45QzpdAYhqV-KxobeWYg.4ygyLkgnagEzauyXYqBMi8K-LuCX749F8pLdFBiV7bwg.JPEG/KakaoTalk_20260213_133634497_01.jpg?type=w1600",
+      "date": "2026-02-19",
+      "tags": []
+    },
+    {
+      "id": "13",
+      "title": "[조립컴퓨터]서*현님 (010-****-2222) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6855?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
+    },
+    {
+      "id": "14",
+      "title": "[조립컴퓨터]오*삭님 (010-****-5279) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6854?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
+    },
+    {
+      "id": "15",
+      "title": "[조립컴퓨터]고*현님 (010-****-7589) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6853?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
+    },
+    {
+      "id": "16",
+      "title": "[조립컴퓨터]김*환님 (010-****-5329) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6852?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
+    },
+    {
+      "id": "17",
+      "title": "[조립컴퓨터]박*현님 (010-****-0042) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6851?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
+    },
+    {
+      "id": "18",
+      "title": "[조립컴퓨터]권*상님 (010-****-9505) 출고건",
+      "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6850?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
+      "thumbnail": "",
+      "date": "2026-02-19",
+      "tags": []
     }
   ]
 }
