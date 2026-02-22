@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-02-22T14:12:26.296315+09:00",
+  "last_updated": "2026-02-22T16:52:15.283595+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -14,7 +14,7 @@
       "id": "2",
       "title": "배송 받은 컴퓨터가 작동이 잘 안되신다구요?",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/52?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfNDgg/MDAxNzIxMTE4MTE3MjAz.N44ZlGR2E7hbdXRKktDEPhXbOhWvIJXWUWxA5Xr8ZGcg.j_Mb2LPau1R3vTDUKNkoiSsp20yZIR0DaYRnzNwP0-Eg.JPEG/20231120163026_38db3.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-02-22",
       "tags": []
     },
@@ -86,7 +86,7 @@
       "id": "11",
       "title": "[조립컴퓨터]조*제님 (010-****-1196) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6873?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMjBfMjIg/MDAxNzcxNTgyMDAwMjY1.ca4a6IprpsX3V4wOiKRkaqB04JZhHi4BqZW4dgev0cIg.MuPxl4qx7SbJAzUrek4vkq353blPiJ2XTIq_t4vrjC4g.JPEG/KakaoTalk_20260220_115550525_01.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-02-22",
       "tags": []
     },
@@ -102,7 +102,7 @@
       "id": "13",
       "title": "[조립컴퓨터]오*민님 (010-****-8813) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6871?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMjBfMTc2/MDAxNzcxNTgxOTI0MDYz.wA3NnwjTsM3OHiGEjA1p189boKZsVvtUIaXydzBwfu4g.a2aS6mQI4Iwt8LjVf2X6LpFwA4jrJQ323gkKSQ_jh9cg.JPEG/KakaoTalk_20260220_111737737_01.jpg?type=w1600",
       "date": "2026-02-22",
       "tags": []
     },
@@ -110,7 +110,7 @@
       "id": "14",
       "title": "[조립컴퓨터]윤*일님 (010-****-5973) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/6870?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAyMjBfMjIz/MDAxNzcxNTgxMTk1OTM5.P90z8OGslgf45-zYJ1xVXA179MhW0T8x0fbyZewUee0g.ELVUjYFiGbpEPFu0b37E3SGER1KgHmMwTkRuK8SieUsg.JPEG/KakaoTalk_20260219_192405455_01.jpg?type=w1600",
       "date": "2026-02-22",
       "tags": []
     },
