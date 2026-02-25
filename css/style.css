@@ -39,6 +39,39 @@ body {
   color: var(--text-primary);
   min-height: 100vh;
   overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* iframe 내부 최적화                                          */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* 헤더 높이 48px로 줄이기 */
+body.iframe-embed #main-header {
+  height: 48px;
+  min-height: 48px;
+}
+
+body.iframe-embed #main-header .max-w-7xl {
+  height: 48px;
+  min-height: 48px;
+}
+
+/* 히어로 섹션: 헤더(48px) 만큼 padding-top 확보 → 겹침 방지 */
+body.iframe-embed .hero-section {
+  min-height: auto;
+  padding-top: 48px !important;
+}
+
+body.iframe-embed .hero-section .max-w-7xl {
+  padding-top: 1rem !important;
+  padding-bottom: 2rem !important;
+}
+
+/* 필터 바 위치 조정 */
+body.iframe-embed .filter-bar {
+  top: 48px;
 }
 
 /* ─── 스크롤바 커스텀 ─────────────────────────────────────── */
@@ -68,6 +101,7 @@ body {
   transition: background 0.3s ease, backdrop-filter 0.3s ease, box-shadow 0.3s ease;
   background: transparent;
 }
+
 
 #main-header.scrolled {
   background: rgba(10, 10, 15, 0.92);
@@ -184,6 +218,9 @@ body {
   border: 1px solid var(--border);
   border-radius: 1rem;
   overflow: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: 420px;
+  contain: content;
   transition:
     border-color 0.3s ease,
     box-shadow 0.3s ease,
@@ -211,11 +248,27 @@ body {
   border-radius: 1.5rem;
   width: 100%;
   max-width: 640px;
-  max-height: 90vh;
-  overflow-y: auto;
+  height: min(80vh, 720px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   transform: scale(0.95);
   opacity: 0;
   transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+/* 헤더·스텝바는 줄어들지 않도록 고정 */
+.wizard-panel .wizard-header,
+.wizard-panel .wizard-steps {
+  flex-shrink: 0;
+}
+
+/* 위자드 콘텐츠만 스크롤, 헤더/스텝바는 상단 고정 */
+.wizard-panel .wizard-content {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--accent-2) transparent;
 }
@@ -425,6 +478,7 @@ body {
   }
 
   .wizard-panel {
+    height: 85vh;
     max-height: 95vh;
     border-radius: 1.25rem 1.25rem 0 0;
     margin: 0;
@@ -539,4 +593,230 @@ footer {
   color: var(--text-primary);
   line-height: 1;
   font-variant-numeric: tabular-nums;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
+/* 디자인 UI 강화 (경량)                                       */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* ─── 히어로 배경 오브 (blur 제거 → opacity로 대체) ────────── */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.hero-orb-1 {
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, rgba(233,69,96,0.14) 0%, transparent 65%);
+  top: -10%;
+  left: -5%;
+  animation: orb-drift 20s ease-in-out infinite;
+}
+
+.hero-orb-2 {
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(15,52,96,0.2) 0%, transparent 65%);
+  bottom: 0;
+  right: -5%;
+  animation: orb-drift 25s ease-in-out infinite reverse;
+}
+
+@keyframes orb-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(30px, -20px, 0); }
+}
+
+/* ─── Shimmer 버튼 (hover에서만 작동) ────────────────────── */
+.shimmer-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.shimmer-btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255,255,255,0.12) 50%,
+    transparent 60%
+  );
+  transform: translateX(-100%);
+  transition: none;
+}
+
+.shimmer-btn:hover::after {
+  animation: shimmer-once 0.6s ease forwards;
+}
+
+@keyframes shimmer-once {
+  to { transform: translateX(100%); }
+}
+
+/* ─── Marquee 신뢰 배너 ─────────────────────────────────── */
+.marquee-container {
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.marquee-track {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  gap: 2rem;
+  width: max-content;
+  animation: marquee-scroll 40s linear infinite;
+}
+
+.marquee-track:hover {
+  animation-play-state: paused;
+}
+
+@keyframes marquee-scroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+.marquee-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 9999px;
+  white-space: nowrap;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: border-color 0.3s ease, color 0.3s ease;
+}
+
+.marquee-item:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+/* ─── Bento Grid 카드 ────────────────────────────────────── */
+.bento-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  transition: border-color 0.3s ease, transform 0.2s ease;
+}
+
+.bento-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+}
+
+.bento-card .bento-icon {
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+/* ─── 그룹 섹션 헤더 ────────────────────────────────────── */
+.group-section h3 {
+  position: relative;
+  display: inline-block;
+}
+
+/* ─── 스크롤 프로그레스 바 ───────────────────────────────── */
+.scroll-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 9999;
+}
+
+/* 하단 더보기 후 첫 신규 카드 하이라이트 */
+.just-loaded-card {
+  animation: just-loaded-pulse 1.2s ease-out;
+  outline: 2px solid rgba(233, 69, 96, 0.65);
+  outline-offset: 2px;
+}
+
+@keyframes just-loaded-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.45); }
+  100% { box-shadow: 0 0 0 18px rgba(233, 69, 96, 0); }
+}
+
+.load-more-toast {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  z-index: 1200;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(13, 17, 23, 0.92);
+  border: 1px solid rgba(233, 69, 96, 0.45);
+  color: #f3f4f6;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.load-more-toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.js-load-more[disabled],
+.js-load-more.is-loading {
+  opacity: 0.65;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.load-more-inline-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-top-color: rgba(255, 255, 255, 0.9);
+  border-radius: 9999px;
+  animation: spin 0.7s linear infinite;
+}
+
+.product-skeleton {
+  min-height: 360px;
+}
+
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 20%,
+    rgba(255, 255, 255, 0.1) 40%,
+    rgba(255, 255, 255, 0.03) 60%
+  );
+  background-size: 240% 100%;
+  animation: skeleton-shimmer 1s linear infinite;
+}
+
+@keyframes skeleton-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+/* ─── 푸터 그라디언트 ────────────────────────────────────── */
+footer::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), rgba(139,92,246,0.5), transparent);
 }

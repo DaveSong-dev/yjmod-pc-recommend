@@ -91,7 +91,21 @@ jobs:
           echo "===== 카페 크롤러 완료 ====="
         continue-on-error: true  # 실패해도 이전 데이터 유지
 
-      # ─── 7. 변경사항 확인 ───────────────────────────────────
+      # ─── 7. Node 설치 (esbuild용) ─────────────────────────────
+      - name: Node.js 설치
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ─── 8. 단일 HTML 빌드 (배포용) ──────────────────────────
+      - name: 단일 HTML 빌드
+        run: |
+          npm install -g esbuild
+          python3 scripts/export_single_html.py
+          cp vercel.json build/
+
+      # ─── 9. 변경사항 확인 ───────────────────────────────────
       - name: 변경사항 확인
         id: check_changes
         run: |
@@ -105,33 +119,27 @@ jobs:
             git diff --stat data/
           fi
 
-      # ─── 8. 변경사항 커밋 & 푸시 ────────────────────────────
-      - name: 데이터 파일 커밋 및 푸시
+      # ─── 10. 데이터·빌드 커밋 & 푸시 (Vercel 자동 배포 유발) ───
+      - name: 데이터·빌드 커밋 및 푸시
         if: steps.check_changes.outputs.changed == 'true'
         run: |
-          # Git 설정
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # 데이터 파일만 스테이징
-          git add data/pc_data.json data/cafe_posts.json
-
-          # 커밋 메시지에 타임스탬프 포함 (KST)
+          git add data/pc_data.json data/cafe_posts.json build/
           TIMESTAMP=$(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')
           git commit -m "data: 자동 갱신 - ${TIMESTAMP}"
 
-          # 푸시
           git push origin HEAD
+          echo "✅ 데이터·빌드 푸시 완료 (Vercel 자동 배포): ${TIMESTAMP}"
 
-          echo "✅ 데이터 갱신 완료: ${TIMESTAMP}"
-
-      # ─── 9. 변경 없을 때 알림 ───────────────────────────────
+      # ─── 11. 변경 없을 때 알림 ──────────────────────────────
       - name: 변경사항 없음 알림
         if: steps.check_changes.outputs.changed == 'false'
         run: |
           echo "ℹ️ 데이터 변경사항이 없습니다. 커밋 생략."
 
-      # ─── 10. 실행 요약 ──────────────────────────────────────
+      # ─── 12. 실행 요약 ──────────────────────────────────────
       - name: 실행 결과 요약
         if: always()
         run: |
