@@ -29,12 +29,14 @@ function renderProductCard(product, selectedGame = null, fpsData = null) {
                     hover:border-accent/40 hover:shadow-[0_0_30px_rgba(233,69,96,0.15)] transition-all duration-300
                     flex flex-col" data-id="${product.id}">
       <!-- 썸네일 -->
-      <div class="relative overflow-hidden h-44 bg-surface flex-shrink-0">
+      <div class="relative overflow-hidden h-52 bg-[#0d1117] flex-shrink-0 flex items-center justify-center">
         <img
           src="${product.thumbnail}"
           alt="${product.name}"
-          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-1"
           loading="lazy"
+          decoding="async"
+          fetchpriority="low"
           onerror="this.src='https://via.placeholder.com/400x300/16213e/e94560?text=YJMOD'"
         />
         <!-- 품질 티어 뱃지 -->
@@ -81,8 +83,13 @@ function renderProductCard(product, selectedGame = null, fpsData = null) {
         <!-- 가격 + CTA -->
         <div class="mt-auto pt-3 border-t border-white/5 flex items-center justify-between gap-2">
           <div>
-            <p class="text-xs text-gray-500">판매가</p>
-            <p class="text-2xl font-black text-white tracking-tight">${product.price_display}</p>
+            ${product.installment_months > 0
+              ? `<p class="text-xs text-purple-400 font-semibold">${product.installment_months}개월 무이자</p>
+                 <p class="text-2xl font-black text-white tracking-tight">${product.price_display}</p>
+                 <p class="text-xs text-gray-500 mt-0.5">총 ${Math.round((product.price||0)/10000)}만 원</p>`
+              : `<p class="text-xs text-gray-500">판매가</p>
+                 <p class="text-2xl font-black text-white tracking-tight">${product.price_display}</p>`
+            }
           </div>
           <a href="${product.url}" target="_blank" rel="noopener noreferrer"
              class="flex-shrink-0 px-4 py-2 bg-accent hover:bg-accent/80 text-white text-sm font-semibold
@@ -136,8 +143,23 @@ function renderSpecRow(type, value) {
  * @param {string|null} selectedGame - 선택한 게임
  * @param {Object|null} fpsData - FPS 참조 데이터
  */
+const FLAT_PAGE_SIZE = 12;
+
+function forceShowCards(container) {
+  container.querySelectorAll('.fade-in-up').forEach((el) => {
+    el.classList.add('visible');
+    el.style.opacity = '1';
+    el.style.transform = 'translateY(0)';
+  });
+}
+
 function renderProductGrid(container, products, selectedGame = null, fpsData = null) {
   if (!container) return;
+
+  // 현재 렌더 컨텍스트 저장 (이벤트 위임 핸들러에서 재사용)
+  container._flatProducts = products;
+  container._flatSelectedGame = selectedGame;
+  container._flatFpsData = fpsData;
 
   if (products.length === 0) {
     container.innerHTML = `
@@ -157,9 +179,50 @@ function renderProductGrid(container, products, selectedGame = null, fpsData = n
     return;
   }
 
-  container.innerHTML = products
+  // 초기 노출: FLAT_PAGE_SIZE 개, 이후 더보기
+  let visibleCount = parseInt(container.dataset.visibleCount || FLAT_PAGE_SIZE);
+  const visible = products.slice(0, visibleCount);
+  const remaining = products.length - visibleCount;
+
+  container.dataset.visibleCount = visibleCount;
+
+  container.innerHTML = visible
     .map(p => renderProductCard(p, selectedGame, fpsData))
     .join('');
+
+  // 더보기 버튼
+  if (remaining > 0) {
+    const loadMoreEl = document.createElement('div');
+    loadMoreEl.className = 'col-span-full flex justify-center pt-4 pb-2';
+    loadMoreEl.innerHTML = `
+      <button class="js-load-more flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10
+                     border border-white/10 hover:border-accent/40 text-sm font-semibold
+                     text-gray-300 hover:text-accent rounded-xl transition-all duration-200">
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+        </svg>
+        ${remaining}개 더 보기
+      </button>
+    `;
+    container.appendChild(loadMoreEl);
+  }
+
+  // 일부 환경에서 IntersectionObserver가 누락되어 카드가 숨겨지는 문제 방지
+  forceShowCards(container);
+}
+
+function buildLoadMoreSkeleton(count = 4) {
+  return Array.from({ length: count }, () => `
+    <article class="product-skeleton rounded-2xl border border-white/5 overflow-hidden bg-card">
+      <div class="h-52 skeleton-shimmer"></div>
+      <div class="p-5 space-y-3">
+        <div class="h-4 w-3/4 skeleton-shimmer rounded"></div>
+        <div class="h-3 w-full skeleton-shimmer rounded"></div>
+        <div class="h-3 w-5/6 skeleton-shimmer rounded"></div>
+        <div class="h-9 w-full skeleton-shimmer rounded-lg mt-4"></div>
+      </div>
+    </article>
+  `).join('');
 }
 
 /**
@@ -183,11 +246,11 @@ function renderWizardResultCard(product, selectedGame, fpsData) {
                     hover:border-accent/40 hover:shadow-[0_0_40px_rgba(233,69,96,0.2)] transition-all duration-300
                     flex flex-col" data-id="${product.id}">
       <!-- 상단 이미지 -->
-      <div class="relative overflow-hidden h-52 bg-surface flex-shrink-0">
+      <div class="relative overflow-hidden h-56 bg-[#0d1117] flex-shrink-0 flex items-center justify-center">
         <img
           src="${product.thumbnail}"
           alt="${product.name}"
-          class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          class="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500 p-1"
           loading="lazy"
           onerror="this.src='https://via.placeholder.com/400x300/16213e/e94560?text=YJMOD'"
         />
@@ -238,8 +301,13 @@ function renderWizardResultCard(product, selectedGame, fpsData) {
         <div class="mt-auto pt-4 border-t border-white/5">
           <div class="flex items-center justify-between gap-3">
             <div>
-              <p class="text-xs text-gray-500 mb-0.5">견적가 (기본 사양)</p>
-              <p class="text-3xl font-black text-white tracking-tight">${product.price_display}</p>
+              ${product.installment_months > 0
+                ? `<p class="text-xs text-purple-400 font-semibold mb-0.5">${product.installment_months}개월 무이자</p>
+                   <p class="text-3xl font-black text-white tracking-tight">${product.price_display}</p>
+                   <p class="text-xs text-gray-500 mt-0.5">총 ${Math.round((product.price||0)/10000)}만 원</p>`
+                : `<p class="text-xs text-gray-500 mb-0.5">견적가 (기본 사양)</p>
+                   <p class="text-3xl font-black text-white tracking-tight">${product.price_display}</p>`
+              }
             </div>
             <a href="${product.url}" target="_blank" rel="noopener noreferrer"
                class="flex-shrink-0 px-5 py-3 bg-accent hover:bg-red-500 text-white font-bold
@@ -253,4 +321,86 @@ function renderWizardResultCard(product, selectedGame, fpsData) {
   `;
 }
 
-export { renderProductCard, renderProductGrid, renderWizardResultCard };
+// ─── 그룹별 뷰 (기본 화면) ──────────────────────────────────────
+
+const GROUPS = [
+  { key: 'usage',       value: '게이밍',        label: '🎮 게이밍 PC',         desc: '게임 특화 최적화 견적' },
+  { key: 'usage',       value: 'AI/딥러닝',      label: '🤖 AI · 딥러닝 PC',    desc: 'AI 이미지생성 · 머신러닝 전용' },
+  { key: 'usage',       value: '영상편집',        label: '🎬 영상편집 PC',        desc: '4K 편집 · 렌더링 특화' },
+  { key: 'usage',       value: '사무/디자인',     label: '💼 사무 · 디자인 PC',   desc: '업무 · 문서 · 디자인 최적화' },
+  { key: 'usage',       value: '3D/모델링',       label: '🎨 3D 모델링 PC',       desc: 'CAD · 블렌더 · 솔리드웍스' },
+  { key: 'usage',       value: '방송/스트리밍',   label: '📺 방송 · 스트리밍 PC', desc: 'OBS · 원컴방송 · 라이브' },
+  { key: 'installment', value: 24,                label: '💳 24개월 무이자',       desc: '월 납부금으로 부담 없이' },
+  { key: 'installment', value: 36,                label: '💳 36개월 무이자',       desc: '가장 낮은 월 납부금' },
+];
+
+const CARDS_PER_GROUP = 3;
+
+/**
+ * 그룹별 섹션 렌더링 (기본 화면)
+ */
+function renderGroupedView(container, allProducts, fpsData, onMoreClick) {
+  if (!container) return;
+
+  // 현재 핸들러 참조 저장 (위임 이벤트에서 사용)
+  container._groupMoreHandler = onMoreClick;
+
+  // 그룹별 상품 분류
+  const grouped = GROUPS.map(group => {
+    let products;
+    if (group.key === 'installment') {
+      products = allProducts.filter(p => (p.installment_months || 0) === group.value);
+    } else {
+      products = allProducts.filter(p =>
+        (p.categories?.usage || []).includes(group.value) &&
+        !(p.installment_months > 0 && group.value === '게이밍')
+      );
+    }
+    return { ...group, products };
+  }).filter(g => g.products.length > 0);
+
+  container.innerHTML = grouped.map(group => {
+    const preview = group.products.slice(0, CARDS_PER_GROUP);
+    const remaining = group.products.length - CARDS_PER_GROUP;
+
+    return `
+      <div class="col-span-full group-section mb-2">
+        <!-- 섹션 헤더 -->
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h3 class="text-lg font-bold text-white">${group.label}</h3>
+            <p class="text-xs text-gray-500 mt-0.5">${group.desc} · ${group.products.length}개</p>
+          </div>
+          ${remaining > 0 ? `
+          <button
+            data-group-key="${group.key}"
+            data-group-value="${encodeURIComponent(JSON.stringify(group.value))}"
+            class="js-group-more flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-400
+                   hover:text-accent border border-white/10 hover:border-accent/40
+                   rounded-lg transition-all duration-200 whitespace-nowrap"
+          >
+            ${remaining}개 더보기
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </button>` : ''}
+        </div>
+
+        <!-- 카드 그리드 -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-2">
+          ${preview.map(p => renderProductCard(p, null, fpsData)).join('')}
+        </div>
+
+        <!-- 구분선 -->
+        <div class="border-b border-white/5 mt-6 mb-6"></div>
+      </div>
+    `;
+  }).join('');
+
+  // 상단 그룹 더보기는 app.js 문서 위임에서 일괄 처리
+
+  // 그룹 카드도 렌더 직후 강제 노출 처리
+  forceShowCards(container);
+}
+
+export { renderProductCard, renderProductGrid, renderGroupedView, renderWizardResultCard, buildLoadMoreSkeleton };

@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="영재컴퓨터 공식 PC 추천 페이지 - 게임별, 예산별 최적의 조립PC를 찾아보세요" />
   <title>YJMOD 추천 PC | 영재컴퓨터</title>
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="shortcut icon" href="./favicon.svg" />
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -48,12 +50,28 @@
 </head>
 
 <body class="bg-bg text-white">
+  <script>
+    // iframe 감지 및 최적화 클래스 추가
+    (function() {
+      try {
+        if (window.self !== window.top) {
+          document.body.classList.add('iframe-embed');
+        }
+      } catch (e) {
+        // cross-origin iframe인 경우
+        document.body.classList.add('iframe-embed');
+      }
+    })();
+  </script>
+
+  <!-- 스크롤 프로그레스 -->
+  <div class="scroll-progress" id="scroll-progress" style="width:0%"></div>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- 헤더 / 네비게이션                                       -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <header id="main-header" class="px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto flex items-center justify-between h-16">
+    <div class="max-w-7xl mx-auto flex items-center justify-between h-16 gap-4">
 
       <!-- 로고 -->
       <a href="#" class="flex items-center gap-2.5 flex-shrink-0">
@@ -70,10 +88,10 @@
       </a>
 
       <!-- 데스크톱 네비 -->
-      <nav class="hidden md:flex items-center gap-6">
-        <a href="#products" class="nav-link">전체 제품</a>
-        <a href="#cafe-section" class="nav-link">출고 현황</a>
-        <a href="https://www.youngjaecomputer.com" target="_blank" rel="noopener" class="nav-link">
+      <nav class="hidden md:flex items-center gap-8 ml-4">
+        <a href="#products" class="nav-link whitespace-nowrap">전체 제품</a>
+        <a href="#cafe-section" class="nav-link whitespace-nowrap">출고 현황</a>
+        <a href="https://www.youngjaecomputer.com" target="_blank" rel="noopener" class="nav-link whitespace-nowrap">
           공식 홈페이지
           <svg class="w-3 h-3 inline ml-0.5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
@@ -82,8 +100,9 @@
       </nav>
 
       <!-- 헤더 액션 버튼 -->
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 ml-4 flex-shrink-0">
         <button
+          type="button"
           data-open-wizard
           class="hidden sm:flex items-center gap-2 px-4 py-2 bg-accent hover:bg-red-500
                  text-white text-sm font-bold rounded-xl transition-all duration-200 glow-btn">
@@ -111,7 +130,7 @@
       <a href="#cafe-section" class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">출고 현황</a>
       <a href="https://www.youngjaecomputer.com" target="_blank" rel="noopener"
          class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">공식 홈페이지</a>
-      <button data-open-wizard
+      <button type="button" data-open-wizard
               class="w-full mt-2 py-3 bg-accent text-white text-sm font-bold rounded-xl">
         AI 추천 받기
       </button>
@@ -124,6 +143,10 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <section class="hero-section flex items-center pt-16">
     <div class="hero-grid-pattern"></div>
+
+    <!-- 배경 오브 -->
+    <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
+    <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
     <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 w-full">
       <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
@@ -158,8 +181,9 @@
           <!-- CTA 버튼 -->
           <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
             <button
+              type="button"
               data-open-wizard
-              class="px-7 py-4 bg-accent hover:bg-red-500 text-white font-bold text-base
+              class="shimmer-btn px-7 py-4 bg-accent hover:bg-red-500 text-white font-bold text-base
                      rounded-2xl transition-all duration-200 glow-btn flex items-center justify-center gap-2">
               <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -198,7 +222,8 @@
         </div>
 
         <!-- 히어로 비주얼 카드 (데스크톱) -->
-        <div class="hidden lg:flex flex-col gap-4 flex-shrink-0 w-72 animate-float">
+        <div class="hidden lg:flex flex-col gap-4 flex-shrink-0 w-72 animate-float"
+            
           <!-- 예시 추천 카드 -->
           <div class="bg-card border border-white/8 rounded-2xl p-4 shadow-2xl">
             <div class="flex items-center gap-2 mb-3">
@@ -259,7 +284,7 @@
       </div>
       <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
         <!-- 게임 퀵 선택 버튼 -->
-        <button data-open-wizard data-game="리그오브레전드"
+        <button type="button" data-open-wizard data-game="리그오브레전드"
                 class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
                        border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
           <span class="text-lg">🎮</span>
@@ -268,7 +293,7 @@
             <p class="text-xs text-gray-500 mt-0.5">롤 최적 견적</p>
           </div>
         </button>
-        <button data-open-wizard data-game="배틀그라운드"
+        <button type="button" data-open-wizard data-game="배틀그라운드"
                 class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
                        border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
           <span class="text-lg">🔫</span>
@@ -277,7 +302,7 @@
             <p class="text-xs text-gray-500 mt-0.5">배그 최적 견적</p>
           </div>
         </button>
-        <button data-open-wizard data-game="로스트아크"
+        <button type="button" data-open-wizard data-game="로스트아크"
                 class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
                        border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
           <span class="text-lg">⚔️</span>
@@ -286,7 +311,7 @@
             <p class="text-xs text-gray-500 mt-0.5">로아 최적 견적</p>
           </div>
         </button>
-        <button data-open-wizard data-game="스팀 AAA급 게임"
+        <button type="button" data-open-wizard data-game="스팀 AAA급 게임"
                 class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
                        border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
           <span class="text-lg">🎲</span>
@@ -295,7 +320,7 @@
             <p class="text-xs text-gray-500 mt-0.5">고사양 최적 견적</p>
           </div>
         </button>
-        <button data-open-wizard data-game="발로란트"
+        <button type="button" data-open-wizard data-game="발로란트"
                 class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
                        border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
           <span class="text-lg">🎯</span>
@@ -304,7 +329,7 @@
             <p class="text-xs text-gray-500 mt-0.5">발로 최적 견적</p>
           </div>
         </button>
-        <button data-open-wizard data-game="오버워치2"
+        <button type="button" data-open-wizard data-game="오버워치2"
                 class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
                        border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
           <span class="text-lg">🦸</span>
@@ -319,9 +344,45 @@
 
 
   <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 신뢰 배너 Marquee                                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="py-4 bg-bg/80 border-b border-white/5 overflow-hidden">
+    <div class="marquee-container">
+      <div class="marquee-track" id="marquee-track" style="display:flex;flex-wrap:nowrap;width:max-content">
+        <div class="marquee-item">🏆 20년+ 조립 노하우</div>
+        <div class="marquee-item">⚡ 6시간마다 실시간 재고 갱신</div>
+        <div class="marquee-item">🔧 1년 무상 A/S 보증</div>
+        <div class="marquee-item">🎮 게이밍 PC 전문</div>
+        <div class="marquee-item">💳 24/36개월 무이자 할부</div>
+        <div class="marquee-item">🤖 AI · 딥러닝 워크스테이션</div>
+        <div class="marquee-item">📺 방송 · 스트리밍 PC</div>
+        <div class="marquee-item">🎬 영상편집 전용 PC</div>
+        <div class="marquee-item">🛡️ 용산 전자상가 직영</div>
+        <div class="marquee-item">📦 전국 택배 배송</div>
+        <div class="marquee-item">⭐ 네이버 카페 5만+ 회원</div>
+        <div class="marquee-item">💎 프리미엄 부품만 사용</div>
+        <!-- 복제 (무한 루프) -->
+        <div class="marquee-item">🏆 20년+ 조립 노하우</div>
+        <div class="marquee-item">⚡ 6시간마다 실시간 재고 갱신</div>
+        <div class="marquee-item">🔧 1년 무상 A/S 보증</div>
+        <div class="marquee-item">🎮 게이밍 PC 전문</div>
+        <div class="marquee-item">💳 24/36개월 무이자 할부</div>
+        <div class="marquee-item">🤖 AI · 딥러닝 워크스테이션</div>
+        <div class="marquee-item">📺 방송 · 스트리밍 PC</div>
+        <div class="marquee-item">🎬 영상편집 전용 PC</div>
+        <div class="marquee-item">🛡️ 용산 전자상가 직영</div>
+        <div class="marquee-item">📦 전국 택배 배송</div>
+        <div class="marquee-item">⭐ 네이버 카페 5만+ 회원</div>
+        <div class="marquee-item">💎 프리미엄 부품만 사용</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
   <!-- 제품 목록 섹션                                          -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <section id="products" class="py-12 bg-bg">
+  <section id="products-section" class="py-12 bg-bg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
       <!-- 섹션 헤더 -->
@@ -361,9 +422,9 @@
           <!-- 필터 탭 헤더 -->
           <div class="flex items-center gap-1 border-b border-white/5 mb-4 overflow-x-auto hide-scrollbar">
             <button class="filter-tab active" data-target="filter-game">게임별</button>
+            <button class="filter-tab" data-target="filter-usage">용도별</button>
             <button class="filter-tab" data-target="filter-tier">사양별</button>
             <button class="filter-tab" data-target="filter-price">금액별</button>
-            <button class="filter-tab" data-target="filter-usage">용도별</button>
             <div class="ml-auto flex-shrink-0 flex items-center gap-2">
               <span id="active-filter-count"
                     class="hidden w-5 h-5 rounded-full bg-accent text-white text-xs font-bold
@@ -376,26 +437,48 @@
           </div>
 
           <!-- 게임 필터 패널 -->
-          <div id="filter-game" class="filter-panel active flex-wrap gap-2">
-            <button class="filter-btn" data-filter-value="리그오브레전드">🎮 리그오브레전드</button>
-            <button class="filter-btn" data-filter-value="배틀그라운드">🔫 배틀그라운드</button>
-            <button class="filter-btn" data-filter-value="로스트아크">⚔️ 로스트아크</button>
-            <button class="filter-btn" data-filter-value="스팀 AAA급 게임">🎲 스팀 AAA</button>
-            <button class="filter-btn" data-filter-value="발로란트">🎯 발로란트</button>
-            <button class="filter-btn" data-filter-value="오버워치2">🦸 오버워치2</button>
+          <div id="filter-game" class="filter-panel active flex-col gap-3">
+            <div class="flex flex-wrap gap-2">
+              <button class="filter-btn" data-filter-key="game" data-filter-value="리그오브레전드">🎮 리그오브레전드</button>
+              <button class="filter-btn" data-filter-key="game" data-filter-value="배틀그라운드">🔫 배틀그라운드</button>
+              <button class="filter-btn" data-filter-key="game" data-filter-value="로스트아크">⚔️ 로스트아크</button>
+              <button class="filter-btn" data-filter-key="game" data-filter-value="스팀 AAA급 게임">🎲 스팀 AAA</button>
+              <button class="filter-btn" data-filter-key="game" data-filter-value="발로란트">🎯 발로란트</button>
+              <button class="filter-btn" data-filter-key="game" data-filter-value="오버워치2">🦸 오버워치2</button>
+              <button class="filter-btn" data-filter-key="game" data-filter-value="아이온2">🗡️ 아이온2</button>
+            </div>
+          </div>
+
+          <!-- 용도 필터 패널 -->
+          <div id="filter-usage" class="filter-panel hidden flex-col gap-3">
+            <!-- 작업/전문 용도 -->
+            <div class="flex flex-wrap gap-2">
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="게이밍">🎮 게이밍</button>
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="사무/디자인">💼 사무용</button>
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="영상편집">🎬 영상편집</button>
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="3D/모델링">🎨 3D 모델링</button>
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="AI/딥러닝">🤖 AI·딥러닝</button>
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="방송/스트리밍">📺 방송·스트리밍</button>
+            </div>
+            <!-- 할부 -->
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs text-gray-500 self-center font-medium">무이자 할부</span>
+              <button class="filter-btn" data-filter-key="installment" data-filter-value="24">💳 24개월 무이자</button>
+              <button class="filter-btn" data-filter-key="installment" data-filter-value="36">💳 36개월 무이자</button>
+            </div>
           </div>
 
           <!-- 사양 티어 필터 패널 -->
           <div id="filter-tier" class="filter-panel hidden flex-wrap gap-2">
-            <button class="filter-btn" data-filter-value="가성비(FHD)">
+            <button class="filter-btn" data-filter-key="tier" data-filter-value="가성비(FHD)">
               <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span>
               FHD 가성비
             </button>
-            <button class="filter-btn" data-filter-value="퍼포먼스(QHD)">
+            <button class="filter-btn" data-filter-key="tier" data-filter-value="퍼포먼스(QHD)">
               <span class="w-2 h-2 rounded-full bg-blue-400 inline-block"></span>
               QHD 퍼포먼스
             </button>
-            <button class="filter-btn" data-filter-value="하이엔드(4K)">
+            <button class="filter-btn" data-filter-key="tier" data-filter-value="하이엔드(4K)">
               <span class="w-2 h-2 rounded-full bg-purple-400 inline-block"></span>
               4K 하이엔드
             </button>
@@ -403,19 +486,10 @@
 
           <!-- 금액 필터 패널 -->
           <div id="filter-price" class="filter-panel hidden flex-wrap gap-2">
-            <button class="filter-btn" data-filter-value="100만 원 이하">💰 100만 원 이하</button>
-            <button class="filter-btn" data-filter-value="100~200만 원">💵 100~200만 원</button>
-            <button class="filter-btn" data-filter-value="200~300만 원">💎 200~300만 원</button>
-            <button class="filter-btn" data-filter-value="300만 원 이상">👑 300만 원 이상</button>
-          </div>
-
-          <!-- 용도 필터 패널 -->
-          <div id="filter-usage" class="filter-panel hidden flex-wrap gap-2">
-            <button class="filter-btn" data-filter-value="게이밍">🎮 게이밍</button>
-            <button class="filter-btn" data-filter-value="영상편집">🎬 영상편집</button>
-            <button class="filter-btn" data-filter-value="AI/딥러닝">🤖 AI/딥러닝</button>
-            <button class="filter-btn" data-filter-value="사무/디자인">💼 사무/디자인</button>
-            <button class="filter-btn" data-filter-value="3D/모델링">🎨 3D/모델링</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="100만 원 이하">💰 100만 원 이하</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="100~200만 원">💵 100~200만 원</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="200~300만 원">💎 200~300만 원</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="300만 원 이상">👑 300만 원 이상</button>
           </div>
         </div>
       </div>
@@ -425,9 +499,9 @@
         <div class="spinner"></div>
       </div>
 
-      <!-- 제품 그리드 -->
+      <!-- 제품 그리드 (그룹뷰: col-span-full 섹션 / 필터뷰: 카드 그리드) -->
       <div id="product-grid"
-           class="opacity-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+           class="opacity-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       </div>
 
     </div>
@@ -469,7 +543,7 @@
 
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- 실시간 출고 사진 섹션                                   -->
+  <!-- 실시간 출고 현황 섹션                                    -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <section id="cafe-section" class="py-16 bg-bg border-t border-white/5">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -480,31 +554,96 @@
           <div class="flex items-center gap-2 mb-2">
             <span class="pulse-dot"></span>
             <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">LIVE</span>
-            <span class="text-xs text-gray-500">네이버 카페 연동</span>
+            <span class="text-xs text-gray-500">실시간 업데이트</span>
           </div>
-          <h2 class="section-title">지금 조립 중인 PC</h2>
-          <p class="text-sm text-gray-500 mt-1">영재컴퓨터 네이버 카페의 최신 출고 사진</p>
+          <h2 class="section-title">실시간 출고 현황</h2>
+          <p class="text-sm text-gray-500 mt-1">영재컴퓨터에서 실제 출고되는 조립PC를 확인하세요</p>
         </div>
-        <a href="https://cafe.naver.com/no1yjmod" target="_blank" rel="noopener"
+        <a href="https://cafe.naver.com/f-e/cafes/31248285/menus/1?viewType=I&page=1&size=20" target="_blank" rel="noopener"
            class="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-[#03C75A]/10 hover:bg-[#03C75A]/20
                   border border-[#03C75A]/30 text-[#03C75A] text-sm font-semibold
                   rounded-xl transition-all duration-200">
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
           </svg>
-          네이버 카페 바로가기
+          전체 출고 현황 보기
         </a>
       </div>
 
-      <!-- 슬라이더 컨테이너 -->
-      <div id="cafe-slider-container" class="relative">
-        <!-- JavaScript로 렌더링됩니다 -->
-        <div class="flex gap-4 overflow-x-auto hide-scrollbar pb-2">
-          <!-- 로딩 스켈레톤 -->
-          <div class="flex-shrink-0 w-64 h-52 bg-surface rounded-2xl animate-pulse"></div>
-          <div class="flex-shrink-0 w-64 h-52 bg-surface rounded-2xl animate-pulse"></div>
-          <div class="flex-shrink-0 w-64 h-52 bg-surface rounded-2xl animate-pulse"></div>
-        </div>
+      <!-- 출고 현황 카드 그리드 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <!-- 카드 1: 실시간 출고 사진 -->
+        <a href="https://cafe.naver.com/f-e/cafes/31248285/menus/1?viewType=I&page=1&size=20" target="_blank" rel="noopener"
+           class="group bg-card border border-white/5 rounded-2xl p-6 hover:border-accent/30 transition-all duration-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center">
+              <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-white font-bold text-sm group-hover:text-accent transition-colors">실시간 출고 사진</h3>
+              <p class="text-gray-500 text-xs">조립 완료된 PC 실제 사진</p>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed">매일 출고되는 조립PC의 실제 사진을 확인할 수 있습니다. 케이스, 내부 배선, 완성된 모습까지 꼼꼼하게 촬영합니다.</p>
+          <div class="flex items-center gap-1 mt-4 text-xs text-accent/60 group-hover:text-accent transition-colors">
+            <span>바로가기</span>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </a>
+
+        <!-- 카드 2: 실사용 후기 -->
+        <a href="https://www.youngjaecomputer.com/bbs/board.php?bo_table=purchase_postscript" target="_blank" rel="noopener"
+           class="group bg-card border border-white/5 rounded-2xl p-6 hover:border-blue-400/30 transition-all duration-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+              <svg class="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-white font-bold text-sm group-hover:text-blue-400 transition-colors">실사용 후기</h3>
+              <p class="text-gray-500 text-xs">실제 구매자 리뷰</p>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed">실제 구매하신 분들의 생생한 사용 후기를 확인하세요. 게임 성능, 발열, 소음 등 실사용 경험을 공유합니다.</p>
+          <div class="flex items-center gap-1 mt-4 text-xs text-blue-400/60 group-hover:text-blue-400 transition-colors">
+            <span>바로가기</span>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </a>
+
+        <!-- 카드 3: 1:1 맞춤상담 -->
+        <a href="https://pf.kakao.com/_sxmjxgT/chat" target="_blank" rel="noopener"
+           class="group bg-card border border-white/5 rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-200">
+          <div class="flex items-center gap-3 mb-4">
+            <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
+              <svg class="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-white font-bold text-sm group-hover:text-emerald-400 transition-colors">1:1 24시간 맞춤 상담</h3>
+              <p class="text-gray-500 text-xs">전문 상담사 견적 문의</p>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm leading-relaxed">원하는 사양과 예산을 말씀하시면 전문 상담사가 최적의 견적을 제안해 드립니다. 전화/카카오톡 상담 가능합니다.</p>
+          <div class="flex items-center gap-1 mt-4 text-xs text-emerald-400/60 group-hover:text-emerald-400 transition-colors">
+            <span>바로가기</span>
+            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+          </div>
+        </a>
       </div>
 
     </div>
@@ -521,50 +660,86 @@
         <p class="text-gray-400 max-w-xl mx-auto">20년 이상의 조립 노하우와 실시간 데이터로 최적의 PC를 추천합니다</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="fade-in-up bg-card border border-white/5 rounded-2xl p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-accent/10 flex items-center justify-center mx-auto mb-4">
+      <!-- Bento Grid -->
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+
+        <div class="bento-card col-span-2">
+          <div class="bento-icon bg-accent/10">
             <svg class="w-6 h-6 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
           </div>
-          <h3 class="text-base font-bold text-white mb-2">실시간 재고 연동</h3>
-          <p class="text-sm text-gray-500">6시간마다 자동 크롤링으로 품절 상품을 즉시 제외합니다</p>
+          <h3 class="text-base font-bold text-white mb-1.5">실시간 재고 연동</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">6시간마다 자동 크롤링으로 품절 상품을 즉시 제외하고, 가격 변동도 실시간 반영합니다. 보이는 상품은 모두 구매 가능한 제품입니다.</p>
+          <div class="flex items-center gap-2 mt-4 pt-3 border-t border-white/5">
+            <span class="pulse-dot"></span>
+            <span class="text-xs text-emerald-400 font-semibold">LIVE 연동 중</span>
+          </div>
         </div>
 
-        <div class="fade-in-up bg-card border border-white/5 rounded-2xl p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center mx-auto mb-4">
+        <div class="bento-card">
+          <div class="bento-icon bg-blue-500/10">
             <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
             </svg>
           </div>
-          <h3 class="text-base font-bold text-white mb-2">예상 FPS 제공</h3>
-          <p class="text-sm text-gray-500">벤치마크 데이터 기반으로 선택 게임의 예상 FPS를 알려줍니다</p>
+          <h3 class="text-base font-bold text-white mb-1.5">예상 FPS 제공</h3>
+          <p class="text-sm text-gray-500">벤치마크 기반 게임별 예상 FPS</p>
         </div>
 
-        <div class="fade-in-up bg-card border border-white/5 rounded-2xl p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-purple-500/10 flex items-center justify-center mx-auto mb-4">
+        <div class="bento-card">
+          <div class="bento-icon bg-purple-500/10">
             <svg class="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
           </div>
-          <h3 class="text-base font-bold text-white mb-2">1만 원 단위 가격</h3>
-          <p class="text-sm text-gray-500">복잡한 원 단위 없이 직관적인 만 원 단위로 가격을 표시합니다</p>
+          <h3 class="text-base font-bold text-white mb-1.5">1만 원 단위 가격</h3>
+          <p class="text-sm text-gray-500">직관적 만 원 단위 표시</p>
         </div>
 
-        <div class="fade-in-up bg-card border border-white/5 rounded-2xl p-6 text-center">
-          <div class="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+        <div class="bento-card">
+          <div class="bento-icon bg-emerald-500/10">
             <svg class="w-6 h-6 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                 d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
             </svg>
           </div>
-          <h3 class="text-base font-bold text-white mb-2">1년 무상 A/S</h3>
-          <p class="text-sm text-gray-500">영재컴퓨터의 명품 조립과 1년 무상 A/S 보증이 포함됩니다</p>
+          <h3 class="text-base font-bold text-white mb-1.5">1년 무상 A/S</h3>
+          <p class="text-sm text-gray-500">명품 조립 + 보증</p>
         </div>
+
+        <div class="bento-card">
+          <div class="bento-icon bg-amber-500/10">
+            <svg class="w-6 h-6 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-1.5">1:1 전문 상담</h3>
+          <p class="text-sm text-gray-500">카카오톡 · 전화 견적</p>
+        </div>
+
+        <div class="bento-card col-span-2">
+          <div class="bento-icon bg-cyan-500/10">
+            <svg class="w-6 h-6 text-cyan-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+          <h3 class="text-base font-bold text-white mb-1.5">용산 전자상가 직영</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">서울 용산구 효창원로69길 15 원광빌딩 2층에서 직접 방문 상담 및 수령이 가능합니다. 전국 택배 배송도 지원합니다.</p>
+          <div class="flex items-center gap-3 mt-4 pt-3 border-t border-white/5">
+            <span class="text-xs text-gray-500">📞 02-716-5232</span>
+            <span class="text-xs text-gray-600">|</span>
+            <span class="text-xs text-gray-500">🕐 평일 10:00 - 19:00</span>
+          </div>
+        </div>
+
       </div>
     </div>
   </section>
@@ -623,11 +798,11 @@
   <div id="wizard-modal" class="fixed inset-0 z-[200] hidden items-end sm:items-center justify-center p-0 sm:p-4">
     <div class="wizard-panel w-full mx-auto">
 
-      <!-- 패널 헤더 -->
-      <div class="flex items-center justify-between p-6 pb-4 border-b border-white/5">
+      <!-- 패널 헤더 (고정) -->
+      <div class="wizard-header flex items-center justify-between p-6 pb-4 border-b border-white/5">
         <div>
           <h2 class="text-lg font-extrabold text-white">AI PC 추천 위자드</h2>
-          <p class="text-xs text-gray-500 mt-0.5">3단계로 나만의 PC를 찾아보세요</p>
+          <p class="text-xs text-gray-500 mt-0.5">4단계로 나만의 PC를 찾아보세요</p>
         </div>
         <button id="wizard-close"
                 class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center
@@ -638,15 +813,17 @@
         </button>
       </div>
 
-      <!-- 스텝 인디케이터 -->
-      <div class="flex items-center gap-2 px-6 py-4">
+      <!-- 스텝 인디케이터 (5단계, 고정) -->
+      <div class="wizard-steps flex items-center gap-2 px-6 py-4 flex-wrap">
         <div class="step-indicator step-active" data-step="1">1</div>
         <div class="step-connector" id="step-connector-1"></div>
         <div class="step-indicator step-pending" data-step="2">2</div>
         <div class="step-connector" id="step-connector-2"></div>
         <div class="step-indicator step-pending" data-step="3">3</div>
-        <div class="ml-3 text-xs text-gray-500">
-          <span class="text-white font-semibold step-label">게임</span> 선택
+        <div class="step-connector" id="step-connector-3"></div>
+        <div class="step-indicator step-pending" data-step="4">4</div>
+        <div class="ml-3 text-xs text-gray-500 min-w-[4rem]">
+          <span class="text-white font-semibold step-label">용도</span>
         </div>
       </div>
 
@@ -679,6 +856,70 @@
         });
       });
     });
+  </script>
+
+  <!-- 경량 UI 스크립트 -->
+  <script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // ─── 스크롤 프로그레스 바 (rAF 스로틀) ────────────────
+    const progressBar = document.getElementById('scroll-progress');
+    if (progressBar) {
+      let ticking = false;
+      window.addEventListener('scroll', () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(() => {
+            const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            progressBar.style.width = (h > 0 ? (document.documentElement.scrollTop / h) * 100 : 0) + '%';
+            ticking = false;
+          });
+        }
+      }, { passive: true });
+    }
+
+    // ─── Hero 카운트업 (한 번만 실행) ──────────────────────
+    const countEl = document.getElementById('hero-stat-products');
+    if (countEl) {
+      const target = parseInt(countEl.textContent) || 0;
+      if (target > 0) {
+        let current = 0;
+        const step = Math.max(1, Math.ceil(target / 40));
+        const tick = () => {
+          current = Math.min(current + step, target);
+          countEl.textContent = current;
+          if (current < target) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }
+  });
+  </script>
+
+  <script>
+  // iframe 임베드 환경에서 부모 페이지로 현재 문서 높이를 전달해
+  // 불필요한 빈 여백(과도한 스크롤)을 줄입니다.
+  (function () {
+    function postHeight() {
+      const h = Math.max(
+        document.body.scrollHeight,
+        document.documentElement.scrollHeight,
+        document.body.offsetHeight,
+        document.documentElement.offsetHeight
+      );
+      try {
+        window.parent?.postMessage({ type: 'yjmod:height', height: h }, '*');
+      } catch (_) {}
+    }
+
+    window.addEventListener('load', postHeight);
+    window.addEventListener('resize', postHeight);
+    document.addEventListener('DOMContentLoaded', () => {
+      postHeight();
+      setTimeout(postHeight, 300);
+      setTimeout(postHeight, 1000);
+    });
+    setInterval(postHeight, 1500);
+  })();
   </script>
 
   <!-- 메인 앱 (ES Module) -->
