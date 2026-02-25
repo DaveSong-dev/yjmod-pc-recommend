@@ -96,7 +96,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: 'npm'
 
       # ─── 8. 단일 HTML 빌드 (배포용) ──────────────────────────
       - name: 단일 HTML 빌드
