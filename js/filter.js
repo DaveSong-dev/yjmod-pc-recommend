@@ -32,9 +32,12 @@ export const SOLD_OUT_PRODUCT_IDS = ['2741770843'];
  * 재고 있는 상품인지 여부 (품절·블록리스트 제외)
  * 모든 노출 경로에서 이 조건으로만 표시함.
  */
+const MIN_PC_PRICE = 500000;
+
 export function isInStock(product) {
   if (!product || product.in_stock !== true) return false;
   if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
+  if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
   return true;
 }
 
