@@ -499,10 +499,12 @@ def gpu_key(gpu_short):
 def parse_product_detail(item_id, category, session):
     url = f"{SHOP_BASE}/item.php?it_id={item_id}"
     soup = None
+    final_url = url
     for _ in range(2):
         try:
             resp = session.get(url, timeout=15)
             resp.encoding = "utf-8"
+            final_url = resp.url
             soup = BeautifulSoup(resp.text, "lxml")
             break
         except Exception as e:
@@ -510,6 +512,17 @@ def parse_product_detail(item_id, category, session):
             time.sleep(0.6)
     if soup is None:
         print(f"    [ERROR] 페이지 로드 실패: {last_error}")
+        return None
+
+    # 리다이렉트로 다른 상품 페이지로 이동된 경우 → 품절로 간주
+    if final_url != url and f"it_id={item_id}" not in final_url:
+        print(f"    [품절] 리다이렉트 감지: {item_id} → {final_url[:80]}")
+        return None
+
+    # 페이지에 요청한 item_id가 포함되어 있는지 검증 (다른 상품으로 대체되었는지)
+    page_html = resp.text if resp else ""
+    if item_id not in page_html:
+        print(f"    [품절] 상품ID 불일치: {item_id}")
         return None
 
     # ── 제목: <title> 태그 우선, h2 보조 ──
@@ -533,6 +546,24 @@ def parse_product_detail(item_id, category, session):
     # 제외 키워드
     for kw in EXCLUDE_KEYWORDS:
         if kw in name:
+            return None
+
+    # 품절 상품이 모니터/주변기기 페이지로 대체되는 경우 감지
+    # PC 상품에는 CPU/GPU/조립/게이밍 등 키워드가 있어야 함
+    PC_INDICATOR_KEYWORDS = [
+        "PC", "조립", "게이밍", "워크스테이션", "딥러닝",
+        "RTX", "RX ", "GTX", "5060", "5070", "5080", "5090",
+        "9800X", "9950X", "9600X", "7800X", "7500F", "14400",
+        "무이자", "할부", "브랜드", "견적", "사양",
+    ]
+    page_text_for_check = soup.get_text()
+    name_upper = name.upper()
+    has_pc_indicator = any(kw.upper() in name_upper or kw in page_text_for_check[:3000] for kw in PC_INDICATOR_KEYWORDS)
+    if not has_pc_indicator:
+        # 스펙 테이블에 CPU/VGA가 있는지 최종 확인
+        has_spec_table = bool(soup.find(string=re.compile(r"CPU|VGA|RAM|SSD", re.I)))
+        if not has_spec_table:
+            print(f"    [SKIP] PC 아님 (모니터/주변기기): {name[:40]}")
             return None
 
     # ── 재고 판단 ──
@@ -658,6 +689,12 @@ def parse_product_detail(item_id, category, session):
 
     if price < 100_000:
         print(f"    [SKIP] 가격 파싱 실패: {name[:40]}")
+        return None
+
+    # 조립PC 최소 가격 기준: 50만원 미만이면 모니터 등 대체 상품 가능성 → 제외
+    MIN_PC_PRICE = 500_000
+    if price < MIN_PC_PRICE and installment_months == 0:
+        print(f"    [SKIP] 가격 비정상({price:,}원 < {MIN_PC_PRICE:,}원): {name[:40]}")
         return None
 
     # 4) 할부 상품이면 월 납부금액 파싱
