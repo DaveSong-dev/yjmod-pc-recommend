@@ -95,9 +95,11 @@
   var MIN_INSTALLMENT_MONTHLY = 3e4;
   var HIGH_END_GAMES = ["\uB85C\uC2A4\uD2B8\uC544\uD06C", "\uBC30\uD2C0\uADF8\uB77C\uC6B4\uB4DC", "\uC2A4\uD300 AAA\uAE09 \uAC8C\uC784", "\uC624\uBC84\uC6CC\uCE582"];
   var SOLD_OUT_PRODUCT_IDS = ["2741770843"];
+  var MIN_PC_PRICE = 5e5;
   function isInStock(product) {
     if (!product || product.in_stock !== true) return false;
     if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
+    if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
     return true;
   }
   function isIntegratedGpu(product) {
