@@ -94,6 +94,34 @@
     "\uBC1C\uB85C\uB780\uD2B8": ["\uBC1C\uB85C", "\uBC1C\uB85C\uB780\uD2B8"],
     "\uC624\uBC84\uC6CC\uCE582": ["\uC624\uBC84\uC6CC\uCE582", "\uC624\uBC84\uC6CC\uCE58"]
   };
+  var USAGE_ALIASES = {
+    "\uAC8C\uC774\uBC0D": ["\uAC8C\uC774\uBC0D"],
+    "\uC0AC\uBB34/\uB514\uC790\uC778": ["\uC0AC\uBB34/\uB514\uC790\uC778", "\uC0AC\uBB34\uC6A9", "\uC0AC\uBB34", "\uC624\uD53C\uC2A4", "\uC5C5\uBB34"],
+    "\uC601\uC0C1\uD3B8\uC9D1": ["\uC601\uC0C1\uD3B8\uC9D1", "\uC601\uC0C1 \uD3B8\uC9D1", "\uD504\uB9AC\uBBF8\uC5B4", "\uC560\uD504\uD130\uC774\uD399\uD2B8", "\uC5D0\uD399", "\uD3B8\uC9D1"],
+    "3D \uBAA8\uB378\uB9C1": ["3d \uBAA8\uB378\uB9C1", "3d/\uBAA8\uB378\uB9C1", "3d", "\uBAA8\uB378\uB9C1", "cad", "\uBE14\uB80C\uB354", "\uC2A4\uCF00\uCE58\uC5C5", "\uB80C\uB354\uB9C1", "maya"],
+    "AI/\uB525\uB7EC\uB2DD": ["ai/\uB525\uB7EC\uB2DD", "ai", "\uB525\uB7EC\uB2DD", "\uBA38\uC2E0\uB7EC\uB2DD", "\uC0DD\uC131\uD615"],
+    "\uBC29\uC1A1/\uC2A4\uD2B8\uB9AC\uBC0D": ["\uBC29\uC1A1/\uC2A4\uD2B8\uB9AC\uBC0D", "\uBC29\uC1A1\xB7\uC2A4\uD2B8\uB9AC\uBC0D", "\uBC29\uC1A1", "\uC2A4\uD2B8\uB9AC\uBC0D", "\uB3D9\uC2DC\uC1A1\uCD9C", "obs", "\uC1A1\uCD9C"]
+  };
+  function canonicalizeUsage(input) {
+    if (!input) return null;
+    const s = String(input).trim().toLowerCase();
+    for (const [canonical, aliases] of Object.entries(USAGE_ALIASES)) {
+      if (aliases.some((a) => s.includes(String(a).toLowerCase()) || String(a).toLowerCase().includes(s))) {
+        return canonical;
+      }
+    }
+    return null;
+  }
+  function inferUsageFromText(text) {
+    const hits = /* @__PURE__ */ new Set();
+    const t = String(text || "").toLowerCase();
+    for (const [canonical, aliases] of Object.entries(USAGE_ALIASES)) {
+      if (aliases.some((a) => t.includes(String(a).toLowerCase()))) {
+        hits.add(canonical);
+      }
+    }
+    return hits;
+  }
   function resolveGameToCanonical(input) {
     if (!input || typeof input !== "string") return input || "";
     const s = String(input).trim();
@@ -142,7 +170,7 @@
     return true;
   }
   function normalizeProduct(product) {
-    var _a, _b, _c;
+    var _a, _b, _c, _d, _e, _f, _g;
     const tags = {
       games: /* @__PURE__ */ new Set(),
       usage: /* @__PURE__ */ new Set(),
@@ -151,8 +179,20 @@
       longNoInterest24: false,
       longNoInterest36: false
     };
-    (((_a = product.categories) == null ? void 0 : _a.usage) || []).forEach((u) => tags.usage.add(u));
-    (((_b = product.categories) == null ? void 0 : _b.games) || []).forEach((g) => {
+    (((_a = product.categories) == null ? void 0 : _a.usage) || []).forEach((u) => {
+      const canonical = canonicalizeUsage(u);
+      if (canonical) tags.usage.add(canonical);
+    });
+    const usageText = [
+      product.name || "",
+      product.subtitle || "",
+      ((_b = product.specs) == null ? void 0 : _b.cpu) || "",
+      ((_c = product.specs) == null ? void 0 : _c.gpu) || "",
+      ((_d = product.specs) == null ? void 0 : _d.ram) || "",
+      ((_e = product.specs) == null ? void 0 : _e.ssd) || ""
+    ].join(" ");
+    inferUsageFromText(usageText).forEach((u) => tags.usage.add(u));
+    (((_f = product.categories) == null ? void 0 : _f.games) || []).forEach((g) => {
       tags.games.add(resolveGameToCanonical(g));
     });
     const fallbackText = `${product.name || ""} ${product.subtitle || ""}`.toLowerCase();
@@ -162,7 +202,7 @@
       }
     }
     const caseColor = product.case_color;
-    const caseName = (((_c = product.specs) == null ? void 0 : _c.case) || "").trim();
+    const caseName = (((_g = product.specs) == null ? void 0 : _g.case) || "").trim();
     if (caseColor === "\uBE14\uB799" && !/화이트|WHITE/i.test(caseName)) tags.design = "\uBE14\uB799";
     else if (caseColor === "\uD654\uC774\uD2B8" && !/블랙|BLACK/i.test(caseName)) tags.design = "\uD654\uC774\uD2B8";
     const m = product.installment_months || 0;
