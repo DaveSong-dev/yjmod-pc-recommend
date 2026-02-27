@@ -195,6 +195,24 @@ function filterProducts(products, filters = filterState) {
   });
 }
 
+/** 비게이밍 용도 (Intel non-F 우선 추천 대상) */
+const NON_GAMING_PURPOSES = ['office', 'editing', '3d', 'ai', 'streaming'];
+
+/** CPU 제조사·통합그래픽 여부 분류 (cpu_short 또는 cpu 문자열 기준) */
+function classifyCpu(product) {
+  const text = (product?.specs?.cpu_short || product?.specs?.cpu || '').toLowerCase();
+  if (!text) return 'unknown';
+  const isIntel = /인텔|intel|^i[3-9]-\d/i.test(text);
+  const isAmd = /amd|라이젠|^r[0-9]/i.test(text);
+  if (isIntel) {
+    // F, KF 접미사 = 내장그래픽 없음 → non-F가 우선
+    const hasNoIgu = /\d+f\b|\d+kf\b/i.test(text);
+    return hasNoIgu ? 'intel_f' : 'intel_nonf';
+  }
+  if (isAmd) return 'amd';
+  return 'unknown';
+}
+
 /** 용도(purpose) → product.categories.usage 값 매핑 */
 const PURPOSE_TO_USAGE = {
   gaming: '게이밍',
@@ -211,6 +229,41 @@ const WORK_TIER_TO_TIER = {
   standard: '퍼포먼스(QHD)',
   pro: '하이엔드(4K)'
 };
+
+/**
+ * 점수 정렬된 목록에서 diversity를 반영해 상위 N개 선택
+ * - 동일 CPU+GPU 조합은 최대 2건까지
+ * - 가능하면 서로 다른 CPU/GPU 조합 우선
+ */
+function selectWithDiversity(withScore, limit = 6) {
+  const selected = [];
+  const comboCount = {};
+  const MAX_PER_COMBO = 1;
+
+  for (const item of withScore) {
+    if (selected.length >= limit) break;
+    const cpu = item.product?.specs?.cpu_short || item.product?.specs?.cpu || '';
+    const gpu = item.product?.specs?.gpu_key || item.product?.specs?.gpu_short || '';
+    const combo = `${cpu}|${gpu}`;
+    const count = comboCount[combo] || 0;
+    if (count >= MAX_PER_COMBO) continue;
+    selected.push(item);
+    comboCount[combo] = count + 1;
+  }
+
+  // 부족하면 combo 제한 완화하여 채우기
+  if (selected.length < limit) {
+    const pickedIds = new Set(selected.map(s => s.product?.id));
+    for (const item of withScore) {
+      if (selected.length >= limit) break;
+      if (pickedIds.has(item.product?.id)) continue;
+      selected.push(item);
+      pickedIds.add(item.product?.id);
+    }
+  }
+
+  return selected;
+}
 
 /** debug=1 여부 (URL ?debug=1 또는 options.debug) */
 function isDebugMode(options = {}) {
@@ -315,7 +368,8 @@ function getWizardRecommendations(products, wizardSelections, options = {}) {
 
   withScore.sort((a, b) => b.score - a.score);
 
-  const top = withScore.slice(0, 6);
+  // 동일 CPU+GPU 조합 중복 억제, CPU/GPU 다양성 확보
+  const top = selectWithDiversity(withScore, 6);
   const recommended = top.map(s => s.product);
 
   const result = { recommended };
@@ -380,6 +434,21 @@ function calcRelevanceScoreWithReasons(product, wizardSelections, filters) {
   if (design === 'rgb' && matchesRgbStyle(product)) {
     score += 10;
     reasons.push('design:rgb');
+  }
+
+  // 비게이밍 용도: Intel non-F(내장그래픽) 우선, Intel 기타 중간, AMD 비중 낮춤
+  if (NON_GAMING_PURPOSES.includes(purpose)) {
+    const cpuType = classifyCpu(product);
+    if (cpuType === 'intel_nonf') {
+      score += 25;
+      reasons.push('cpu_pref:intel_nonf');
+    } else if (cpuType === 'intel_f') {
+      score += 3;
+      reasons.push('cpu_pref:intel_f_lower');
+    } else if (cpuType === 'amd') {
+      score -= 5;
+      reasons.push('cpu_pref:amd');
+    }
   }
 
   return { score, reasons };
