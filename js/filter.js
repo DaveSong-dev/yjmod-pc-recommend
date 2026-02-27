@@ -28,6 +28,38 @@ const SAFE_GAME_FALLBACK_ALIASES = {
   '오버워치2': ['오버워치2', '오버워치']
 };
 
+/** usage 정규화 매핑 (데이터 편차/표기 차이 흡수) */
+const USAGE_ALIASES = {
+  '게이밍': ['게이밍'],
+  '사무/디자인': ['사무/디자인', '사무용', '사무', '오피스', '업무'],
+  '영상편집': ['영상편집', '영상 편집', '프리미어', '애프터이펙트', '에펙', '편집'],
+  '3D 모델링': ['3d 모델링', '3d/모델링', '3d', '모델링', 'cad', '블렌더', '스케치업', '렌더링', 'maya'],
+  'AI/딥러닝': ['ai/딥러닝', 'ai', '딥러닝', '머신러닝', '생성형'],
+  '방송/스트리밍': ['방송/스트리밍', '방송·스트리밍', '방송', '스트리밍', '동시송출', 'obs', '송출']
+};
+
+function canonicalizeUsage(input) {
+  if (!input) return null;
+  const s = String(input).trim().toLowerCase();
+  for (const [canonical, aliases] of Object.entries(USAGE_ALIASES)) {
+    if (aliases.some(a => s.includes(String(a).toLowerCase()) || String(a).toLowerCase().includes(s))) {
+      return canonical;
+    }
+  }
+  return null;
+}
+
+function inferUsageFromText(text) {
+  const hits = new Set();
+  const t = String(text || '').toLowerCase();
+  for (const [canonical, aliases] of Object.entries(USAGE_ALIASES)) {
+    if (aliases.some(a => t.includes(String(a).toLowerCase()))) {
+      hits.add(canonical);
+    }
+  }
+  return hits;
+}
+
 /** alias → canonical 게임명 해석 */
 function resolveGameToCanonical(input) {
   if (!input || typeof input !== 'string') return input || '';
@@ -110,7 +142,20 @@ function normalizeProduct(product) {
     longNoInterest36: false
   };
 
-  (product.categories?.usage || []).forEach(u => tags.usage.add(u));
+  (product.categories?.usage || []).forEach(u => {
+    const canonical = canonicalizeUsage(u);
+    if (canonical) tags.usage.add(canonical);
+  });
+  // usage가 부족한 상품 보강: 이름/부제/스펙 기반으로 추론
+  const usageText = [
+    product.name || '',
+    product.subtitle || '',
+    product.specs?.cpu || '',
+    product.specs?.gpu || '',
+    product.specs?.ram || '',
+    product.specs?.ssd || ''
+  ].join(' ');
+  inferUsageFromText(usageText).forEach(u => tags.usage.add(u));
 
   (product.categories?.games || []).forEach(g => {
     tags.games.add(resolveGameToCanonical(g));
