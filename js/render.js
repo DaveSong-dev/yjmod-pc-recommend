@@ -228,7 +228,7 @@ function buildLoadMoreSkeleton(count = 4) {
 /**
  * 위자드 추천 결과 카드 (더 큰 레이아웃)
  */
-function renderWizardResultCard(product, selectedGame, fpsData) {
+function renderWizardResultCard(product, selectedGame, fpsData, matchReasons = []) {
   const badgeClass = getBadgeClass(product.badge_color);
   const fpsText = selectedGame && fpsData
     ? getExpectedFps(product, selectedGame, fpsData)
@@ -295,6 +295,12 @@ function renderWizardResultCard(product, selectedGame, fpsData) {
             <p class="text-xs text-gray-400">${selectedGame} 예상 성능</p>
             <p class="text-lg font-black text-accent">${fpsText}</p>
           </div>
+        </div>` : ''}
+
+        ${matchReasons.length > 0 ? `
+        <div class="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2">
+          <p class="text-[11px] text-cyan-200 font-semibold mb-1">debug 매칭 근거</p>
+          <p class="text-[11px] text-cyan-100/90">${matchReasons.join(' · ')}</p>
         </div>` : ''}
 
         <!-- 가격 + CTA -->

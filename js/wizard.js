@@ -1,14 +1,15 @@
 /**
- * wizard.js - 4단계 PC 추천 위자드 (용도 우선)
- * Step 1: 용도별 → Step 2: 게임(게이밍일 때만) → Step 3: 예산 → Step 4: 디자인 → 결과
+ * wizard.js - 5단계 PC 추천 위자드 (용도 우선)
+ * 권장 흐름: 용도 → (게이밍이면 게임선택) → 예산 → 장기무이자 → 디자인 → 결과
  * 비게이밍 선택 시 2단계(게임) 생략, 1→3으로 이동
+ * 작업강도(workTier) step 없음 - state에 미포함, 필터 충돌 방지
  */
 
 import { getWizardRecommendations } from './filter.js';
 import { renderWizardResultCard } from './render.js';
 import { observeScrollFade } from './utils.js';
 
-const TOTAL_STEPS = 4;
+const TOTAL_STEPS = 5;
 
 /** 용도별 선택지 (1단계) */
 const PURPOSE_OPTIONS = [
@@ -38,7 +39,15 @@ const BUDGET_OPTIONS = [
   { id: 'budget_over300', label: '300만 원 이상', value: 'budget_over300', icon: '👑', desc: '최고 사양 무제한' }
 ];
 
-/** 디자인 선택지 (4단계) */
+/** 장기무이자 선택지 (4단계) - optional */
+const INSTALLMENT_OPTIONS = [
+  { id: 'installment_none', label: '상관없음', value: 'none', icon: '💳', desc: '할부 무관' },
+  { id: 'installment_24', label: '24개월 무이자 혜택', value: 24, icon: '💳', desc: '월 납부금 부담 적게' },
+  { id: 'installment_36', label: '36개월 무이자 혜택', value: 36, icon: '💳', desc: '가장 낮은 월 납부금' },
+  { id: 'installment_24_36_priority', label: '24/36 가능 상품 우선', value: '24_36_priority', icon: '✨', desc: '장기 무이자 가능 상품 우선 추천' }
+];
+
+/** 디자인 선택지 (5단계) */
 const DESIGN_OPTIONS = [
   { id: 'black', label: '블랙 & 다크', value: 'black', icon: '🖤', desc: '강렬하고 세련된 다크 톤' },
   { id: 'white', label: '화이트 & 클린', value: 'white', icon: '🤍', desc: '깔끔하고 감성적인 화이트' },
@@ -47,7 +56,7 @@ const DESIGN_OPTIONS = [
 
 /**
  * step과 selections에 따라 표시할 스텝 설정 반환
- * @param {number} step - 1..4
+ * @param {number} step - 1..5
  */
 function getStepConfig(step, selections) {
   switch (step) {
@@ -77,6 +86,14 @@ function getStepConfig(step, selections) {
       };
     case 4:
       return {
+        title: '장기 무이자(추가 혜택) 선택',
+        subtitle: '기본 무이자·부분무이자는 카드사 정책에 따라 제공됩니다. 24·36개월은 추가 혜택입니다.',
+        options: INSTALLMENT_OPTIONS,
+        stepKey: 'installment',
+        required: false
+      };
+    case 5:
+      return {
         title: '케이스 스타일을 골라주세요',
         subtitle: '취향에 맞는 디자인으로 완성도를 높여보세요',
         options: DESIGN_OPTIONS,
@@ -90,7 +107,7 @@ function getStepConfig(step, selections) {
 
 /** 스텝별 상단 레이블 */
 function getStepLabel(step) {
-  const labels = ['용도', '게임', '예산', '디자인'];
+  const labels = ['용도', '게임', '예산', '장기무이자', '디자인'];
   return labels[step - 1] || '';
 }
 
@@ -104,6 +121,7 @@ class Wizard {
       purpose: null,
       game: null,
       budget: null,
+      installment: null,
       design: null
     };
     this.resultContainer = document.getElementById('wizard-result-container');
@@ -127,6 +145,7 @@ class Wizard {
       purpose: null,
       game: null,
       budget: null,
+      installment: null,
       design: null
     };
 
@@ -190,7 +209,7 @@ class Wizard {
       content.className = 'wizard-content px-6 pb-6 overflow-y-auto';
     }
 
-    // 프로그레스 바: 4단계
+    // 프로그레스 바: 5단계
     const progressBtns = panel.querySelectorAll('.step-indicator');
     progressBtns.forEach((btn, i) => {
       const stepNum = i + 1;
@@ -210,8 +229,8 @@ class Wizard {
     content.style.opacity = '0';
     content.style.transform = 'translateX(20px)';
 
-    // 선택 단계(디자인)만 건너뛰기 허용
-    const showSkip = !config.required && step === 4;
+    // 용도/예산 필수, 나머지(게임·장기무이자·디자인) 건너뛰기 허용
+    const showSkip = !config.required;
     const skipBtn = showSkip
       ? '<button id="wizard-skip" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-300 transition-colors">건너뛰기</button>'
       : '<span></span>';
@@ -276,7 +295,12 @@ class Wizard {
         const check = btn.querySelector('.wizard-check');
         check?.classList.remove('opacity-0', 'scale-0');
 
-        this.selections[stepKey] = btn.dataset.value;
+        let value = btn.dataset.value;
+        if (stepKey === 'installment') {
+          this.selections[stepKey] = (value === 'none' || value === '') ? null : (parseInt(value, 10) || value);
+        } else {
+          this.selections[stepKey] = value;
+        }
 
         setTimeout(() => {
           if (step < TOTAL_STEPS) {
@@ -318,7 +342,7 @@ class Wizard {
   showResults() {
     this.close();
 
-    const { recommended, noResultsReason } = getWizardRecommendations(this.products, this.selections);
+    const { recommended, noResultsReason, matchReasons, fallbackNotice } = getWizardRecommendations(this.products, this.selections);
 
     if (!this.resultSection || !this.resultContainer) return;
 
@@ -350,6 +374,10 @@ class Wizard {
         };
         parts.push(labels[this.selections.budget] || '');
       }
+      if (this.selections.installment) {
+        const labels = { 24: '💳 24개월 무이자', 36: '💳 36개월 무이자', '24_36_priority': '✨ 24/36 가능 상품 우선' };
+        parts.push(labels[this.selections.installment] || '');
+      }
       if (this.selections.design) {
         const labels = { black: '🖤 블랙', white: '🤍 화이트', rgb: '🌈 RGB' };
         parts.push(labels[this.selections.design] || '');
@@ -370,9 +398,19 @@ class Wizard {
         </div>
       `;
     } else {
+      const reasonMap = new Map((matchReasons || []).map(m => [String(m.productId), m.reasons || []]));
       this.resultContainer.innerHTML = recommended
-        .map(p => renderWizardResultCard(p, selectedGame, this.fpsData))
+        .map(p => renderWizardResultCard(p, selectedGame, this.fpsData, reasonMap.get(String(p.id)) || []))
         .join('');
+
+      if (fallbackNotice === 'installment_relaxed') {
+        this.resultContainer.insertAdjacentHTML(
+          'afterbegin',
+          `<div class="col-span-full mb-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+             선택한 장기 무이자 조건(24/36개월)에 맞는 상품이 없어, 해당 조건을 해제한 추천 결과를 보여드렸습니다.
+           </div>`
+        );
+      }
     }
 
     setTimeout(() => {
@@ -382,4 +420,4 @@ class Wizard {
   }
 }
 
-export { Wizard, TOTAL_STEPS, getStepConfig, PURPOSE_OPTIONS, GAME_OPTIONS, BUDGET_OPTIONS, DESIGN_OPTIONS };
+export { Wizard, TOTAL_STEPS, getStepConfig, PURPOSE_OPTIONS, GAME_OPTIONS, BUDGET_OPTIONS, INSTALLMENT_OPTIONS, DESIGN_OPTIONS };

@@ -1,9 +1,42 @@
 /**
  * filter.js - 제품 필터링 엔진
  * 게임별 / 사양별(티어) / 금액별 / 용도별 + 품절 제외
+ * tags 기반 매칭, normalizeProduct 레이어, GAME_ALIASES 지원
  */
 
 import { PRICE_RANGES } from './utils.js';
+
+/** 게임 정규명 ↔ 별칭 매핑 (입력/상품 태그 양방향 정규화) */
+const GAME_ALIASES = {
+  '몬스터헌터 와일드': ['몬헌', '몬스터헌터', '몬스터헌터 와일드', 'MH', 'Wilds', '몬스터헌터와일드'],
+  '리그오브레전드': ['리그오브레전드', '롤', 'LOL'],
+  '배틀그라운드': ['배틀그라운드', '배그', 'PUBG'],
+  '로스트아크': ['로스트아크', '로아'],
+  '스팀 AAA급 게임': ['스팀 AAA급 게임', '스팀 AAA', 'AAA'],
+  '발로란트': ['발로란트', '발로'],
+  '오버워치2': ['오버워치2', '오버워치']
+};
+
+/** title fallback에서 사용할 안전한 별칭만 별도 정의(오검출 최소화) */
+const SAFE_GAME_FALLBACK_ALIASES = {
+  '몬스터헌터 와일드': ['몬헌', '몬스터헌터', '몬스터헌터 와일드', '몬스터헌터와일드', 'wilds', '와일즈'],
+  '아이온2': ['아이온2', '아이온 2'],
+  '배틀그라운드': ['배그', '배틀그라운드'],
+  '로스트아크': ['로아', '로스트아크'],
+  '리그오브레전드': ['롤', '리그오브레전드'],
+  '발로란트': ['발로', '발로란트'],
+  '오버워치2': ['오버워치2', '오버워치']
+};
+
+/** alias → canonical 게임명 해석 */
+function resolveGameToCanonical(input) {
+  if (!input || typeof input !== 'string') return input || '';
+  const s = String(input).trim();
+  for (const [canonical, aliases] of Object.entries(GAME_ALIASES)) {
+    if (aliases.some(a => a.toLowerCase() === s.toLowerCase())) return canonical;
+  }
+  return s;
+}
 
 /**
  * 현재 활성 필터 상태
@@ -62,6 +95,49 @@ function isReasonableInstallmentPrice(product) {
 }
 
 /**
+ * 상품을 tags 기반으로 정규화 (usage/design/games/installment)
+ * design: case_color + specs.case 크로스체크만 사용 (title contains 금지)
+ * @param {Object} product - 원본 상품
+ * @returns {{ games: Set<string>, usage: Set<string>, design: string|null, longNoInterest: boolean, longNoInterest24: boolean, longNoInterest36: boolean }}
+ */
+function normalizeProduct(product) {
+  const tags = {
+    games: new Set(),
+    usage: new Set(),
+    design: null,
+    longNoInterest: false,
+    longNoInterest24: false,
+    longNoInterest36: false
+  };
+
+  (product.categories?.usage || []).forEach(u => tags.usage.add(u));
+
+  (product.categories?.games || []).forEach(g => {
+    tags.games.add(resolveGameToCanonical(g));
+  });
+  // categories.games에 누락이 있을 수 있어, 제목 기반은 "최후 fallback"으로만 보강
+  // (안전 별칭만 적용해 오검출을 최소화)
+  const fallbackText = `${product.name || ''} ${product.subtitle || ''}`.toLowerCase();
+  for (const [canonical, aliases] of Object.entries(SAFE_GAME_FALLBACK_ALIASES)) {
+    if (aliases.some(a => fallbackText.includes(String(a).toLowerCase()))) {
+      tags.games.add(canonical);
+    }
+  }
+
+  const caseColor = product.case_color;
+  const caseName = (product.specs?.case || '').trim();
+  if (caseColor === '블랙' && !/화이트|WHITE/i.test(caseName)) tags.design = '블랙';
+  else if (caseColor === '화이트' && !/블랙|BLACK/i.test(caseName)) tags.design = '화이트';
+
+  const m = product.installment_months || 0;
+  tags.longNoInterest = m === 24 || m === 36;
+  tags.longNoInterest24 = m === 24;
+  tags.longNoInterest36 = m === 36;
+
+  return tags;
+}
+
+/**
  * 제품 목록을 필터링하여 반환
  * @param {Array} products - pc_data.json의 products 배열
  * @param {Object} filters - 적용할 필터 객체 (filterState 형식)
@@ -69,63 +145,48 @@ function isReasonableInstallmentPrice(product) {
  */
 function filterProducts(products, filters = filterState) {
   return products.filter(product => {
-    // 품절·블록리스트 제외 (전 제품 공통)
     if (!isInStock(product)) return false;
-
-    // 24/36 무이자 상품 중 비정상 가격(품절·플레이스홀더) 제외
     if (!isReasonableInstallmentPrice(product)) return false;
 
-    // 게임용(게임 필터 또는 용도=게이밍)일 때 내장그래픽 제품 제외
-    if ((filters.game || filters.usage === '게이밍') && isIntegratedGpu(product)) {
-      return false;
+    const tags = normalizeProduct(product);
+
+    if ((filters.game || filters.usage === '게이밍') && isIntegratedGpu(product)) return false;
+
+    // 게임 필터: tags.games 기반 (alias 정규화)
+    if (filters.game) {
+      const canon = resolveGameToCanonical(filters.game);
+      if (!tags.games.has(canon)) return false;
     }
 
-    // 게임 필터
-    if (filters.game && !product.categories.games.includes(filters.game)) {
-      return false;
-    }
+    if (filters.tier && product.categories.tier !== filters.tier) return false;
 
-    // 사양 티어 필터
-    if (filters.tier && product.categories.tier !== filters.tier) {
-      return false;
-    }
-
-    // 금액 필터
     if (filters.priceRange) {
       const range = PRICE_RANGES[filters.priceRange];
-      if (range && (product.price < range.min || product.price >= range.max)) {
-        return false;
-      }
+      if (range && (product.price < range.min || product.price >= range.max)) return false;
     }
 
-    // 용도 필터
-    if (filters.usage && !product.categories.usage.includes(filters.usage)) {
-      return false;
-    }
+    // 용도 필터: tags.usage 기반
+    if (filters.usage && !tags.usage.has(filters.usage)) return false;
 
-    // 할부 필터 ('nointerest' = 24 또는 36개월 무이자 상품만)
+    // 할부 필터: longNoInterest(24/36) tags
     if (filters.installment === 'nointerest') {
-      const months = product.installment_months || 0;
-      if (months !== 24 && months !== 36) return false;
+      if (!tags.longNoInterest) return false;
+    } else if (typeof filters.installment === 'number') {
+      if (filters.installment === 24 && !tags.longNoInterest24) return false;
+      if (filters.installment === 36 && !tags.longNoInterest36) return false;
     }
 
-    // 케이스 색상 필터 (case_color 필드 + specs.case 크로스체크)
-    // case_color 필드가 크롤러 오분류로 틀릴 수 있어 케이스명으로 2차 검증
-    if (filters.caseColor) {
-      if (product.case_color !== filters.caseColor) return false;
-      const caseName = product.specs?.case || '';
-      if (filters.caseColor === '화이트' && /블랙|BLACK/i.test(caseName)) return false;
-      if (filters.caseColor === '블랙' && /화이트|WHITE/i.test(caseName)) return false;
-    }
+    // 케이스 색상 필터: tags.design만 사용 (title contains 금지)
+    if (filters.caseColor && tags.design !== filters.caseColor) return false;
 
-    // 검색어 필터
+    // 검색어: title/specs contains 최후 fallback (다른 필터 전부 통과 후)
     if (filters.search) {
       const q = filters.search.toLowerCase();
       const searchTarget = [
         product.name,
-        product.specs.cpu,
-        product.specs.gpu,
-        product.specs.ram
+        (product.specs?.cpu || ''),
+        (product.specs?.gpu || ''),
+        (product.specs?.ram || '')
       ].join(' ').toLowerCase();
       if (!searchTarget.includes(q)) return false;
     }
@@ -151,14 +212,26 @@ const WORK_TIER_TO_TIER = {
   pro: '하이엔드(4K)'
 };
 
+/** debug=1 여부 (URL ?debug=1 또는 options.debug) */
+function isDebugMode(options = {}) {
+  if (options.debug === true) return true;
+  try {
+    if (typeof window !== 'undefined' && window.location?.search) {
+      return new URLSearchParams(window.location.search).get('debug') === '1';
+    }
+  } catch (_) {}
+  return false;
+}
+
 /**
  * 위자드 선택값으로 필터를 생성하여 제품 목록 반환
  * @param {Array} products - 전체 제품 배열
  * @param {Object} wizardSelections - { purpose, game, budget, design }
- * @returns {{ recommended: Array, noResultsReason?: string }}
+ * @param {Object} [options] - { debug: boolean }
+ * @returns {{ recommended: Array, noResultsReason?: string, matchReasons?: Array<{ productId: string, reasons: string[] }> }}
  */
-function getWizardRecommendations(products, wizardSelections) {
-  const { purpose, game, budget, design } = wizardSelections;
+function getWizardRecommendations(products, wizardSelections, options = {}) {
+  const { purpose, game, budget, installment, design } = wizardSelections;
 
   if (!purpose) {
     return { recommended: [] };
@@ -178,31 +251,43 @@ function getWizardRecommendations(products, wizardSelections) {
   };
 
   const usage = PURPOSE_TO_USAGE[purpose] || null;
+  const gameCanon = purpose === 'gaming' && game ? resolveGameToCanonical(game) : null;
 
   const filters = {
-    game: purpose === 'gaming' ? (game || null) : null,
+    game: purpose === 'gaming' ? gameCanon : null,
     tier: null,
     priceRange: budgetToRange[budget] || null,
     usage,
-    installment: null,
+    installment: installment ?? null,
     caseColor: design ? (designToColor[design] ?? null) : null,
     search: ''
   };
 
-  const isImpossibleBudget = purpose === 'gaming' && HIGH_END_GAMES.includes(game) && budget === 'budget_under100';
+  const isImpossibleBudget = purpose === 'gaming' && game && HIGH_END_GAMES.includes(resolveGameToCanonical(game)) && budget === 'budget_under100';
 
   let filtered = filterProducts(products, filters);
+  let fallbackNotice = null;
+
+  // 24/36개월 강제 필터에서 결과가 0건이면, 조건 해제 후 추천 유지
+  if (filtered.length === 0 && (filters.installment === 24 || filters.installment === 36)) {
+    const relaxedInstallment = { ...filters, installment: null };
+    filtered = filterProducts(products, relaxedInstallment);
+    if (design === 'rgb') {
+      filtered = filtered.filter(matchesRgbStyle);
+    }
+    if (filtered.length > 0) {
+      fallbackNotice = 'installment_relaxed';
+    }
+  }
 
   if (design === 'rgb') {
     filtered = filtered.filter(matchesRgbStyle);
   }
 
-  // 고사양 게임 + 100만 이하: 예산 완화 없이 0건 + 전용 안내
   if (filtered.length === 0 && isImpossibleBudget) {
     return { recommended: [], noResultsReason: 'impossible_budget' };
   }
 
-  // 100만 원 이하 선택 시: 예산 완화 금지 (발로란트·롤 등 모든 게임 동일)
   if (filtered.length === 0 && budget === 'budget_under100') {
     return { recommended: [], noResultsReason: 'no_products_under_budget' };
   }
@@ -223,45 +308,81 @@ function getWizardRecommendations(products, wizardSelections) {
     }
   }
 
-  const scored = filtered.map(p => ({
-    product: p,
-    score: calcRelevanceScore(p, wizardSelections, filters)
-  }));
+  const withScore = filtered.map(p => {
+    const { score, reasons } = calcRelevanceScoreWithReasons(p, wizardSelections, filters);
+    return { product: p, score, reasons: reasons || [] };
+  });
 
-  scored.sort((a, b) => b.score - a.score);
+  withScore.sort((a, b) => b.score - a.score);
 
-  const recommended = scored.slice(0, 6).map(s => s.product);
-  return { recommended };
+  const top = withScore.slice(0, 6);
+  const recommended = top.map(s => s.product);
+
+  const result = { recommended };
+  if (fallbackNotice) {
+    result.fallbackNotice = fallbackNotice;
+  }
+
+  if (isDebugMode(options)) {
+    result.matchReasons = top.map(s => ({
+      productId: s.product.id,
+      reasons: s.reasons
+    }));
+  }
+
+  return result;
 }
 
 /**
- * 제품 관련도 점수 계산 (purpose, game, budget, design 반영)
+ * 제품 관련도 점수 계산 + 매칭 근거 수집 (debug용)
+ * @returns {{ score: number, reasons: string[] }}
  */
-function calcRelevanceScore(product, wizardSelections, filters) {
+function calcRelevanceScoreWithReasons(product, wizardSelections, filters) {
   let score = 0;
+  const reasons = [];
   const { purpose, game, design } = wizardSelections;
+  const tags = normalizeProduct(product);
 
-  // 용도(usage) 매칭
-  if (filters.usage && product.categories.usage && product.categories.usage.includes(filters.usage)) {
+  if (filters.usage && tags.usage.has(filters.usage)) {
     score += 30;
+    reasons.push(`usage:${filters.usage}`);
   }
 
-  // 게임 매칭 (게이밍일 때)
-  if (purpose === 'gaming' && game && product.categories.games && product.categories.games.includes(game)) {
+  if (purpose === 'gaming' && filters.game && tags.games.has(filters.game)) {
     score += 25;
+    reasons.push(`game:${filters.game}`);
   }
 
-  // 가격 범위 매칭
-  if (filters.priceRange && product.categories.price_range === filters.priceRange) {
+  if (filters.priceRange && product.categories?.price_range === filters.priceRange) {
     score += 20;
+    reasons.push(`priceRange:${filters.priceRange}`);
   }
 
-  // 케이스 색상 매칭
-  if (design === 'black' && product.case_color === '블랙') score += 10;
-  if (design === 'white' && product.case_color === '화이트') score += 10;
-  if (design === 'rgb' && matchesRgbStyle(product)) score += 10;
+  if (filters.installment === 24 && tags.longNoInterest24) {
+    score += 15;
+    reasons.push('installment:24');
+  } else if (filters.installment === 36 && tags.longNoInterest36) {
+    score += 15;
+    reasons.push('installment:36');
+  } else if (filters.installment === '24_36_priority' && tags.longNoInterest) {
+    score += 12;
+    reasons.push('installment:24_36_priority');
+  }
 
-  return score;
+  if (design === 'black' && tags.design === '블랙') {
+    score += 10;
+    reasons.push('design:블랙');
+  }
+  if (design === 'white' && tags.design === '화이트') {
+    score += 10;
+    reasons.push('design:화이트');
+  }
+  if (design === 'rgb' && matchesRgbStyle(product)) {
+    score += 10;
+    reasons.push('design:rgb');
+  }
+
+  return { score, reasons };
 }
 
 /**
