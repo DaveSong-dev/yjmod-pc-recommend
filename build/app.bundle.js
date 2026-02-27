@@ -208,6 +208,20 @@
       return true;
     });
   }
+  var NON_GAMING_PURPOSES = ["office", "editing", "3d", "ai", "streaming"];
+  function classifyCpu(product) {
+    var _a, _b;
+    const text = (((_a = product == null ? void 0 : product.specs) == null ? void 0 : _a.cpu_short) || ((_b = product == null ? void 0 : product.specs) == null ? void 0 : _b.cpu) || "").toLowerCase();
+    if (!text) return "unknown";
+    const isIntel = /인텔|intel|^i[3-9]-\d/i.test(text);
+    const isAmd = /amd|라이젠|^r[0-9]/i.test(text);
+    if (isIntel) {
+      const hasNoIgu = /\d+f\b|\d+kf\b/i.test(text);
+      return hasNoIgu ? "intel_f" : "intel_nonf";
+    }
+    if (isAmd) return "amd";
+    return "unknown";
+  }
   var PURPOSE_TO_USAGE = {
     gaming: "\uAC8C\uC774\uBC0D",
     office: "\uC0AC\uBB34/\uB514\uC790\uC778",
@@ -216,6 +230,35 @@
     ai: "AI/\uB525\uB7EC\uB2DD",
     streaming: "\uBC29\uC1A1/\uC2A4\uD2B8\uB9AC\uBC0D"
   };
+  function selectWithDiversity(withScore, limit = 6) {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _i, _j;
+    const selected = [];
+    const comboCount = {};
+    const MAX_PER_COMBO = 1;
+    for (const item of withScore) {
+      if (selected.length >= limit) break;
+      const cpu = ((_b = (_a = item.product) == null ? void 0 : _a.specs) == null ? void 0 : _b.cpu_short) || ((_d = (_c = item.product) == null ? void 0 : _c.specs) == null ? void 0 : _d.cpu) || "";
+      const gpu = ((_f = (_e = item.product) == null ? void 0 : _e.specs) == null ? void 0 : _f.gpu_key) || ((_h = (_g = item.product) == null ? void 0 : _g.specs) == null ? void 0 : _h.gpu_short) || "";
+      const combo = `${cpu}|${gpu}`;
+      const count = comboCount[combo] || 0;
+      if (count >= MAX_PER_COMBO) continue;
+      selected.push(item);
+      comboCount[combo] = count + 1;
+    }
+    if (selected.length < limit) {
+      const pickedIds = new Set(selected.map((s) => {
+        var _a2;
+        return (_a2 = s.product) == null ? void 0 : _a2.id;
+      }));
+      for (const item of withScore) {
+        if (selected.length >= limit) break;
+        if (pickedIds.has((_i = item.product) == null ? void 0 : _i.id)) continue;
+        selected.push(item);
+        pickedIds.add((_j = item.product) == null ? void 0 : _j.id);
+      }
+    }
+    return selected;
+  }
   function isDebugMode(options = {}) {
     var _a;
     if (options.debug === true) return true;
@@ -296,7 +339,7 @@
       return { product: p, score, reasons: reasons || [] };
     });
     withScore.sort((a, b) => b.score - a.score);
-    const top = withScore.slice(0, 6);
+    const top = selectWithDiversity(withScore, 6);
     const recommended = top.map((s) => s.product);
     const result = { recommended };
     if (fallbackNotice) {
@@ -349,6 +392,19 @@
     if (design === "rgb" && matchesRgbStyle(product)) {
       score += 10;
       reasons.push("design:rgb");
+    }
+    if (NON_GAMING_PURPOSES.includes(purpose)) {
+      const cpuType = classifyCpu(product);
+      if (cpuType === "intel_nonf") {
+        score += 25;
+        reasons.push("cpu_pref:intel_nonf");
+      } else if (cpuType === "intel_f") {
+        score += 3;
+        reasons.push("cpu_pref:intel_f_lower");
+      } else if (cpuType === "amd") {
+        score -= 5;
+        reasons.push("cpu_pref:amd");
+      }
     }
     return { score, reasons };
   }
