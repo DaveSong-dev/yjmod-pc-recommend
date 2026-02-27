@@ -76,6 +76,32 @@
   }
 
   // js/filter.js
+  var GAME_ALIASES = {
+    "\uBAAC\uC2A4\uD130\uD5CC\uD130 \uC640\uC77C\uB4DC": ["\uBAAC\uD5CC", "\uBAAC\uC2A4\uD130\uD5CC\uD130", "\uBAAC\uC2A4\uD130\uD5CC\uD130 \uC640\uC77C\uB4DC", "MH", "Wilds", "\uBAAC\uC2A4\uD130\uD5CC\uD130\uC640\uC77C\uB4DC"],
+    "\uB9AC\uADF8\uC624\uBE0C\uB808\uC804\uB4DC": ["\uB9AC\uADF8\uC624\uBE0C\uB808\uC804\uB4DC", "\uB864", "LOL"],
+    "\uBC30\uD2C0\uADF8\uB77C\uC6B4\uB4DC": ["\uBC30\uD2C0\uADF8\uB77C\uC6B4\uB4DC", "\uBC30\uADF8", "PUBG"],
+    "\uB85C\uC2A4\uD2B8\uC544\uD06C": ["\uB85C\uC2A4\uD2B8\uC544\uD06C", "\uB85C\uC544"],
+    "\uC2A4\uD300 AAA\uAE09 \uAC8C\uC784": ["\uC2A4\uD300 AAA\uAE09 \uAC8C\uC784", "\uC2A4\uD300 AAA", "AAA"],
+    "\uBC1C\uB85C\uB780\uD2B8": ["\uBC1C\uB85C\uB780\uD2B8", "\uBC1C\uB85C"],
+    "\uC624\uBC84\uC6CC\uCE582": ["\uC624\uBC84\uC6CC\uCE582", "\uC624\uBC84\uC6CC\uCE58"]
+  };
+  var SAFE_GAME_FALLBACK_ALIASES = {
+    "\uBAAC\uC2A4\uD130\uD5CC\uD130 \uC640\uC77C\uB4DC": ["\uBAAC\uD5CC", "\uBAAC\uC2A4\uD130\uD5CC\uD130", "\uBAAC\uC2A4\uD130\uD5CC\uD130 \uC640\uC77C\uB4DC", "\uBAAC\uC2A4\uD130\uD5CC\uD130\uC640\uC77C\uB4DC", "wilds", "\uC640\uC77C\uC988"],
+    "\uC544\uC774\uC6282": ["\uC544\uC774\uC6282", "\uC544\uC774\uC628 2"],
+    "\uBC30\uD2C0\uADF8\uB77C\uC6B4\uB4DC": ["\uBC30\uADF8", "\uBC30\uD2C0\uADF8\uB77C\uC6B4\uB4DC"],
+    "\uB85C\uC2A4\uD2B8\uC544\uD06C": ["\uB85C\uC544", "\uB85C\uC2A4\uD2B8\uC544\uD06C"],
+    "\uB9AC\uADF8\uC624\uBE0C\uB808\uC804\uB4DC": ["\uB864", "\uB9AC\uADF8\uC624\uBE0C\uB808\uC804\uB4DC"],
+    "\uBC1C\uB85C\uB780\uD2B8": ["\uBC1C\uB85C", "\uBC1C\uB85C\uB780\uD2B8"],
+    "\uC624\uBC84\uC6CC\uCE582": ["\uC624\uBC84\uC6CC\uCE582", "\uC624\uBC84\uC6CC\uCE58"]
+  };
+  function resolveGameToCanonical(input) {
+    if (!input || typeof input !== "string") return input || "";
+    const s = String(input).trim();
+    for (const [canonical, aliases] of Object.entries(GAME_ALIASES)) {
+      if (aliases.some((a) => a.toLowerCase() === s.toLowerCase())) return canonical;
+    }
+    return s;
+  }
   var filterState = {
     game: null,
     // "리그오브레전드" | "배틀그라운드" | ...
@@ -115,46 +141,67 @@
     if (monthly > 0 && monthly < MIN_INSTALLMENT_MONTHLY) return false;
     return true;
   }
+  function normalizeProduct(product) {
+    var _a, _b, _c;
+    const tags = {
+      games: /* @__PURE__ */ new Set(),
+      usage: /* @__PURE__ */ new Set(),
+      design: null,
+      longNoInterest: false,
+      longNoInterest24: false,
+      longNoInterest36: false
+    };
+    (((_a = product.categories) == null ? void 0 : _a.usage) || []).forEach((u) => tags.usage.add(u));
+    (((_b = product.categories) == null ? void 0 : _b.games) || []).forEach((g) => {
+      tags.games.add(resolveGameToCanonical(g));
+    });
+    const fallbackText = `${product.name || ""} ${product.subtitle || ""}`.toLowerCase();
+    for (const [canonical, aliases] of Object.entries(SAFE_GAME_FALLBACK_ALIASES)) {
+      if (aliases.some((a) => fallbackText.includes(String(a).toLowerCase()))) {
+        tags.games.add(canonical);
+      }
+    }
+    const caseColor = product.case_color;
+    const caseName = (((_c = product.specs) == null ? void 0 : _c.case) || "").trim();
+    if (caseColor === "\uBE14\uB799" && !/화이트|WHITE/i.test(caseName)) tags.design = "\uBE14\uB799";
+    else if (caseColor === "\uD654\uC774\uD2B8" && !/블랙|BLACK/i.test(caseName)) tags.design = "\uD654\uC774\uD2B8";
+    const m = product.installment_months || 0;
+    tags.longNoInterest = m === 24 || m === 36;
+    tags.longNoInterest24 = m === 24;
+    tags.longNoInterest36 = m === 36;
+    return tags;
+  }
   function filterProducts(products, filters = filterState) {
     return products.filter((product) => {
-      var _a;
+      var _a, _b, _c;
       if (!isInStock(product)) return false;
       if (!isReasonableInstallmentPrice(product)) return false;
-      if ((filters.game || filters.usage === "\uAC8C\uC774\uBC0D") && isIntegratedGpu(product)) {
-        return false;
+      const tags = normalizeProduct(product);
+      if ((filters.game || filters.usage === "\uAC8C\uC774\uBC0D") && isIntegratedGpu(product)) return false;
+      if (filters.game) {
+        const canon = resolveGameToCanonical(filters.game);
+        if (!tags.games.has(canon)) return false;
       }
-      if (filters.game && !product.categories.games.includes(filters.game)) {
-        return false;
-      }
-      if (filters.tier && product.categories.tier !== filters.tier) {
-        return false;
-      }
+      if (filters.tier && product.categories.tier !== filters.tier) return false;
       if (filters.priceRange) {
         const range = PRICE_RANGES[filters.priceRange];
-        if (range && (product.price < range.min || product.price >= range.max)) {
-          return false;
-        }
+        if (range && (product.price < range.min || product.price >= range.max)) return false;
       }
-      if (filters.usage && !product.categories.usage.includes(filters.usage)) {
-        return false;
-      }
+      if (filters.usage && !tags.usage.has(filters.usage)) return false;
       if (filters.installment === "nointerest") {
-        const months = product.installment_months || 0;
-        if (months !== 24 && months !== 36) return false;
+        if (!tags.longNoInterest) return false;
+      } else if (typeof filters.installment === "number") {
+        if (filters.installment === 24 && !tags.longNoInterest24) return false;
+        if (filters.installment === 36 && !tags.longNoInterest36) return false;
       }
-      if (filters.caseColor) {
-        if (product.case_color !== filters.caseColor) return false;
-        const caseName = ((_a = product.specs) == null ? void 0 : _a.case) || "";
-        if (filters.caseColor === "\uD654\uC774\uD2B8" && /블랙|BLACK/i.test(caseName)) return false;
-        if (filters.caseColor === "\uBE14\uB799" && /화이트|WHITE/i.test(caseName)) return false;
-      }
+      if (filters.caseColor && tags.design !== filters.caseColor) return false;
       if (filters.search) {
         const q = filters.search.toLowerCase();
         const searchTarget = [
           product.name,
-          product.specs.cpu,
-          product.specs.gpu,
-          product.specs.ram
+          ((_a = product.specs) == null ? void 0 : _a.cpu) || "",
+          ((_b = product.specs) == null ? void 0 : _b.gpu) || "",
+          ((_c = product.specs) == null ? void 0 : _c.ram) || ""
         ].join(" ").toLowerCase();
         if (!searchTarget.includes(q)) return false;
       }
@@ -169,9 +216,20 @@
     ai: "AI/\uB525\uB7EC\uB2DD",
     streaming: "\uBC29\uC1A1/\uC2A4\uD2B8\uB9AC\uBC0D"
   };
-  function getWizardRecommendations(products, wizardSelections) {
+  function isDebugMode(options = {}) {
     var _a;
-    const { purpose, game, budget, design } = wizardSelections;
+    if (options.debug === true) return true;
+    try {
+      if (typeof window !== "undefined" && ((_a = window.location) == null ? void 0 : _a.search)) {
+        return new URLSearchParams(window.location.search).get("debug") === "1";
+      }
+    } catch (_) {
+    }
+    return false;
+  }
+  function getWizardRecommendations(products, wizardSelections, options = {}) {
+    var _a;
+    const { purpose, game, budget, installment, design } = wizardSelections;
     if (!purpose) {
       return { recommended: [] };
     }
@@ -187,17 +245,29 @@
       "rgb": null
     };
     const usage = PURPOSE_TO_USAGE[purpose] || null;
+    const gameCanon = purpose === "gaming" && game ? resolveGameToCanonical(game) : null;
     const filters = {
-      game: purpose === "gaming" ? game || null : null,
+      game: purpose === "gaming" ? gameCanon : null,
       tier: null,
       priceRange: budgetToRange[budget] || null,
       usage,
-      installment: null,
+      installment: installment != null ? installment : null,
       caseColor: design ? (_a = designToColor[design]) != null ? _a : null : null,
       search: ""
     };
-    const isImpossibleBudget = purpose === "gaming" && HIGH_END_GAMES.includes(game) && budget === "budget_under100";
+    const isImpossibleBudget = purpose === "gaming" && game && HIGH_END_GAMES.includes(resolveGameToCanonical(game)) && budget === "budget_under100";
     let filtered = filterProducts(products, filters);
+    let fallbackNotice = null;
+    if (filtered.length === 0 && (filters.installment === 24 || filters.installment === 36)) {
+      const relaxedInstallment = { ...filters, installment: null };
+      filtered = filterProducts(products, relaxedInstallment);
+      if (design === "rgb") {
+        filtered = filtered.filter(matchesRgbStyle);
+      }
+      if (filtered.length > 0) {
+        fallbackNotice = "installment_relaxed";
+      }
+    }
     if (design === "rgb") {
       filtered = filtered.filter(matchesRgbStyle);
     }
@@ -221,30 +291,66 @@
         filtered = filtered.filter(matchesRgbStyle);
       }
     }
-    const scored = filtered.map((p) => ({
-      product: p,
-      score: calcRelevanceScore(p, wizardSelections, filters)
-    }));
-    scored.sort((a, b) => b.score - a.score);
-    const recommended = scored.slice(0, 6).map((s) => s.product);
-    return { recommended };
+    const withScore = filtered.map((p) => {
+      const { score, reasons } = calcRelevanceScoreWithReasons(p, wizardSelections, filters);
+      return { product: p, score, reasons: reasons || [] };
+    });
+    withScore.sort((a, b) => b.score - a.score);
+    const top = withScore.slice(0, 6);
+    const recommended = top.map((s) => s.product);
+    const result = { recommended };
+    if (fallbackNotice) {
+      result.fallbackNotice = fallbackNotice;
+    }
+    if (isDebugMode(options)) {
+      result.matchReasons = top.map((s) => ({
+        productId: s.product.id,
+        reasons: s.reasons
+      }));
+    }
+    return result;
   }
-  function calcRelevanceScore(product, wizardSelections, filters) {
+  function calcRelevanceScoreWithReasons(product, wizardSelections, filters) {
+    var _a;
     let score = 0;
+    const reasons = [];
     const { purpose, game, design } = wizardSelections;
-    if (filters.usage && product.categories.usage && product.categories.usage.includes(filters.usage)) {
+    const tags = normalizeProduct(product);
+    if (filters.usage && tags.usage.has(filters.usage)) {
       score += 30;
+      reasons.push(`usage:${filters.usage}`);
     }
-    if (purpose === "gaming" && game && product.categories.games && product.categories.games.includes(game)) {
+    if (purpose === "gaming" && filters.game && tags.games.has(filters.game)) {
       score += 25;
+      reasons.push(`game:${filters.game}`);
     }
-    if (filters.priceRange && product.categories.price_range === filters.priceRange) {
+    if (filters.priceRange && ((_a = product.categories) == null ? void 0 : _a.price_range) === filters.priceRange) {
       score += 20;
+      reasons.push(`priceRange:${filters.priceRange}`);
     }
-    if (design === "black" && product.case_color === "\uBE14\uB799") score += 10;
-    if (design === "white" && product.case_color === "\uD654\uC774\uD2B8") score += 10;
-    if (design === "rgb" && matchesRgbStyle(product)) score += 10;
-    return score;
+    if (filters.installment === 24 && tags.longNoInterest24) {
+      score += 15;
+      reasons.push("installment:24");
+    } else if (filters.installment === 36 && tags.longNoInterest36) {
+      score += 15;
+      reasons.push("installment:36");
+    } else if (filters.installment === "24_36_priority" && tags.longNoInterest) {
+      score += 12;
+      reasons.push("installment:24_36_priority");
+    }
+    if (design === "black" && tags.design === "\uBE14\uB799") {
+      score += 10;
+      reasons.push("design:\uBE14\uB799");
+    }
+    if (design === "white" && tags.design === "\uD654\uC774\uD2B8") {
+      score += 10;
+      reasons.push("design:\uD654\uC774\uD2B8");
+    }
+    if (design === "rgb" && matchesRgbStyle(product)) {
+      score += 10;
+      reasons.push("design:rgb");
+    }
+    return { score, reasons };
   }
   function matchesRgbStyle(product) {
     var _a, _b, _c;
@@ -439,7 +545,7 @@
     </article>
   `).join("");
   }
-  function renderWizardResultCard(product, selectedGame, fpsData) {
+  function renderWizardResultCard(product, selectedGame, fpsData, matchReasons = []) {
     const badgeClass = getBadgeClass(product.badge_color);
     const fpsText = selectedGame && fpsData ? getExpectedFps(product, selectedGame, fpsData) : null;
     const tierBadge = {
@@ -502,6 +608,12 @@
             <p class="text-xs text-gray-400">${selectedGame} \uC608\uC0C1 \uC131\uB2A5</p>
             <p class="text-lg font-black text-accent">${fpsText}</p>
           </div>
+        </div>` : ""}
+
+        ${matchReasons.length > 0 ? `
+        <div class="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2">
+          <p class="text-[11px] text-cyan-200 font-semibold mb-1">debug \uB9E4\uCE6D \uADFC\uAC70</p>
+          <p class="text-[11px] text-cyan-100/90">${matchReasons.join(" \xB7 ")}</p>
         </div>` : ""}
 
         <!-- \uAC00\uACA9 + CTA -->
@@ -592,7 +704,7 @@
   }
 
   // js/wizard.js
-  var TOTAL_STEPS = 4;
+  var TOTAL_STEPS = 5;
   var PURPOSE_OPTIONS = [
     { id: "gaming", label: "\uAC8C\uC774\uBC0D", value: "gaming", icon: "\u{1F3AE}", desc: "\uAC8C\uC784 \uC804\uC6A9 PC" },
     { id: "office", label: "\uC0AC\uBB34\uC6A9", value: "office", icon: "\u{1F4BC}", desc: "\uBB38\uC11C\xB7\uC5C5\uBB34\uC6A9" },
@@ -614,6 +726,12 @@
     { id: "budget_100_200", label: "100 ~ 200\uB9CC \uC6D0", value: "budget_100_200", icon: "\u{1F4B5}", desc: "FHD\xB7QHD \uD37C\uD3EC\uBA3C\uC2A4" },
     { id: "budget_200_300", label: "200 ~ 300\uB9CC \uC6D0", value: "budget_200_300", icon: "\u{1F48E}", desc: "QHD\xB74K \uD558\uC774\uC5D4\uB4DC" },
     { id: "budget_over300", label: "300\uB9CC \uC6D0 \uC774\uC0C1", value: "budget_over300", icon: "\u{1F451}", desc: "\uCD5C\uACE0 \uC0AC\uC591 \uBB34\uC81C\uD55C" }
+  ];
+  var INSTALLMENT_OPTIONS = [
+    { id: "installment_none", label: "\uC0C1\uAD00\uC5C6\uC74C", value: "none", icon: "\u{1F4B3}", desc: "\uD560\uBD80 \uBB34\uAD00" },
+    { id: "installment_24", label: "24\uAC1C\uC6D4 \uBB34\uC774\uC790 \uD61C\uD0DD", value: 24, icon: "\u{1F4B3}", desc: "\uC6D4 \uB0A9\uBD80\uAE08 \uBD80\uB2F4 \uC801\uAC8C" },
+    { id: "installment_36", label: "36\uAC1C\uC6D4 \uBB34\uC774\uC790 \uD61C\uD0DD", value: 36, icon: "\u{1F4B3}", desc: "\uAC00\uC7A5 \uB0AE\uC740 \uC6D4 \uB0A9\uBD80\uAE08" },
+    { id: "installment_24_36_priority", label: "24/36 \uAC00\uB2A5 \uC0C1\uD488 \uC6B0\uC120", value: "24_36_priority", icon: "\u2728", desc: "\uC7A5\uAE30 \uBB34\uC774\uC790 \uAC00\uB2A5 \uC0C1\uD488 \uC6B0\uC120 \uCD94\uCC9C" }
   ];
   var DESIGN_OPTIONS = [
     { id: "black", label: "\uBE14\uB799 & \uB2E4\uD06C", value: "black", icon: "\u{1F5A4}", desc: "\uAC15\uB82C\uD558\uACE0 \uC138\uB828\uB41C \uB2E4\uD06C \uD1A4" },
@@ -648,6 +766,14 @@
         };
       case 4:
         return {
+          title: "\uC7A5\uAE30 \uBB34\uC774\uC790(\uCD94\uAC00 \uD61C\uD0DD) \uC120\uD0DD",
+          subtitle: "\uAE30\uBCF8 \uBB34\uC774\uC790\xB7\uBD80\uBD84\uBB34\uC774\uC790\uB294 \uCE74\uB4DC\uC0AC \uC815\uCC45\uC5D0 \uB530\uB77C \uC81C\uACF5\uB429\uB2C8\uB2E4. 24\xB736\uAC1C\uC6D4\uC740 \uCD94\uAC00 \uD61C\uD0DD\uC785\uB2C8\uB2E4.",
+          options: INSTALLMENT_OPTIONS,
+          stepKey: "installment",
+          required: false
+        };
+      case 5:
+        return {
           title: "\uCF00\uC774\uC2A4 \uC2A4\uD0C0\uC77C\uC744 \uACE8\uB77C\uC8FC\uC138\uC694",
           subtitle: "\uCDE8\uD5A5\uC5D0 \uB9DE\uB294 \uB514\uC790\uC778\uC73C\uB85C \uC644\uC131\uB3C4\uB97C \uB192\uC5EC\uBCF4\uC138\uC694",
           options: DESIGN_OPTIONS,
@@ -659,7 +785,7 @@
     }
   }
   function getStepLabel(step) {
-    const labels = ["\uC6A9\uB3C4", "\uAC8C\uC784", "\uC608\uC0B0", "\uB514\uC790\uC778"];
+    const labels = ["\uC6A9\uB3C4", "\uAC8C\uC784", "\uC608\uC0B0", "\uC7A5\uAE30\uBB34\uC774\uC790", "\uB514\uC790\uC778"];
     return labels[step - 1] || "";
   }
   var Wizard = class {
@@ -672,6 +798,7 @@
         purpose: null,
         game: null,
         budget: null,
+        installment: null,
         design: null
       };
       this.resultContainer = document.getElementById("wizard-result-container");
@@ -692,6 +819,7 @@
         purpose: null,
         game: null,
         budget: null,
+        installment: null,
         design: null
       };
       const presetGame = (options == null ? void 0 : options.game) && String(options.game).trim();
@@ -761,7 +889,7 @@
       });
       content.style.opacity = "0";
       content.style.transform = "translateX(20px)";
-      const showSkip = !config.required && step === 4;
+      const showSkip = !config.required;
       const skipBtn = showSkip ? '<button id="wizard-skip" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-300 transition-colors">\uAC74\uB108\uB6F0\uAE30</button>' : "<span></span>";
       content.innerHTML = `
       <div class="mb-6">
@@ -820,7 +948,12 @@
           btn.classList.add("border-accent", "bg-accent/10");
           const check = btn.querySelector(".wizard-check");
           check == null ? void 0 : check.classList.remove("opacity-0", "scale-0");
-          this.selections[stepKey] = btn.dataset.value;
+          let value = btn.dataset.value;
+          if (stepKey === "installment") {
+            this.selections[stepKey] = value === "none" || value === "" ? null : parseInt(value, 10) || value;
+          } else {
+            this.selections[stepKey] = value;
+          }
           setTimeout(() => {
             if (step < TOTAL_STEPS) {
               let nextStep = step + 1;
@@ -855,7 +988,7 @@
     }
     showResults() {
       this.close();
-      const { recommended, noResultsReason } = getWizardRecommendations(this.products, this.selections);
+      const { recommended, noResultsReason, matchReasons, fallbackNotice } = getWizardRecommendations(this.products, this.selections);
       if (!this.resultSection || !this.resultContainer) return;
       const selectedGame = this.selections.game;
       this.resultSection.classList.remove("hidden");
@@ -883,6 +1016,10 @@
           };
           parts.push(labels[this.selections.budget] || "");
         }
+        if (this.selections.installment) {
+          const labels = { 24: "\u{1F4B3} 24\uAC1C\uC6D4 \uBB34\uC774\uC790", 36: "\u{1F4B3} 36\uAC1C\uC6D4 \uBB34\uC774\uC790", "24_36_priority": "\u2728 24/36 \uAC00\uB2A5 \uC0C1\uD488 \uC6B0\uC120" };
+          parts.push(labels[this.selections.installment] || "");
+        }
         if (this.selections.design) {
           const labels = { black: "\u{1F5A4} \uBE14\uB799", white: "\u{1F90D} \uD654\uC774\uD2B8", rgb: "\u{1F308} RGB" };
           parts.push(labels[this.selections.design] || "");
@@ -902,7 +1039,16 @@
         </div>
       `;
       } else {
-        this.resultContainer.innerHTML = recommended.map((p) => renderWizardResultCard(p, selectedGame, this.fpsData)).join("");
+        const reasonMap = new Map((matchReasons || []).map((m) => [String(m.productId), m.reasons || []]));
+        this.resultContainer.innerHTML = recommended.map((p) => renderWizardResultCard(p, selectedGame, this.fpsData, reasonMap.get(String(p.id)) || [])).join("");
+        if (fallbackNotice === "installment_relaxed") {
+          this.resultContainer.insertAdjacentHTML(
+            "afterbegin",
+            `<div class="col-span-full mb-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+             \uC120\uD0DD\uD55C \uC7A5\uAE30 \uBB34\uC774\uC790 \uC870\uAC74(24/36\uAC1C\uC6D4)\uC5D0 \uB9DE\uB294 \uC0C1\uD488\uC774 \uC5C6\uC5B4, \uD574\uB2F9 \uC870\uAC74\uC744 \uD574\uC81C\uD55C \uCD94\uCC9C \uACB0\uACFC\uB97C \uBCF4\uC5EC\uB4DC\uB838\uC2B5\uB2C8\uB2E4.
+           </div>`
+          );
+        }
       }
       setTimeout(() => {
         this.resultSection.scrollIntoView({ behavior: "smooth", block: "start" });
