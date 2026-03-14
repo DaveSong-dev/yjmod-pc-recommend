@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-03-14T10:22:45.700799+09:00",
+  "last_updated": "2026-03-14T15:58:51.773313+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -14,7 +14,7 @@
       "id": "2",
       "title": "배송 받은 컴퓨터가 작동이 잘 안되신다구요?",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/52?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfNDgg/MDAxNzIxMTE4MTE3MjAz.N44ZlGR2E7hbdXRKktDEPhXbOhWvIJXWUWxA5Xr8ZGcg.j_Mb2LPau1R3vTDUKNkoiSsp20yZIR0DaYRnzNwP0-Eg.JPEG/20231120163026_38db3.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-03-14",
       "tags": []
     },
@@ -104,7 +104,7 @@
       "id": "13",
       "title": "[조립컴퓨터]박*준님 (010-****-1532) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7011?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMTJfMjMx/MDAxNzczMzA5NzQxMjk1.zrcR0hV-EDeSCf-DajCG_YjTpY73nMRhgTId2-QEAVkg.yu-M_50X6k24_kqUg9vjLnUjXWGhLS5o6gZmBeFymB8g.JPEG/KakaoTalk_20260312_180224847_01.jpg?type=w1600",
       "date": "2026-03-14",
       "tags": []
     },
