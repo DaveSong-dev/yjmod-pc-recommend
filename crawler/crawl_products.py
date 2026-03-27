@@ -13,10 +13,13 @@ crawl_products.py - 영재컴퓨터 조립PC 제품 크롤러 (v2)
     python crawl_products.py
 """
 
+import argparse
 import json
 import re
+import sys
+import threading
 import time
-import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
@@ -34,21 +37,75 @@ except ImportError:
     print("[WARNING] Selenium 없음. requests 대체 모드로 실행.")
 
 from config import (
-    BASE_URL, OUTPUT_PRODUCTS, REQUEST_DELAY,
+    BASE_URL, OUTPUT_PRODUCTS,
     GPU_TIER_MAP, PRICE_RANGES, GAME_KEYWORD_MAP,
     CASE_WHITE_KEYWORDS, CASE_BLACK_KEYWORDS, EXCLUDE_KEYWORDS,
     MAX_PRODUCTS_PER_CATEGORY,
 )
 
-# ─── 카테고리 정의 (실제 사이트 URL 기반, 2026-02 검증) ─────────
+# 상세 페이지 파싱 병렬 워커 수 (Session은 워커 스레드당 1개, thread-local)
+MAX_WORKERS = 4
+BATCH_SIZE = 50
+
+_detail_progress_lock = threading.Lock()
+_thread_local = threading.local()
+
+# ─── 카테고리 정의 ───────────────────────────────────────────────
+# list.php?ca_id=h0&ca_id_vi=XXX&ca_id_index=YYY (사이트 메뉴 기준, 2026-03 라이브 URL 대조)
+# 동일 (vi,idx)는 main() 병합 시 한 번만 크롤됨. AI 중급자용(403/4)과 워크스테이션 메뉴는 동일 URL.
 CATEGORIES = [
-    {"name": "영상편집",        "vi": "201", "idx": "4",  "games": [], "usage": ["영상편집"]},
-    {"name": "사무디자인",      "vi": "263", "idx": "12", "games": [], "usage": ["사무/디자인"]},
-    {"name": "AI딥러닝",        "vi": "339", "idx": "9",  "games": [], "usage": ["AI/딥러닝"]},
-    {"name": "배틀그라운드",    "vi": "367", "idx": "13", "games": ["배틀그라운드"], "usage": ["게이밍"]},
-    {"name": "로스트아크",      "vi": "368", "idx": "13", "games": ["로스트아크"], "usage": ["게이밍"]},
-    {"name": "오버워치2",       "vi": "369", "idx": "11", "games": ["오버워치2"], "usage": ["게이밍"]},
-    {"name": "발로란트",        "vi": "372", "idx": "3",  "games": ["발로란트"], "usage": ["게이밍"]},
+    # 사무용 (index=1)
+    {"name": "사무용", "vi": "373", "idx": "1", "games": [], "usage": ["사무/디자인"]},
+    {"name": "고급사무용", "vi": "399", "idx": "1", "games": [], "usage": ["사무/디자인"]},
+    {"name": "주식용", "vi": "400", "idx": "1", "games": [], "usage": ["사무/디자인"]},
+    # 게임 (ca_id_index=2)
+    {"name": "리그오브레전드", "vi": "86", "idx": "2", "games": ["리그오브레전드"], "usage": ["게이밍"]},
+    {"name": "배틀그라운드", "vi": "87", "idx": "2", "games": ["배틀그라운드"], "usage": ["게이밍"]},
+    {"name": "고사양_스팀게임", "vi": "88", "idx": "2", "games": ["스팀 AAA급 게임"], "usage": ["게이밍"]},
+    {"name": "로스트아크", "vi": "138", "idx": "2", "games": ["로스트아크"], "usage": ["게이밍"]},
+    {"name": "플라이트시뮬레이터", "vi": "396", "idx": "2", "games": [], "usage": ["게이밍"]},
+    {"name": "오버워치2", "vi": "397", "idx": "2", "games": ["오버워치2"], "usage": ["게이밍"]},
+    {"name": "디아블로4", "vi": "398", "idx": "2", "games": ["디아블로4"], "usage": ["게이밍"]},
+    {"name": "발로란트", "vi": "393", "idx": "2", "games": ["발로란트"], "usage": ["게이밍"]},
+    {"name": "아이온2", "vi": "394", "idx": "2", "games": ["아이온2"], "usage": ["게이밍"]},
+    # 영상편집 (ca_id_index=3)
+    {"name": "영상편집_입문초보자용", "vi": "409", "idx": "3", "games": [], "usage": ["영상편집"]},
+    {"name": "영상편집_중상급자용", "vi": "410", "idx": "3", "games": [], "usage": ["영상편집"]},
+    {"name": "영상편집_전문가용", "vi": "408", "idx": "3", "games": [], "usage": ["영상편집"]},
+    # AI / 딥러닝 (ca_id_index=4) — 403은 중급·워크스테이션 메뉴 동일 URL
+    {"name": "AI_중급자용_워크스테이션", "vi": "403", "idx": "4", "games": [], "usage": ["AI/딥러닝"]},
+    {"name": "AI_전문가용", "vi": "404", "idx": "4", "games": [], "usage": ["AI/딥러닝"]},
+    {"name": "NVIDIA_AI_PC", "vi": "401", "idx": "4", "games": [], "usage": ["AI/딥러닝"]},
+    {"name": "Ai_스타터", "vi": "402", "idx": "4", "games": [], "usage": ["AI/딥러닝"]},
+    # 3D / 방송 (406/8: 사이트에서 3D·방송 동일 분류 URL — 용도 태그 병행)
+    {"name": "3D모델링_방송스트리밍", "vi": "406", "idx": "8", "games": [], "usage": ["3D 모델링", "방송/스트리밍"]},
+    # 브랜드관 (ca_id_index=5)
+    {"name": "브랜드_리안리", "vi": "375", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_ASUS", "vi": "376", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_기타", "vi": "379", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_MSI", "vi": "374", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_프랙탈디자인", "vi": "149", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_NZXT", "vi": "169", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_GSKILL", "vi": "175", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_감성컴퓨터", "vi": "206", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_커세어", "vi": "356", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_쿨러마스터", "vi": "378", "idx": "5", "games": [], "usage": ["게이밍"]},
+    {"name": "브랜드_COOLER_MASTER", "vi": "380", "idx": "5", "games": [], "usage": ["게이밍"]},
+    # 하이앤드관 (ca_id_index=9)
+    {"name": "하이앤드_MINI_ITX", "vi": "204", "idx": "9", "games": [], "usage": ["게이밍"]},
+    {"name": "하이앤드_커스텀수냉", "vi": "190", "idx": "9", "games": [], "usage": ["게이밍"]},
+    {"name": "하이앤드_인텔12세대PC", "vi": "208", "idx": "9", "games": [], "usage": ["게이밍"]},
+    {"name": "하이앤드_실사PC", "vi": "209", "idx": "9", "games": [], "usage": ["게이밍"]},
+    {"name": "하이앤드_일반", "vi": "334", "idx": "9", "games": [], "usage": ["게이밍"]},
+    {"name": "하이앤드_서버워크스테이션", "vi": "339", "idx": "9", "games": [], "usage": ["게이밍", "AI/딥러닝"]},
+    # 레거시 URL (메뉴 구조 변경 전·중복 커버)
+    {"name": "영상편집_레거시", "vi": "201", "idx": "4", "games": [], "usage": ["영상편집"]},
+    {"name": "사무디자인_레거시", "vi": "263", "idx": "12", "games": [], "usage": ["사무/디자인"]},
+    {"name": "배틀그라운드_레거시", "vi": "367", "idx": "13", "games": ["배틀그라운드"], "usage": ["게이밍"]},
+    {"name": "로스트아크_레거시", "vi": "368", "idx": "13", "games": ["로스트아크"], "usage": ["게이밍"]},
+    {"name": "오버워치2_레거시", "vi": "369", "idx": "11", "games": ["오버워치2"], "usage": ["게이밍"]},
+    # 372/3: 사이트 푸터·메뉴 "방송·스트리밍" + 발로란트 노출 겹침 → 용도 병행
+    {"name": "방송스트리밍_발로란트_372", "vi": "372", "idx": "3", "games": ["발로란트"], "usage": ["게이밍", "방송/스트리밍"]},
 ]
 
 # ─── Installment 페이지 (GET 요청, 할부 상품) ─────────────────
@@ -72,6 +129,10 @@ RECOMMEND_PAGES = [
 ]
 
 SHOP_BASE = f"{BASE_URL}/shop"
+
+# 품절·가격보류 추적 (프로젝트 루트 data/)
+SOLDOUT_LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "soldout_log.json"
+
 HEADERS = {
     "User-Agent": (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -81,6 +142,42 @@ HEADERS = {
 }
 
 
+def update_soldout_log(soldout_products):
+    """품절·보류(in_stock=False) 상품을 soldout_log.json에 기록 (복원 가능한 형태)."""
+    if SOLDOUT_LOG_PATH.exists():
+        with open(SOLDOUT_LOG_PATH, "r", encoding="utf-8") as f:
+            log = json.load(f)
+    else:
+        log = {"soldout": [], "revived": []}
+
+    if "soldout" not in log or not isinstance(log["soldout"], list):
+        log["soldout"] = []
+    if "revived" not in log or not isinstance(log["revived"], list):
+        log["revived"] = []
+
+    existing_ids = {str(p.get("id")) for p in log["soldout"] if p.get("id") is not None}
+
+    for product in soldout_products:
+        pid = str(product.get("id", ""))
+        if not pid or pid in existing_ids:
+            continue
+        log["soldout"].append(
+            {
+                "id": pid,
+                "name": product.get("name", ""),
+                "price": product.get("price", 0),
+                "tier": product.get("tier", ""),
+                "soldout_at": datetime.now(timezone(timedelta(hours=9))).isoformat(),
+                "revived": False,
+            }
+        )
+        existing_ids.add(pid)
+
+    SOLDOUT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+    with open(SOLDOUT_LOG_PATH, "w", encoding="utf-8") as f:
+        json.dump(log, f, ensure_ascii=False, indent=2)
+
+
 def safe_print(msg):
     """Windows cp949 콘솔에서도 깨지지 않도록 안전 출력"""
     try:
@@ -88,6 +185,68 @@ def safe_print(msg):
     except UnicodeEncodeError:
         sanitized = msg.encode("cp949", errors="replace").decode("cp949", errors="replace")
         print(sanitized)
+
+
+def _thread_local_session():
+    """스레드당 하나의 requests.Session (스레드 간 공유 금지)."""
+    s = getattr(_thread_local, "session", None)
+    if s is None:
+        s = requests.Session()
+        s.headers.update(HEADERS)
+        _thread_local.session = s
+    return s
+
+
+def _fetch_product_detail_worker(item_id, category):
+    """스레드에서 상세 파싱. 예외 시 해당 상품만 스킵."""
+    try:
+        sess = _thread_local_session()
+        return item_id, parse_product_detail(item_id, category, sess)
+    except Exception as e:
+        safe_print(f"    [ERROR] 상세 조회 예외 it_id={item_id}: {e}")
+        return item_id, None
+
+
+def run_parallel_detail_fetch(pairs, all_products, label=""):
+    """
+    (item_id, category) 목록을 BATCH_SIZE 단위로 나눠 ThreadPoolExecutor로 처리.
+    이미 all_products에 있는 id는 건너뜀.
+    """
+    to_run = [(iid, cat) for iid, cat in pairs if iid not in all_products]
+    if not to_run:
+        return
+
+    tag = f" [{label}]" if label else ""
+    safe_print(
+        f"[INFO] 상세 병렬 처리{tag}: {len(to_run)}건 "
+        f"(workers={MAX_WORKERS}, batch={BATCH_SIZE})"
+    )
+    total = len(to_run)
+    done = [0]
+
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
+        for start in range(0, len(to_run), BATCH_SIZE):
+            batch = to_run[start : start + BATCH_SIZE]
+            future_to_id = {
+                executor.submit(_fetch_product_detail_worker, iid, cat): iid
+                for iid, cat in batch
+            }
+            for future in as_completed(future_to_id):
+                iid = future_to_id[future]
+                rid, product = iid, None
+                try:
+                    rid, product = future.result()
+                except Exception as e:
+                    safe_print(f"    [ERROR] future 실패 it_id={iid}: {e}")
+
+                if product:
+                    all_products[rid] = product
+
+                with _detail_progress_lock:
+                    done[0] += 1
+                    d = done[0]
+                    if d % 25 == 0 or d >= total:
+                        safe_print(f"[진행]{tag} {d}/{total}")
 
 
 def parse_list_targets_from_html(html):
@@ -588,6 +747,62 @@ def gpu_key(gpu_short):
     return re.sub(r"\s+", " ", gpu_short).strip()
 
 
+# ─── 가격 검증·라벨 파싱 (GPU 스펙 대비 비현실적 금액 차단) ─────
+EVENT_NAME_KEYWORDS = ("증정", "이벤트", "월간견적")
+
+
+def is_event_style_product(name):
+    return any(k in name for k in EVENT_NAME_KEYWORDS)
+
+
+def extract_labeled_price(page_text, label):
+    """단일 라벨 인근 원화 금액 (5자리 이상)."""
+    pattern = re.escape(label) + r"\s*[:：\r\n\t ]*([0-9,]{5,})\s*원"
+    m = re.search(pattern, page_text)
+    if m:
+        return int(m.group(1).replace(",", ""))
+    return 0
+
+
+def extract_price_by_label_order(page_text, labels):
+    for label in labels:
+        v = extract_labeled_price(page_text, label)
+        if v >= 300_000:
+            return v
+    return 0
+
+
+def extract_largest_won_amount(page_text, minimum=300_000):
+    best = 0
+    for m in re.finditer(r"([\d,]{6,})\s*원", page_text):
+        v = int(m.group(1).replace(",", ""))
+        if v >= minimum:
+            best = max(best, v)
+    return best
+
+
+def gpu_minimum_credible_price(name, cpu_full, gpu_full):
+    """크롤러·프론트 filter.js minimumCredibleTotalWon 과 동일 규칙."""
+    combined = f"{name} {cpu_full} {gpu_full}".upper()
+    if re.search(r"RTX\s*5090|9950X3D", combined):
+        return 4_000_000
+    if re.search(r"RTX\s*5080", combined):
+        return 3_000_000
+    if re.search(r"RTX\s*5070|9800X3D|RX\s*9070", combined):
+        return 2_000_000
+    return 0
+
+
+def validate_price_against_gpu(name, cpu_full, gpu_full, price):
+    """비현실적이면 (True, 0) = price_crawl_error."""
+    if price <= 0:
+        return False, price
+    m = gpu_minimum_credible_price(name, cpu_full, gpu_full)
+    if m and price < m:
+        return True, 0
+    return False, price
+
+
 # ─── 상품 상세 파싱 ────────────────────────────────────────────
 def parse_product_detail(item_id, category, session):
     url = f"{SHOP_BASE}/item.php?it_id={item_id}"
@@ -753,44 +968,42 @@ def parse_product_detail(item_id, category, session):
     gpu_k = gpu_key(gpu_s)
 
     # ── 가격 ──
-    # 1) 할부 상품 여부 및 개월수 파악
+    price_crawl_error = False
+    price_event = None
+
     installment_months = 0
     if "24개월" in name or "24개월" in page_text[:500]:
         installment_months = 24
     elif "36개월" in name or "36개월" in page_text[:500]:
         installment_months = 36
 
-    # 2) 판매가(총액) 파싱 - 판매가를 혜택가보다 먼저 확인
-    price = 0
-    for label in ["판매가", "혜택가"]:
-        price_match = re.search(
-            label + r"\s*[\r\n\t ]*([0-9,]{6,})\s*원", page_text
-        )
-        if price_match:
-            v = int(price_match.group(1).replace(",", ""))
-            if v >= 300_000:
-                price = v
-                break
+    event_style = is_event_style_product(name)
 
-    # 3) 위로 못 찾으면 6자리 이상 숫자 중 가장 큰 값
+    if event_style:
+        price = extract_price_by_label_order(
+            page_text,
+            ["정상가", "판매가", "혜택가", "총 결제금액", "총결제금액"],
+        )
+    else:
+        price = extract_price_by_label_order(page_text, ["판매가", "혜택가"])
+
     if price < 300_000:
-        for m in re.finditer(r"([\d,]{6,})\s*원", page_text):
-            v = int(m.group(1).replace(",", ""))
-            if v >= 300_000:
-                price = v
-                break
+        price = extract_largest_won_amount(page_text, minimum=300_000)
+
+    if installment_months > 0:
+        alt_total = extract_price_by_label_order(
+            page_text,
+            ["총 결제금액", "총결제금액", "정상가", "판매가"],
+        )
+        if alt_total >= 300_000:
+            price = max(price, alt_total)
 
     if price < 100_000:
         print(f"    [SKIP] 가격 파싱 실패: {name[:40]}")
         return None
 
-    # 조립PC 최소 가격 기준: 50만원 미만이면 모니터 등 대체 상품 가능성 → 제외
     MIN_PC_PRICE = 500_000
-    if price < MIN_PC_PRICE and installment_months == 0:
-        print(f"    [SKIP] 가격 비정상({price:,}원 < {MIN_PC_PRICE:,}원): {name[:40]}")
-        return None
 
-    # 4) 할부 상품이면 월 납부금액 파싱
     price_monthly = 0
     if installment_months > 0:
         m_monthly = re.search(
@@ -798,18 +1011,34 @@ def parse_product_detail(item_id, category, session):
         )
         if m_monthly:
             price_monthly = int(m_monthly.group(1).replace(",", ""))
-        # 월납부금이 없으면 총액으로 역산
         if price_monthly < 10_000:
-            price_monthly = price // installment_months
+            price_monthly = price // installment_months if price >= installment_months else 0
+        if price_monthly < 10_000 and price >= installment_months * 10_000:
+            price_monthly = (price // installment_months // 10_000) * 10_000
 
-    # 1만 원 단위 절삭
+    if event_style:
+        hy = extract_labeled_price(page_text, "혜택가")
+        if hy >= 100_000 and hy != price:
+            price_event = hy
+
+    err, price = validate_price_against_gpu(name, cpu_full, gpu_full, price)
+    if err:
+        price_crawl_error = True
+        price_monthly = 0
+        safe_print(f"    [가격검증실패] GPU 대비 비현실적 가격 → price=0: {name[:40]}")
+
+    if not price_crawl_error:
+        if price < MIN_PC_PRICE and installment_months == 0:
+            print(f"    [SKIP] 가격 비정상({price:,}원 < {MIN_PC_PRICE:,}원): {name[:40]}")
+            return None
+
     price = (price // 10_000) * 10_000
     if price_monthly > 0:
         price_monthly = (price_monthly // 10_000) * 10_000
 
     # ── 분류 ──
     tier = classify_tier(gpu_full)
-    price_range = classify_price_range(price)
+    price_range = classify_price_range(price) if price > 0 else "300만 원 이상"
     games = extract_game_tags(name, page_text[:2000], category["games"], page_text)
     game_fps = extract_game_fps_map(name, page_text)
     usage = classify_usage(name, category["usage"], tier)
@@ -836,12 +1065,14 @@ def parse_product_detail(item_id, category, session):
     elif case_color == "화이트":
         badge, badge_color = "화이트 감성", "white"
 
-    # 표시 가격: 할부면 월 납부금, 아니면 총액
-    display_price = price_monthly if installment_months > 0 and price_monthly > 0 else price
-    if installment_months > 0 and price_monthly > 0:
-        price_display_str = f"월 {format_price_display(display_price)}"
+    if price_crawl_error:
+        price_display_str = "가격 확인 필요"
     else:
-        price_display_str = format_price_display(display_price)
+        display_price = price_monthly if installment_months > 0 and price_monthly > 0 else price
+        if installment_months > 0 and price_monthly > 0:
+            price_display_str = f"월 {format_price_display(display_price)}"
+        else:
+            price_display_str = format_price_display(display_price)
 
     product = {
         "id": item_id,
@@ -853,7 +1084,7 @@ def parse_product_detail(item_id, category, session):
         "price_monthly": price_monthly,
         "installment_months": installment_months,
         "price_display": price_display_str,
-        "in_stock": True,
+        "in_stock": not price_crawl_error,
         "specs": {
             "cpu": cpu_full[:50],
             "cpu_short": cpu_s,
@@ -886,8 +1117,15 @@ def parse_product_detail(item_id, category, session):
         "badge": badge,
         "badge_color": badge_color,
     }
+    if price_crawl_error:
+        product["price_crawl_error"] = True
+    if price_event is not None:
+        product["price_event"] = price_event
 
-    safe_print(f"    [OK] {name[:50]} | {format_price_display(price)} | {tier}")
+    if price_crawl_error:
+        safe_print(f"    [보류] {name[:50]} | 가격검증실패 | {tier}")
+    else:
+        safe_print(f"    [OK] {name[:50]} | {format_price_display(price)} | {tier}")
     return product
 
 
@@ -900,7 +1138,6 @@ def main():
 
     all_products = {}
     driver = None
-
     session = requests.Session()
     session.headers.update(HEADERS)
 
@@ -913,10 +1150,7 @@ def main():
         merged_categories = []
         seen_keys = set()
         for cat in (CATEGORIES + dynamic_categories):
-            if cat.get("ca_id"):
-                key = f"ca:{cat['ca_id']}"
-            else:
-                key = f"vi:{cat['vi']}:{cat['idx']}"
+            key = f"ca:{cat['ca_id']}" if cat.get("ca_id") else f"vi:{cat['vi']}:{cat['idx']}"
             if key in seen_keys:
                 continue
             seen_keys.add(key)
@@ -924,113 +1158,83 @@ def main():
 
         print(f"[INFO] 고정 카테고리 {len(CATEGORIES)}개 + 동적 카테고리 {len(dynamic_categories)}개")
 
-        # ── 1단계: 메인페이지 상품 ──
+        # 1단계: 메인페이지 상품
         main_item_ids = collect_main_page_item_ids(session)
-        safe_print(f"[INFO] 메인페이지 노출 상품 ID {len(main_item_ids)}개 발견")
-        for item_id in main_item_ids:
-            if item_id in all_products:
-                continue
-            product = parse_product_detail(
-                item_id,
-                {"name": "MAIN_PAGE", "games": [], "usage": []},
-                session,
-            )
-            if product:
-                all_products[item_id] = product
-            time.sleep(0.5)
+        cat_main = {"name": "MAIN_PAGE", "games": [], "usage": []}
+        run_parallel_detail_fetch(
+            [(iid, cat_main) for iid in main_item_ids], all_products, "메인페이지"
+        )
 
-        # ── 2단계: Installment 페이지 (GET, 할부 상품) ──
+        # 2단계: Installment 페이지
         installment_ids = collect_installment_item_ids(session)
-        safe_print(f"[INFO] Installment 상품 상세 파싱 시작 ({len(installment_ids)}개)")
-        for item_id in installment_ids:
-            if item_id in all_products:
-                continue
-            product = parse_product_detail(
-                item_id,
-                {"name": "INSTALLMENT", "games": [], "usage": []},
-                session,
-            )
-            if product:
-                all_products[item_id] = product
-            time.sleep(0.5)
-        safe_print(f"[INFO] Installment 완료 → 누적 {len(all_products)}개")
+        cat_inst = {"name": "INSTALLMENT", "games": [], "usage": []}
+        run_parallel_detail_fetch(
+            [(iid, cat_inst) for iid in installment_ids], all_products, "Installment"
+        )
 
-        # ── 3단계: Recommend 페이지 (POST, 브랜드/스트리밍) ──
+        # 3단계: Recommend 페이지
         recommend_data = collect_recommend_item_ids(session)
-        safe_print(f"[INFO] Recommend 상품 상세 파싱 시작 ({len(recommend_data)}개)")
-        for item_id, cat in recommend_data.items():
-            if item_id in all_products:
-                continue
-            product = parse_product_detail(item_id, cat, session)
-            if product:
-                all_products[item_id] = product
-            time.sleep(0.5)
-        safe_print(f"[INFO] Recommend 완료 → 누적 {len(all_products)}개")
+        run_parallel_detail_fetch(
+            list(recommend_data.items()), all_products, "Recommend"
+        )
 
-        # ── 4단계: Selenium 카테고리 크롤링 ──
-        for i, cat in enumerate(merged_categories, 1):
-            print(f"\n[{i}/{len(merged_categories)}] 카테고리: {cat['name']}")
+        # 4단계: 카테고리 Selenium 수집
+        if driver:
+            for cat in merged_categories:
+                ids = get_item_ids_from_category(driver, cat)
+                safe_print(f"  [{cat['name']}] {len(ids)}개 발견")
+                run_parallel_detail_fetch(
+                    [(iid, cat) for iid in ids], all_products, cat["name"]
+                )
 
-            if driver:
-                item_ids = get_item_ids_from_category(driver, cat)
-            else:
-                item_ids = []
-
-            print(f"  → 발견된 제품 ID: {len(item_ids)}개 {item_ids[:5]}")
-
-            for item_id in item_ids:
-                if item_id in all_products:
-                    print(f"    [DUP] {item_id}")
-                    continue
-                product = parse_product_detail(item_id, cat, session)
-                if product:
-                    all_products[item_id] = product
-                time.sleep(0.5)
-
-            time.sleep(REQUEST_DELAY)
-
-    except KeyboardInterrupt:
-        print("\n[INFO] 사용자 중단")
-    except Exception as e:
-        print(f"\n[ERROR] 크롤링 오류: {e}")
-        traceback.print_exc()
     finally:
         if driver:
             driver.quit()
 
     products_list = list(all_products.values())
-    print(f"\n[INFO] 총 {len(products_list)}개 제품 수집 완료")
+    safe_print(f"\n총 {len(products_list)}개 제품 수집 완료")
 
-    # 0건 수집 시 기존 데이터 보존
     if len(products_list) == 0:
-        print("[WARNING] 수집 0건 → 기존 데이터 보존")
-        existing = Path(OUTPUT_PRODUCTS)
-        if existing.exists():
-            try:
-                with open(existing, "r", encoding="utf-8") as f:
-                    ex = json.load(f)
-                if len(ex.get("products", [])) > 0:
-                    print(f"[INFO] 기존 {len(ex['products'])}개 유지")
-                    import sys; sys.exit(0)
-            except Exception:
-                pass
+        print("[WARNING] 수집된 상품이 없습니다. 기존 데이터를 유지합니다.")
+        return
 
-    kst = timezone(timedelta(hours=9))
-    now_kst = datetime.now(kst).isoformat()
+    soldout_slice = []
+    for p in products_list:
+        if p.get("in_stock") is False:
+            cats = p.get("categories") or {}
+            soldout_slice.append(
+                {
+                    "id": p.get("id"),
+                    "name": p.get("name", ""),
+                    "price": p.get("price", 0),
+                    "tier": cats.get("tier", ""),
+                }
+            )
+    if soldout_slice:
+        update_soldout_log(soldout_slice)
+        safe_print(f"[INFO] 품절/보류 로그 {len(soldout_slice)}건 기록 → {SOLDOUT_LOG_PATH}")
 
     output = {
-        "last_updated": now_kst,
+        "last_updated": datetime.now(timezone(timedelta(hours=9))).isoformat(),
         "_note": "crawl_products.py v2에 의해 자동 생성됩니다.",
         "products": products_list,
     }
-
-    Path(OUTPUT_PRODUCTS).parent.mkdir(parents=True, exist_ok=True)
-    with open(OUTPUT_PRODUCTS, "w", encoding="utf-8") as f:
+    out_path = Path(OUTPUT_PRODUCTS)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with open(out_path, "w", encoding="utf-8") as f:
         json.dump(output, f, ensure_ascii=False, indent=2)
-
-    print(f"[OK] 저장 완료: {OUTPUT_PRODUCTS}")
-    print(f"[INFO] 완료 시각: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+    print(f"[저장 완료] {out_path} ({len(products_list)}개)")
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="영재컴퓨터 제품 크롤러 v2")
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="크롤링 없이 인자/임포트만 확인하고 종료",
+    )
+    cli_args = parser.parse_args()
+    if cli_args.dry_run:
+        print("[dry-run] OK (네트워크·Selenium 미실행)")
+        sys.exit(0)
     main()

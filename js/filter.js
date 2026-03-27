@@ -89,6 +89,74 @@ const filterState = {
 const MIN_INSTALLMENT_TOTAL = 800000;   // 총액 80만 원 미만이면 비정상
 const MIN_INSTALLMENT_MONTHLY = 30000;  // 월 납부 3만 원 미만이면 플레이스홀더
 
+/** 할부 약정 총액(월×개월)이 이 미만이면 예산 구간 필터에서 제외 */
+const MIN_IMPLIED_INSTALLMENT_FOR_BAND = 500000;
+
+/**
+ * 하이엔드(4K) + 할부인데 price/약정이 모두 낮게 찍힌 오데이터 보정용 하한 (예산 구간만)
+ */
+const TIER_INSTALLMENT_BUDGET_FLOOR = {
+  '하이엔드(4K)': 2000000
+};
+
+/**
+ * 스펙 키워드 대비 비현실적으로 낮은 판매가 보정 (일시불·크롤링 오류)
+ * 크롤러 `gpu_minimum_credible_price`와 동일 규칙 유지
+ */
+function minimumCredibleTotalWon(product) {
+  const name = (product.name || '').toUpperCase();
+  const gpu = [
+    product.components?.gpu,
+    product.specs?.gpu_short,
+    product.specs?.gpu_key,
+    product.specs?.gpu
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toUpperCase();
+  const combined = `${name} ${gpu}`;
+  if (/RTX\s*5090|9950X3D/.test(combined)) return 4000000;
+  if (/RTX\s*5080/.test(combined)) return 3000000;
+  if (/RTX\s*5070|9800X3D|RX\s*9070/.test(combined)) return 2000000;
+  return 0;
+}
+
+/**
+ * 예산 구간(priceRange) 비교용 총액. 할부는 월×개월과 price를 조합해 산출.
+ * @returns {number|null} null이면 해당 예산 필터에서 제외
+ */
+function effectivePriceForBudgetRange(product) {
+  const months = product.installment_months | 0;
+  const monthly = product.price_monthly | 0;
+
+  if (months <= 0) {
+    if (product.price_crawl_error === true) return null;
+    const p = product.price ?? 0;
+    if (p <= 0) return null;
+    const mc = minimumCredibleTotalWon(product);
+    if (mc > 0 && p < mc) return mc;
+    return p;
+  }
+
+  if (monthly <= 0) {
+    const tierFloor = TIER_INSTALLMENT_BUDGET_FLOOR[product.categories?.tier] ?? 0;
+    return tierFloor > 0 ? tierFloor : null;
+  }
+
+  const implied = monthly * months;
+  if (implied < MIN_IMPLIED_INSTALLMENT_FOR_BAND) {
+    return null;
+  }
+
+  const p = product.price ?? 0;
+  let eff = p > implied * 0.5 ? p : implied;
+  eff = Math.max(eff, implied);
+  const tierFloor = TIER_INSTALLMENT_BUDGET_FLOOR[product.categories?.tier] ?? 0;
+  const mcFloor = minimumCredibleTotalWon(product);
+  eff = Math.max(eff, tierFloor, mcFloor);
+  return eff;
+}
+
 /** 고사양 게임: 100만 원 이하와 조합 시 예산 완화하지 않고 0건 + 전용 안내 */
 const HIGH_END_GAMES = ['로스트아크', '배틀그라운드', '스팀 AAA급 게임', '오버워치2'];
 
@@ -103,6 +171,7 @@ const MIN_PC_PRICE = 500000;
 
 export function isInStock(product) {
   if (!product) return false;
+  if (product.price_crawl_error === true) return false;
   // raw in_stock이 source of truth (크롤러가 품절 이미 제외)
   if (product.in_stock !== true) return false;
   if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
@@ -213,7 +282,11 @@ function filterProducts(products, filters = filterState) {
 
     if (filters.priceRange) {
       const range = PRICE_RANGES[filters.priceRange];
-      if (range && (product.price < range.min || product.price >= range.max)) return false;
+      if (range) {
+        const eff = effectivePriceForBudgetRange(product);
+        if (eff === null) return false;
+        if (eff < range.min || eff >= range.max) return false;
+      }
     }
 
     // 용도 필터: tags.usage 기반

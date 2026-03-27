@@ -7,6 +7,12 @@
     },
     "api/shipping-public.js": {
       "maxDuration": 15
+    },
+    "api/revive-product.js": {
+      "maxDuration": 60
+    },
+    "api/admin-auth.js": {
+      "maxDuration": 10
     }
   },
   "headers": [
@@ -20,6 +26,15 @@
         {
           "key": "Referrer-Policy",
           "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/data/reco/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, s-maxage=3600, stale-while-revalidate=600"
         }
       ]
     }

@@ -369,7 +369,10 @@ class Wizard {
       if (noResultsReason === 'impossible_budget') {
         emptyMessage = '선택하신 게임(로스트아크, 배그 등)을 100만 원 대로 쾌적하게 즐기기에는 맞는 제품이 없습니다. 100~200만 원 이상 구간을 추천드립니다.';
       } else if (noResultsReason === 'no_products_under_budget') {
-        emptyMessage = '선택한 예산(100만 원 이하)에 맞는 제품이 없습니다. 100~200만 원 구간을 선택해 보시거나 다른 조건을 조정해 보세요.';
+        emptyMessage =
+          this.selections.purpose === 'gaming'
+            ? '100만 원 이하 게임용 PC가 없습니다. 100~200만 원 구간을 추천드립니다.'
+            : '선택한 예산(100만 원 이하)에 맞는 제품이 없습니다. 100~200만 원 구간을 선택해 보시거나 다른 조건을 조정해 보세요.';
       }
       this.resultContainer.innerHTML = `
         <div class="col-span-full text-center py-12">

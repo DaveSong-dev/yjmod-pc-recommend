@@ -569,8 +569,52 @@
     }
     return s;
   }
+  function minimumCredibleTotalWon(product) {
+    var _a, _b, _c, _d;
+    const name = (product.name || "").toUpperCase();
+    const gpu = [
+      (_a = product.components) == null ? void 0 : _a.gpu,
+      (_b = product.specs) == null ? void 0 : _b.gpu_short,
+      (_c = product.specs) == null ? void 0 : _c.gpu_key,
+      (_d = product.specs) == null ? void 0 : _d.gpu
+    ].filter(Boolean).join(" ").toUpperCase();
+    const combined = `${name} ${gpu}`;
+    if (/RTX\s*5090|9950X3D/.test(combined)) return 4e6;
+    if (/RTX\s*5080/.test(combined)) return 3e6;
+    if (/RTX\s*5070|9800X3D|RX\s*9070/.test(combined)) return 2e6;
+    return 0;
+  }
+  function effectivePriceForBudgetRange(product) {
+    var _a, _b, _c, _d, _e, _f;
+    const months = product.installment_months | 0;
+    const monthly = product.price_monthly | 0;
+    if (months <= 0) {
+      if (product.price_crawl_error === true) return null;
+      const p2 = (_a = product.price) != null ? _a : 0;
+      if (p2 <= 0) return null;
+      const mc = minimumCredibleTotalWon(product);
+      if (mc > 0 && p2 < mc) return mc;
+      return p2;
+    }
+    if (monthly <= 0) {
+      const tierFloor2 = (_c = TIER_INSTALLMENT_BUDGET_FLOOR[(_b = product.categories) == null ? void 0 : _b.tier]) != null ? _c : 0;
+      return tierFloor2 > 0 ? tierFloor2 : null;
+    }
+    const implied = monthly * months;
+    if (implied < MIN_IMPLIED_INSTALLMENT_FOR_BAND) {
+      return null;
+    }
+    const p = (_d = product.price) != null ? _d : 0;
+    let eff = p > implied * 0.5 ? p : implied;
+    eff = Math.max(eff, implied);
+    const tierFloor = (_f = TIER_INSTALLMENT_BUDGET_FLOOR[(_e = product.categories) == null ? void 0 : _e.tier]) != null ? _f : 0;
+    const mcFloor = minimumCredibleTotalWon(product);
+    eff = Math.max(eff, tierFloor, mcFloor);
+    return eff;
+  }
   function isInStock(product) {
     if (!product) return false;
+    if (product.price_crawl_error === true) return false;
     if (product.in_stock !== true) return false;
     if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
     if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
@@ -646,7 +690,11 @@
       if (filters.tier && product.categories.tier !== filters.tier) return false;
       if (filters.priceRange) {
         const range = PRICE_RANGES[filters.priceRange];
-        if (range && (product.price < range.min || product.price >= range.max)) return false;
+        if (range) {
+          const eff = effectivePriceForBudgetRange(product);
+          if (eff === null) return false;
+          if (eff < range.min || eff >= range.max) return false;
+        }
       }
       if (filters.usage && !tags.usage.has(filters.usage)) return false;
       if (filters.installment === "nointerest") {
@@ -971,7 +1019,7 @@
       filterState[k] = k === "search" ? "" : null;
     });
   }
-  var GAME_ALIASES2, SAFE_GAME_FALLBACK_ALIASES, USAGE_ALIASES2, filterState, MIN_INSTALLMENT_TOTAL, MIN_INSTALLMENT_MONTHLY, HIGH_END_GAMES, SOLD_OUT_PRODUCT_IDS, MIN_PC_PRICE, NON_GAMING_PURPOSES, PURPOSE_TO_USAGE2;
+  var GAME_ALIASES2, SAFE_GAME_FALLBACK_ALIASES, USAGE_ALIASES2, filterState, MIN_INSTALLMENT_TOTAL, MIN_INSTALLMENT_MONTHLY, MIN_IMPLIED_INSTALLMENT_FOR_BAND, TIER_INSTALLMENT_BUDGET_FLOOR, HIGH_END_GAMES, SOLD_OUT_PRODUCT_IDS, MIN_PC_PRICE, NON_GAMING_PURPOSES, PURPOSE_TO_USAGE2;
   var init_filter = __esm({
     "js/filter.js"() {
       init_utils();
@@ -1021,6 +1069,10 @@
       };
       MIN_INSTALLMENT_TOTAL = 8e5;
       MIN_INSTALLMENT_MONTHLY = 3e4;
+      MIN_IMPLIED_INSTALLMENT_FOR_BAND = 5e5;
+      TIER_INSTALLMENT_BUDGET_FLOOR = {
+        "\uD558\uC774\uC5D4\uB4DC(4K)": 2e6
+      };
       HIGH_END_GAMES = ["\uB85C\uC2A4\uD2B8\uC544\uD06C", "\uBC30\uD2C0\uADF8\uB77C\uC6B4\uB4DC", "\uC2A4\uD300 AAA\uAE09 \uAC8C\uC784", "\uC624\uBC84\uC6CC\uCE582"];
       SOLD_OUT_PRODUCT_IDS = ["2741770843"];
       MIN_PC_PRICE = 5e5;
@@ -1494,13 +1546,19 @@
   }
   function renderWizardPriceStack(product) {
     const hint = buildMonthlyPaymentHint(product);
-    const isInstallment = (product.installment_months || 0) > 0 && (product.price_monthly || 0) > 0;
+    const months = product.installment_months | 0;
+    const monthly = product.price_monthly | 0;
+    const isInstallment = months > 0 && monthly > 0;
     if (isInstallment) {
+      const scheduleTotal = monthly * months;
+      const totalLabel = formatPrice(scheduleTotal);
       return `
               <p class="text-[10px] font-semibold text-gray-500 tracking-wide">\uC6D4 \uD560\uBD80\uAC00</p>
-              ${renderInstallmentPolicyLine(product, { marginClass: "mb-0.5" })}
-              <p class="text-3xl font-black text-white tracking-tight">${product.price_display}</p>
-              <p class="text-xs text-gray-500 mt-0.5">\uCD1D ${Math.round((product.price || 0) / 1e4)}\uB9CC \uC6D0</p>`;
+              <p class="text-3xl font-black text-white tracking-tight leading-snug">${product.price_display}
+                <span class="block text-sm font-bold text-gray-400 mt-1 sm:inline sm:mt-0 sm:ml-2">
+                  (${months}\uAC1C\uC6D4 \xB7 \uCD1D ${totalLabel})
+                </span>
+              </p>`;
     }
     return `
               <p class="text-[10px] font-semibold text-gray-500 tracking-wide">\uACAC\uC801\uAC00</p>
@@ -1747,6 +1805,15 @@
   }
   function renderWizardResultCard(product, selectedGame, fpsData, matchReasons = [], recommendationReasons = null) {
     var _a;
+    let wizardInstallmentBadge = "";
+    const instM = product.installment_months | 0;
+    const instMo = product.price_monthly | 0;
+    if (instM > 0 && instMo > 0) {
+      if (instM === 24) wizardInstallmentBadge = "24\uAC1C\uC6D4 \uBB34\uC774\uC790";
+      else if (instM === 36) wizardInstallmentBadge = "36\uAC1C\uC6D4 \uBB34\uC774\uC790";
+      else if (String(product.badge || "").includes("\uAC1C\uC6D4")) wizardInstallmentBadge = product.badge;
+      else wizardInstallmentBadge = `${instM}\uAC1C\uC6D4 \uBB34\uC774\uC790`;
+    }
     const badgeClass = getBadgeClass(product.badge_color);
     const gameSummary = getSelectedGameSummary(product, selectedGame, fpsData);
     const fpsText = (gameSummary == null ? void 0 : gameSummary.fpsText) || null;
@@ -1777,6 +1844,9 @@
         />
         <div class="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent"></div>
 
+        ${wizardInstallmentBadge ? `<span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold border border-purple-400/40 bg-purple-500/20 text-purple-100">
+          ${wizardInstallmentBadge}
+        </span>` : ""}
         <!-- \uD2F0\uC5B4 \uBC43\uC9C0 -->
         <span class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold border ${tier.cls}">
           ${tier.label}
@@ -2279,7 +2349,7 @@
             if (noResultsReason === "impossible_budget") {
               emptyMessage = "\uC120\uD0DD\uD558\uC2E0 \uAC8C\uC784(\uB85C\uC2A4\uD2B8\uC544\uD06C, \uBC30\uADF8 \uB4F1)\uC744 100\uB9CC \uC6D0 \uB300\uB85C \uCF8C\uC801\uD558\uAC8C \uC990\uAE30\uAE30\uC5D0\uB294 \uB9DE\uB294 \uC81C\uD488\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. 100~200\uB9CC \uC6D0 \uC774\uC0C1 \uAD6C\uAC04\uC744 \uCD94\uCC9C\uB4DC\uB9BD\uB2C8\uB2E4.";
             } else if (noResultsReason === "no_products_under_budget") {
-              emptyMessage = "\uC120\uD0DD\uD55C \uC608\uC0B0(100\uB9CC \uC6D0 \uC774\uD558)\uC5D0 \uB9DE\uB294 \uC81C\uD488\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. 100~200\uB9CC \uC6D0 \uAD6C\uAC04\uC744 \uC120\uD0DD\uD574 \uBCF4\uC2DC\uAC70\uB098 \uB2E4\uB978 \uC870\uAC74\uC744 \uC870\uC815\uD574 \uBCF4\uC138\uC694.";
+              emptyMessage = this.selections.purpose === "gaming" ? "100\uB9CC \uC6D0 \uC774\uD558 \uAC8C\uC784\uC6A9 PC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4. 100~200\uB9CC \uC6D0 \uAD6C\uAC04\uC744 \uCD94\uCC9C\uB4DC\uB9BD\uB2C8\uB2E4." : "\uC120\uD0DD\uD55C \uC608\uC0B0(100\uB9CC \uC6D0 \uC774\uD558)\uC5D0 \uB9DE\uB294 \uC81C\uD488\uC774 \uC5C6\uC2B5\uB2C8\uB2E4. 100~200\uB9CC \uC6D0 \uAD6C\uAC04\uC744 \uC120\uD0DD\uD574 \uBCF4\uC2DC\uAC70\uB098 \uB2E4\uB978 \uC870\uAC74\uC744 \uC870\uC815\uD574 \uBCF4\uC138\uC694.";
             }
             this.resultContainer.innerHTML = `
         <div class="col-span-full text-center py-12">

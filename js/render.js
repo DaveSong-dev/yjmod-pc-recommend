@@ -71,14 +71,20 @@ function renderProductPriceStack(product) {
 
 function renderWizardPriceStack(product) {
   const hint = buildMonthlyPaymentHint(product);
-  const isInstallment = (product.installment_months || 0) > 0 && (product.price_monthly || 0) > 0;
+  const months = product.installment_months | 0;
+  const monthly = product.price_monthly | 0;
+  const isInstallment = months > 0 && monthly > 0;
 
   if (isInstallment) {
+    const scheduleTotal = monthly * months;
+    const totalLabel = formatPrice(scheduleTotal);
     return `
               <p class="text-[10px] font-semibold text-gray-500 tracking-wide">월 할부가</p>
-              ${renderInstallmentPolicyLine(product, { marginClass: 'mb-0.5' })}
-              <p class="text-3xl font-black text-white tracking-tight">${product.price_display}</p>
-              <p class="text-xs text-gray-500 mt-0.5">총 ${Math.round((product.price || 0) / 10000)}만 원</p>`;
+              <p class="text-3xl font-black text-white tracking-tight leading-snug">${product.price_display}
+                <span class="block text-sm font-bold text-gray-400 mt-1 sm:inline sm:mt-0 sm:ml-2">
+                  (${months}개월 · 총 ${totalLabel})
+                </span>
+              </p>`;
   }
 
   return `
@@ -403,6 +409,16 @@ function renderWizardResultCard(
   matchReasons = [],
   recommendationReasons = null
 ) {
+  let wizardInstallmentBadge = '';
+  const instM = product.installment_months | 0;
+  const instMo = product.price_monthly | 0;
+  if (instM > 0 && instMo > 0) {
+    if (instM === 24) wizardInstallmentBadge = '24개월 무이자';
+    else if (instM === 36) wizardInstallmentBadge = '36개월 무이자';
+    else if (String(product.badge || '').includes('개월')) wizardInstallmentBadge = product.badge;
+    else wizardInstallmentBadge = `${instM}개월 무이자`;
+  }
+
   const badgeClass = getBadgeClass(product.badge_color);
   const gameSummary = getSelectedGameSummary(product, selectedGame, fpsData);
   const fpsText = gameSummary?.fpsText || null;
@@ -435,6 +451,13 @@ function renderWizardResultCard(
         />
         <div class="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent"></div>
 
+        ${
+          wizardInstallmentBadge
+            ? `<span class="absolute top-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold border border-purple-400/40 bg-purple-500/20 text-purple-100">
+          ${wizardInstallmentBadge}
+        </span>`
+            : ''
+        }
         <!-- 티어 뱃지 -->
         <span class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold border ${tier.cls}">
           ${tier.label}

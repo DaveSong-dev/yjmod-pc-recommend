@@ -1,6 +1,20 @@
 {
   "cleanUrls": true,
   "trailingSlash": false,
+  "functions": {
+    "api/shipping-submit.js": {
+      "maxDuration": 60
+    },
+    "api/shipping-public.js": {
+      "maxDuration": 15
+    },
+    "api/revive-product.js": {
+      "maxDuration": 60
+    },
+    "api/admin-auth.js": {
+      "maxDuration": 10
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",
