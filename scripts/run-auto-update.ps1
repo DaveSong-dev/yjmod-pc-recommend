@@ -86,6 +86,10 @@ try {
   Write-Log "cafe crawl complete"
 
   Set-Location $root
+  & python ".\scripts\enrich_game_fps.py"
+  if ($LASTEXITCODE -ne 0) { throw "enrich_game_fps failed: $LASTEXITCODE" }
+  Write-Log "game fps enrichment complete"
+
   & python ".\scripts\export_single_html.py"
   if ($LASTEXITCODE -ne 0) { throw "export_single_html failed: $LASTEXITCODE" }
   Write-Log "single html export complete"
@@ -96,6 +100,12 @@ try {
   & $vercelCmd --prod --yes
   if ($LASTEXITCODE -ne 0) { throw "vercel deploy failed: $LASTEXITCODE" }
   Write-Log "vercel deploy complete"
+
+  Set-Location $root
+  Start-Sleep -Seconds 8
+  & python ".\scripts\verify_live_fps.py"
+  if ($LASTEXITCODE -ne 0) { throw "verify_live_fps failed: $LASTEXITCODE" }
+  Write-Log "live fps verification complete"
 
   Write-Log "auto-update finished successfully"
   exit 0

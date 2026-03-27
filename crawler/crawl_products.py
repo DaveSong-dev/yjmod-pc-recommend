@@ -358,8 +358,35 @@ def detect_case_color(text):
 # "게임명 + 숫자 + FPS" 또는 "숫자 FPS + 게임명" 이 있으면 해당 게임으로도 필터에 노출
 _FPS_NUMBER_PATTERN = re.compile(r"\d{2,4}\s*(?:FPS|프레임|fps)", re.I)
 _WINDOW = 80  # 게임 키워드 전후 몇 글자 안에 FPS 숫자가 있으면 동일 문맥으로 봄
-
-
+_FPS_RESOLUTION_PATTERN = re.compile(r"(FHD|QHD|4K)", re.I)
+_GAME_FPS_ALIAS_MAP = {
+    "리그오브레전드": ["리그오브레전드", "LOL", "롤"],
+    "배틀그라운드": ["배틀그라운드", "배그", "PUBG"],
+    "로스트아크": ["로스트아크", "로아"],
+    "발로란트": ["발로란트", "발로"],
+    "오버워치2": ["오버워치2", "오버워치"],
+    "아이온2": ["아이온2", "아이온 2"],
+    "디아블로4": ["디아블로4", "디아4"],
+    "디아블로2": ["디아블로2", "디아2"],
+    "붉은사막": ["붉은사막"],
+    "몬스터헌터 와일드": ["몬스터헌터 와일드", "몬스터헌터", "몬헌", "와일즈"],
+    "플심": ["플심", "플라이트 시뮬레이터", "MSFS"],
+    "아크레이더스": ["아크레이더스"],
+    "연운": ["연운"],
+}
+_GAME_ALIAS_LOOKUP = {
+    alias.lower(): game
+    for game, aliases in _GAME_FPS_ALIAS_MAP.items()
+    for alias in aliases
+}
+_GAME_ALIAS_PATTERN = "|".join(
+    re.escape(alias)
+    for alias in sorted(_GAME_ALIAS_LOOKUP.keys(), key=len, reverse=True)
+)
+_GAME_FPS_FORWARD_PATTERN = re.compile(
+    rf"(?:(FHD|QHD|4K)\s*)?({_GAME_ALIAS_PATTERN})[^0-9]{{0,18}}(\d{{2,4}})\s*(?:FPS|프레임)",
+    re.I,
+)
 def extract_games_from_fps_section(page_text):
     """상세 페이지 본문에서 '게임 키워드 + FPS/프레임' 문맥이 있는 게임명을 수집."""
     if not page_text or len(page_text) < 20:
@@ -382,6 +409,72 @@ def extract_games_from_fps_section(page_text):
                     break
                 start = pos + 1
     return found
+
+
+def normalize_text_compact(text):
+    return re.sub(r"\s+", " ", str(text or "")).strip()
+
+
+def build_game_fps_highlight(game, fps, resolution=None):
+    fps_label = f"{int(fps)} FPS"
+    if resolution:
+        return f"{resolution} {game} {fps_label}"
+    return f"{game} {fps_label}"
+
+
+def should_replace_game_fps(existing, candidate):
+    if not existing:
+        return True
+    if not existing.get("resolution") and candidate.get("resolution"):
+        return True
+    if existing.get("source") != "detail" and candidate.get("source") == "detail":
+        return True
+    return False
+
+
+def extract_game_fps_map(name, page_text):
+    """상품명/상세 본문에서 실제 제공 게임 FPS를 추출."""
+    extracted = {}
+
+    for source_name, raw_text in (("name", name), ("detail", page_text)):
+        text = normalize_text_compact(raw_text)
+        if len(text) < 5:
+            continue
+
+        for match in _GAME_FPS_FORWARD_PATTERN.finditer(text):
+            resolution_raw, alias_raw, fps_raw = match.groups()
+
+            try:
+                fps = int(fps_raw)
+            except (TypeError, ValueError):
+                continue
+
+            if fps < 20 or fps > 1000:
+                continue
+
+            alias_key = str(alias_raw or "").lower().strip()
+            game = _GAME_ALIAS_LOOKUP.get(alias_key)
+            if not game:
+                continue
+
+            resolution = resolution_raw.upper() if resolution_raw else None
+            if not resolution:
+                window = text[max(0, match.start() - 16): min(len(text), match.end() + 16)]
+                nearby_resolution = _FPS_RESOLUTION_PATTERN.search(window)
+                resolution = nearby_resolution.group(1).upper() if nearby_resolution else None
+
+            candidate = {
+                "fps": fps,
+                "resolution": resolution,
+                "label": game,
+                "highlight": build_game_fps_highlight(game, fps, resolution),
+                "source": source_name,
+            }
+
+            if should_replace_game_fps(extracted.get(game), candidate):
+                extracted[game] = candidate
+
+    return extracted
 
 
 # ─── 게임 태그 추출 ────────────────────────────────────────────
@@ -718,6 +811,7 @@ def parse_product_detail(item_id, category, session):
     tier = classify_tier(gpu_full)
     price_range = classify_price_range(price)
     games = extract_game_tags(name, page_text[:2000], category["games"], page_text)
+    game_fps = extract_game_fps_map(name, page_text)
     usage = classify_usage(name, category["usage"], tier)
     case_color = detect_case_color(case_full or name)
 
@@ -779,6 +873,15 @@ def parse_product_detail(item_id, category, session):
             "price_range": price_range,
             "usage": usage,
         },
+        "game_fps": {
+            game: {
+                "fps": info["fps"],
+                "resolution": info["resolution"],
+                "label": info["label"],
+            }
+            for game, info in game_fps.items()
+        },
+        "game_fps_highlights": [info["highlight"] for info in game_fps.values()],
         "case_color": case_color,
         "badge": badge,
         "badge_color": badge_color,

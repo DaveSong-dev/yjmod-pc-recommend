@@ -5,6 +5,7 @@
  */
 
 import { PRICE_RANGES } from './utils.js';
+import { buildRecommendationReasons, userSelectionsFromWizard } from './recommendation_reasons.js';
 
 /** 게임 정규명 ↔ 별칭 매핑 (입력/상품 태그 양방향 정규화) */
 const GAME_ALIASES = {
@@ -80,6 +81,7 @@ const filterState = {
   usage: null,       // "게이밍" | "영상편집" | "AI/딥러닝" | "사무/디자인" | "방송/스트리밍"
   installment: null, // 24 | 36 (개월)
   caseColor: null,   // "블랙" | "화이트"
+  bestFor: null,     // "AI 공부용" | "로컬 LLM 입문" | "QHD 게이밍" | ...
   search: ''
 };
 
@@ -100,9 +102,13 @@ export const SOLD_OUT_PRODUCT_IDS = ['2741770843'];
 const MIN_PC_PRICE = 500000;
 
 export function isInStock(product) {
-  if (!product || product.in_stock !== true) return false;
+  if (!product) return false;
+  // raw in_stock이 source of truth (크롤러가 품절 이미 제외)
+  if (product.in_stock !== true) return false;
   if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
   if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
+  // v2 enrichment가 있으면 recommendable도 교차 확인
+  if (product.v2 && product.v2.recommendable === false) return false;
   return true;
 }
 
@@ -224,14 +230,24 @@ function filterProducts(products, filters = filterState) {
     // 케이스 색상 필터: tags.design만 사용 (title contains 금지)
     if (filters.caseColor && tags.design !== filters.caseColor) return false;
 
-    // 검색어: title/specs contains 최후 fallback (다른 필터 전부 통과 후)
+    // bestFor 필터: v2 best_for_tags 기반
+    if (filters.bestFor && product.v2?.best_for_tags) {
+      if (!product.v2.best_for_tags.some(t => t === filters.bestFor)) return false;
+    } else if (filters.bestFor && !product.v2) {
+      return false;
+    }
+
+    // 검색어: title/specs + v2 태그/사유 contains 최후 fallback
     if (filters.search) {
       const q = filters.search.toLowerCase();
       const searchTarget = [
         product.name,
         (product.specs?.cpu || ''),
         (product.specs?.gpu || ''),
-        (product.specs?.ram || '')
+        (product.specs?.ram || ''),
+        (product.v2?.summary_reason || ''),
+        ...(product.v2?.best_for_tags || []),
+        ...(product.v2?.selling_points || [])
       ].join(' ').toLowerCase();
       if (!searchTarget.includes(q)) return false;
     }
@@ -241,7 +257,7 @@ function filterProducts(products, filters = filterState) {
 }
 
 /** 비게이밍 용도 (Intel non-F 우선 추천 대상) */
-const NON_GAMING_PURPOSES = ['office', 'editing', '3d', 'ai', 'streaming'];
+const NON_GAMING_PURPOSES = ['office', 'editing', '3d', 'ai', 'streaming', 'ai_study', 'local_llm'];
 
 /** CPU 제조사·통합그래픽 여부 분류 (cpu_short 또는 cpu 문자열 기준) */
 function classifyCpu(product) {
@@ -265,6 +281,8 @@ const PURPOSE_TO_USAGE = {
   editing: '영상편집',
   '3d': '3D 모델링',
   ai: 'AI/딥러닝',
+  ai_study: 'AI/딥러닝',
+  local_llm: 'AI/딥러닝',
   streaming: '방송/스트리밍'
 };
 
@@ -417,7 +435,16 @@ function getWizardRecommendations(products, wizardSelections, options = {}) {
   const top = selectWithDiversity(withScore, 6);
   const recommended = top.map(s => s.product);
 
-  const result = { recommended };
+  const wizardUserSel = userSelectionsFromWizard(wizardSelections);
+  const recommendationReasonsById = new Map();
+  for (const s of top) {
+    recommendationReasonsById.set(
+      String(s.product.id),
+      buildRecommendationReasons(s.product, wizardUserSel)
+    );
+  }
+
+  const result = { recommended, recommendationReasonsById };
   if (fallbackNotice) {
     result.fallbackNotice = fallbackNotice;
   }
@@ -493,6 +520,44 @@ function calcRelevanceScoreWithReasons(product, wizardSelections, filters) {
     } else if (cpuType === 'amd') {
       score -= 5;
       reasons.push('cpu_pref:amd');
+    }
+  }
+
+  // v2 그레이드 기반 가산점
+  const v2 = product.v2;
+  if (v2) {
+    if (purpose === 'ai' || purpose === 'ai_study') {
+      if (v2.ai_ready) { score += 15; reasons.push('v2:ai_ready'); }
+      if (v2.llm_entry_ready) { score += 10; reasons.push('v2:llm_entry'); }
+      if (v2.local_ai_grade >= 2) { score += 8; reasons.push('v2:local_ai_mid'); }
+      if (v2.local_ai_grade >= 3) { score += 10; reasons.push('v2:local_ai_high'); }
+      // NVIDIA 텐서코어 가산
+      if (v2.gpu_tensor_class?.startsWith('nvidia')) { score += 8; reasons.push('v2:nvidia_tensor'); }
+    }
+    if (purpose === 'local_llm') {
+      if (v2.llm_entry_ready) { score += 20; reasons.push('v2:llm_ready'); }
+      if (v2.local_ai_grade >= 3) { score += 15; reasons.push('v2:local_ai_high'); }
+      if (v2.local_ai_grade >= 4) { score += 10; reasons.push('v2:local_ai_pro'); }
+      // VRAM 기반 가산
+      if (v2.gpu_vram_gb >= 16) { score += 15; reasons.push('v2:vram16+'); }
+      else if (v2.gpu_vram_gb >= 12) { score += 10; reasons.push('v2:vram12+'); }
+      else if (v2.gpu_vram_gb >= 8) { score += 5; reasons.push('v2:vram8+'); }
+      // AMD/Intel 비CUDA 감점
+      if (v2.gpu_tensor_class?.startsWith('amd')) { score -= 10; reasons.push('v2:amd_limited'); }
+      if (v2.gpu_tensor_class?.startsWith('intel_arc')) { score -= 8; reasons.push('v2:intel_arc_limited'); }
+    }
+    if (purpose === 'editing') {
+      if (v2.video_edit_grade === 'standard') { score += 10; reasons.push('v2:edit_standard'); }
+      else if (v2.video_edit_grade === 'limited') { score -= 5; reasons.push('v2:edit_limited'); }
+    }
+    if (purpose === 'gaming') {
+      if (v2.gaming_grade_qhd === 'strong') { score += 8; reasons.push('v2:qhd_strong'); }
+      if (v2.gaming_grade_4k === 'optimal') { score += 8; reasons.push('v2:4k_optimal'); }
+    }
+    // frontend_rank_score 반영 (0~100 → 0~10 가산)
+    if (v2.frontend_rank_score) {
+      score += Math.round(v2.frontend_rank_score / 10);
+      reasons.push(`v2:rank_${v2.frontend_rank_score}`);
     }
   }
 

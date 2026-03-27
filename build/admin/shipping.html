@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>출고 사진 업로드 (내부용)</title>
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --card: #13131f;
+      --border: rgba(255,255,255,0.08);
+      --text: #e8e8ef;
+      --muted: #8b8b9e;
+      --accent: #10b981;
+      --err: #f87171;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 1.5rem;
+      line-height: 1.5;
+    }
+    .wrap { max-width: 36rem; margin: 0 auto; }
+    h1 { font-size: 1.25rem; margin: 0 0 0.5rem; }
+    .sub { color: var(--muted); font-size: 0.875rem; margin-bottom: 1.5rem; }
+    label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--muted); margin: 1rem 0 0.35rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    input[type="password"], input[type="url"], input[type="file"], textarea {
+      width: 100%;
+      padding: 0.65rem 0.75rem;
+      border-radius: 0.65rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-size: 0.9375rem;
+    }
+    textarea { min-height: 4.5rem; resize: vertical; font-family: inherit; }
+    .hint { font-size: 0.8125rem; color: var(--muted); margin-top: 0.35rem; }
+    .row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1.25rem; align-items: center; }
+    button {
+      padding: 0.65rem 1.1rem;
+      border-radius: 0.65rem;
+      border: 1px solid var(--border);
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+      font-weight: 600;
+      font-size: 0.875rem;
+      cursor: pointer;
+    }
+    button.secondary { background: rgba(255,255,255,0.06); color: var(--text); }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    .image-drop-zone {
+      border: 1px dashed rgba(16, 185, 129, 0.35);
+      border-radius: 0.85rem;
+      padding: 1rem 1rem 1.1rem;
+      background: rgba(255,255,255,0.02);
+      outline: none;
+    }
+    .image-drop-zone:focus-visible {
+      border-color: rgba(16, 185, 129, 0.65);
+      box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+    }
+    .image-drop-zone .lead { margin: 0 0 0.35rem; font-size: 0.9375rem; font-weight: 600; color: var(--text); }
+    .image-drop-zone .paste-hint { margin: 0; font-size: 0.8125rem; color: var(--muted); }
+    .image-preview-wrap {
+      margin-top: 0.85rem;
+      display: none;
+    }
+    .image-preview-wrap.show { display: block; }
+    .image-preview-wrap img {
+      display: block;
+      max-width: 100%;
+      max-height: 220px;
+      object-fit: contain;
+      border-radius: 0.5rem;
+      background: #0d0d14;
+      border: 1px solid var(--border);
+    }
+    .parse-preview {
+      margin-top: 1.25rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03);
+      font-size: 0.875rem;
+      display: none;
+    }
+    .parse-preview.show { display: block; }
+    .msg { margin-top: 1rem; padding: 0.75rem; border-radius: 0.65rem; font-size: 0.875rem; display: none; }
+    .msg.show { display: block; }
+    .msg.ok { background: rgba(16,185,129,0.12); color: #6ee7b7; border: 1px solid rgba(16,185,129,0.25); }
+    .msg.err { background: rgba(248,113,113,0.1); color: var(--err); border: 1px solid rgba(248,113,113,0.25); }
+    .warn { margin-top: 1.5rem; padding: 0.75rem; border-radius: 0.65rem; border: 1px dashed rgba(251,191,36,0.35); color: #fcd34d; font-size: 0.8125rem; }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+    #pasteStatus { font-size: 0.8125rem; margin-top: 0.5rem; line-height: 1.45; }
+    #pasteStatus.ok { color: #6ee7b7; }
+    #pasteStatus.err { color: #f87171; }
+    .clipboard-panel {
+      margin-top: 0.75rem;
+      padding: 0.75rem 0.85rem;
+      border-radius: 0.65rem;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.25);
+      font-size: 0.75rem;
+      line-height: 1.5;
+    }
+    .clipboard-panel-head {
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-size: 0.65rem;
+      margin-bottom: 0.5rem;
+    }
+    .clipboard-trace {
+      max-height: 14rem;
+      overflow-y: auto;
+      font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+      word-break: break-word;
+    }
+    .clipboard-trace .tr {
+      padding: 0.2rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .clipboard-trace .tr:last-child { border-bottom: none; }
+    .clipboard-trace .tr .t { color: #6b7280; margin-right: 0.35rem; }
+    .clipboard-trace .tr .src { color: #a78bfa; margin-right: 0.35rem; font-weight: 600; }
+    .clipboard-trace .tr.info .msg { color: #c4b5fd; }
+    .clipboard-trace .tr.ok .msg { color: #6ee7b7; }
+    .clipboard-trace .tr.err .msg { color: #f87171; }
+    #imageMetaLine {
+      margin-top: 0.5rem;
+      padding-top: 0.5rem;
+      border-top: 1px solid var(--border);
+      font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+      font-size: 0.7rem;
+      color: #93c5fd;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>최근 출고 사진 등록</h1>
+    <p class="sub">이미지 1장 + 한 줄 정보만 입력하면 메인 페이지에 반영됩니다. (내부 전용 · 검색 노출 안 됨)</p>
+
+    <label for="token">관리자 토큰</label>
+    <input type="password" id="token" autocomplete="off" placeholder="환경변수 SHIPPING_ADMIN_TOKEN" />
+    <p class="hint">브라우저에만 저장되며, 서버에서 검증합니다.</p>
+
+    <label id="label-image">출고 사진</label>
+    <div id="imageDropZone" class="image-drop-zone" tabindex="0" role="region" aria-labelledby="label-image">
+      <p class="lead">이미지를 붙여넣거나 파일을 선택하세요</p>
+      <p class="paste-hint">Ctrl+V로 캡처 이미지를 바로 넣을 수 있습니다. (이 영역을 한 번 클릭한 뒤 붙여 넣어도 됩니다)</p>
+      <div id="imagePreviewWrap" class="image-preview-wrap" aria-live="polite">
+        <img id="imagePreview" alt="선택된 출고 사진 미리보기" />
+      </div>
+    </div>
+    <p class="hint" id="pasteStatus" style="display:none;" role="status"></p>
+
+    <div id="clipboardPanel" class="clipboard-panel" aria-label="클립보드 및 붙여넣기 진단">
+      <div class="clipboard-panel-head">이미지 입력 상태 · 진단 로그</div>
+      <div id="clipboardTrace" class="clipboard-trace"></div>
+      <div id="imageMetaLine" style="display:none;"></div>
+    </div>
+
+    <input type="file" id="img" accept="image/jpeg,image/png,image/webp" class="visually-hidden" tabindex="-1" aria-hidden="true" />
+
+    <div class="row" style="margin-top:0.75rem;">
+      <button type="button" class="secondary" id="btnPickFile">파일 선택</button>
+      <button type="button" class="secondary" id="btnClipboardRead">클립보드에서 이미지 불러오기</button>
+      <button type="button" class="secondary" id="btnClearImage" style="display:none;">이미지 제거</button>
+    </div>
+
+    <label for="line">한 줄 입력</label>
+    <textarea id="line" placeholder="예: 이승표 010 8290 3934 / 임재원"></textarea>
+    <p class="hint">형식: <strong>고객명</strong> <strong>전화번호</strong> / <strong>엔지니어명</strong> &nbsp;·&nbsp; 전화는 공백·하이픈 혼용 가능</p>
+
+    <label for="cafe">카페 원문 URL (선택)</label>
+    <input type="url" id="cafe" placeholder="비우면 전체 출고 갤러리로 연결" />
+    <p class="hint">특정 글이 있으면 붙여 넣기. 없으면 비워 두세요.</p>
+
+    <div class="row">
+      <button type="button" class="secondary" id="btnPreview">한 줄 미리보기</button>
+      <button type="button" id="btnSave">저장</button>
+    </div>
+
+    <div id="parsePreview" class="parse-preview"></div>
+    <div id="msg" class="msg"></div>
+
+    <p class="warn">공개 페이지에는 전화번호가 절대 노출되지 않습니다. 저장 데이터는 서버에서 암호화·마스킹 정책을 따릅니다.</p>
+  </div>
+
+  <script>
+(function () {
+  var TOKEN_KEY = 'yjmod_shipping_admin_token';
+  var MAX_BYTES = 4 * 1024 * 1024;
+  var ALLOWED = { 'image/jpeg': true, 'image/jpg': true, 'image/png': true, 'image/webp': true };
+
+  var tokenEl = document.getElementById('token');
+  var imgEl = document.getElementById('img');
+  var lineEl = document.getElementById('line');
+  var cafeEl = document.getElementById('cafe');
+  var parsePreviewEl = document.getElementById('parsePreview');
+  var msgEl = document.getElementById('msg');
+  var imageDropZone = document.getElementById('imageDropZone');
+  var imagePreviewWrap = document.getElementById('imagePreviewWrap');
+  var imagePreview = document.getElementById('imagePreview');
+  var btnPickFile = document.getElementById('btnPickFile');
+  var btnClipboardRead = document.getElementById('btnClipboardRead');
+  var btnClearImage = document.getElementById('btnClearImage');
+  var pasteStatusEl = document.getElementById('pasteStatus');
+  var clipboardTraceEl = document.getElementById('clipboardTrace');
+  var imageMetaLineEl = document.getElementById('imageMetaLine');
+
+  var currentFile = null;
+  var previewObjectUrl = null;
+  var TRACE_MAX = 40;
+  var traceRows = [];
+
+  function escapeHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function pad2(n) {
+    return n < 10 ? '0' + n : '' + n;
+  }
+  function nowTime() {
+    var d = new Date();
+    return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds());
+  }
+  function formatBytes(n) {
+    if (n < 1024) return n + ' B';
+    if (n < 1024 * 1024) return Math.round((n / 1024) * 10) / 10 + ' KB';
+    return Math.round((n / 1024 / 1024) * 100) / 100 + ' MB';
+  }
+  function truncateMiddle(str, max) {
+    str = String(str || '');
+    if (str.length <= max) return str;
+    var half = Math.floor((max - 3) / 2);
+    return str.slice(0, half) + '…' + str.slice(-half);
+  }
+
+  function pushClipboardTrace(src, message, level) {
+    level = level || 'info';
+    traceRows.push({ t: nowTime(), src: src, msg: message, level: level });
+    if (traceRows.length > TRACE_MAX) traceRows.splice(0, traceRows.length - TRACE_MAX);
+    renderClipboardTrace();
+  }
+
+  function renderClipboardTrace() {
+    var html = '';
+    var i;
+    if (!traceRows.length) {
+      html =
+        '<div class="tr info"><span class="msg">여기에 Ctrl+V·「클립보드에서 이미지 불러오기」·파일 선택 결과가 순서대로 표시됩니다.</span></div>';
+    } else {
+      for (i = 0; i < traceRows.length; i++) {
+        var r = traceRows[i];
+        html +=
+          '<div class="tr ' +
+          escapeHtml(r.level) +
+          '"><span class="t">' +
+          escapeHtml(r.t) +
+          '</span><span class="src">' +
+          escapeHtml(r.src) +
+          '</span><span class="msg">' +
+          escapeHtml(r.msg) +
+          '</span></div>';
+      }
+    }
+    clipboardTraceEl.innerHTML = html;
+    try {
+      clipboardTraceEl.scrollTop = clipboardTraceEl.scrollHeight;
+    } catch (_) {}
+  }
+
+  function describeClipboardSnapshot(cd) {
+    if (!cd) return 'clipboardData 없음';
+    var parts = [];
+    var typesLen = cd.types ? cd.types.length : 0;
+    var typeStr = '';
+    try {
+      typeStr = cd.types ? Array.prototype.join.call(cd.types, ', ') : '—';
+    } catch (_) {
+      typeStr = '(types 읽기 실패)';
+    }
+    parts.push('clipboard.types(' + typesLen + '): ' + typeStr);
+    var ic = cd.items ? cd.items.length : 0;
+    parts.push('items: ' + ic);
+    if (cd.items && ic) {
+      var desc = [];
+      var ii;
+      for (ii = 0; ii < ic; ii++) {
+        var it = cd.items[ii];
+        desc.push(it.kind + ':' + (it.type || '(빈 타입)'));
+      }
+      parts.push('[' + desc.join('; ') + ']');
+    }
+    var fc = cd.files ? cd.files.length : 0;
+    parts.push('files: ' + fc);
+    if (cd.files && fc) {
+      var fd = [];
+      var j;
+      for (j = 0; j < fc; j++) {
+        var f = cd.files[j];
+        fd.push((f.type || 'no-mime') + ' ' + (f.size || 0) + 'B');
+      }
+      parts.push('[' + fd.join('; ') + ']');
+    }
+    return parts.join(' · ');
+  }
+
+  try {
+    var saved = sessionStorage.getItem(TOKEN_KEY);
+    if (saved) tokenEl.value = saved;
+  } catch (_) {}
+
+  renderClipboardTrace();
+
+  function revokePreviewUrl() {
+    if (previewObjectUrl) {
+      try { URL.revokeObjectURL(previewObjectUrl); } catch (_) {}
+      previewObjectUrl = null;
+    }
+    imagePreview.removeAttribute('src');
+  }
+
+  function normalizeMime(t) {
+    var m = String(t || '').toLowerCase().trim();
+    if (m === 'image/jpg') return 'image/jpeg';
+    return m;
+  }
+
+  function isAllowedImageType(mime) {
+    var m = normalizeMime(mime);
+    return ALLOWED[m] === true;
+  }
+
+  function coerceImageBlob(blobOrFile) {
+    if (!blobOrFile || !blobOrFile.size) return null;
+    var mime = normalizeMime(blobOrFile.type);
+    if (!mime || mime === '') {
+      try {
+        return new File([blobOrFile], 'clipboard-' + Date.now() + '.png', { type: 'image/png' });
+      } catch (_) {
+        return null;
+      }
+    }
+    if (!isAllowedImageType(mime)) return null;
+    if (blobOrFile instanceof File) return blobOrFile;
+    var ext = mime.indexOf('png') >= 0 ? '.png' : mime.indexOf('webp') >= 0 ? '.webp' : '.jpg';
+    try {
+      return new File([blobOrFile], 'paste-' + Date.now() + ext, { type: mime });
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /**
+   * ClipboardEvent에서 이미지 File/Blob 추출 (items 먼저, 이어서 files)
+   */
+  function extractImageFromClipboard(e) {
+    var cd = e && e.clipboardData;
+    if (!cd) return null;
+
+    var i;
+    var f;
+    var it;
+
+    if (cd.items && cd.items.length) {
+      for (i = 0; i < cd.items.length; i++) {
+        it = cd.items[i];
+        if (it.kind !== 'file') continue;
+        var t = normalizeMime(it.type);
+        if (t && t.indexOf('image/') === 0) {
+          f = it.getAsFile();
+          if (f && f.size) return f;
+        }
+      }
+      for (i = 0; i < cd.items.length; i++) {
+        it = cd.items[i];
+        if (it.kind !== 'file') continue;
+        if (it.type) continue;
+        f = it.getAsFile();
+        if (f && f.size) return f;
+      }
+    }
+
+    if (cd.files && cd.files.length) {
+      for (i = 0; i < cd.files.length; i++) {
+        f = cd.files[i];
+        if (!f || !f.size) continue;
+        var ft = normalizeMime(f.type);
+        if (ft && ft.indexOf('image/') === 0) return f;
+      }
+    }
+
+    return null;
+  }
+
+  function clipboardImageHintOnFailure(cd) {
+    if (!cd) return '클립보드에 접근할 수 없습니다. HTTPS(https://)로 열려 있는지 확인하세요.';
+    var i;
+    var it;
+    var sawImageType = false;
+    if (cd.items && cd.items.length) {
+      for (i = 0; i < cd.items.length; i++) {
+        it = cd.items[i];
+        if (it.kind === 'file' && it.type && it.type.indexOf('image/') === 0) {
+          sawImageType = true;
+          var f = it.getAsFile();
+          if (!f || !f.size) {
+            return '이미지로 표시된 항목을 파일로 읽지 못했습니다. 아래 「클립보드에서 이미지 불러오기」를 눌러 보거나 파일 선택을 이용하세요.';
+          }
+        }
+      }
+    }
+    if (cd.files && cd.files.length) {
+      for (i = 0; i < cd.files.length; i++) {
+        f = cd.files[i];
+        if (f && f.size && f.type && f.type.indexOf('image/') === 0) {
+          sawImageType = true;
+          if (!isAllowedImageType(f.type)) {
+            return '클립보드 이미지 형식은 JPEG, PNG, WebP만 지원합니다. (현재: ' + (f.type || '알 수 없음') + ')';
+          }
+        }
+      }
+    }
+    if (sawImageType) return null;
+    return null;
+  }
+
+  function hasClipboardImageItem(cd) {
+    if (!cd) return false;
+    var i;
+    if (cd.items && cd.items.length) {
+      for (i = 0; i < cd.items.length; i++) {
+        if (cd.items[i].kind === 'file' && cd.items[i].type && cd.items[i].type.indexOf('image/') === 0) {
+          return true;
+        }
+      }
+    }
+    if (cd.files && cd.files.length) {
+      for (i = 0; i < cd.files.length; i++) {
+        var f = cd.files[i];
+        if (f && f.size && f.type && f.type.indexOf('image/') === 0) return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * 파일 선택·클립보드 공통 (sourceLabel: 화면 로그 구분)
+   */
+  function handleImageSource(blobOrFile, sourceLabel) {
+    sourceLabel = sourceLabel || '입력';
+    if (!blobOrFile || !blobOrFile.size) {
+      showPasteStatus('이미지 데이터가 비어 있습니다.', true);
+      pushClipboardTrace(sourceLabel, '실패: 빈 데이터(size=0 또는 null)', 'err');
+      return false;
+    }
+    pushClipboardTrace(
+      sourceLabel,
+      '후보 수신 · MIME ' + (blobOrFile.type || '(비어 있음)') + ' · ' + formatBytes(blobOrFile.size),
+      'info'
+    );
+    var file = coerceImageBlob(blobOrFile);
+    if (!file) {
+      showPasteStatus(
+        '지원 형식은 JPEG, PNG, WebP 입니다. (현재 형식: ' + (blobOrFile.type || '알 수 없음') + ')',
+        true
+      );
+      pushClipboardTrace(sourceLabel, '실패: MIME 불일치 또는 PNG 가정 변환 불가', 'err');
+      return false;
+    }
+    if (file.size > MAX_BYTES) {
+      var mb = Math.round((file.size / 1024 / 1024) * 10) / 10;
+      showPasteStatus('이미지는 4MB 이하여야 합니다. (약 ' + mb + 'MB)', true);
+      pushClipboardTrace(sourceLabel, '실패: 파일 크기 초과(약 ' + mb + 'MB, 한도 4MB)', 'err');
+      return false;
+    }
+
+    try {
+      revokePreviewUrl();
+      currentFile = file;
+      previewObjectUrl = URL.createObjectURL(file);
+      imagePreview.onload = function () {
+        imagePreview.onload = null;
+        pushClipboardTrace(sourceLabel, '미리보기 이미지 로드 완료', 'ok');
+      };
+      imagePreview.onerror = function () {
+        imagePreview.onerror = null;
+        pushClipboardTrace(sourceLabel, '실패: 미리보기 <img> 로드 오류', 'err');
+        showPasteStatus('미리보기를 표시할 수 없습니다.', true);
+      };
+      imagePreview.src = previewObjectUrl;
+    } catch (err) {
+      pushClipboardTrace(
+        sourceLabel,
+        '실패: createObjectURL/할당 예외 — ' + (err && err.message ? err.message : String(err)),
+        'err'
+      );
+      showPasteStatus('미리보기 준비 중 오류가 났습니다.', true);
+      return false;
+    }
+    imagePreviewWrap.classList.add('show');
+    btnClearImage.style.display = '';
+    imgEl.value = '';
+    hideMsg();
+    showPasteStatus('이미지가 적용되었습니다. 한 줄 입력 후 저장하세요.', false);
+    pushClipboardTrace(sourceLabel, '미리보기 blob URL 생성 성공 · ' + formatBytes(file.size), 'ok');
+    imageMetaLineEl.textContent =
+      '파일: ' +
+      (file.name || '(클립보드)') +
+      ' · ' +
+      formatBytes(file.size) +
+      ' · ' +
+      (file.type || '—') +
+      '\n미리보기 URL: ' +
+      truncateMiddle(previewObjectUrl, 100);
+    imageMetaLineEl.style.display = 'block';
+    return true;
+  }
+
+  function clearImageSelection() {
+    revokePreviewUrl();
+    currentFile = null;
+    imgEl.value = '';
+    imagePreviewWrap.classList.remove('show');
+    btnClearImage.style.display = 'none';
+    hidePasteStatus();
+    imageMetaLineEl.textContent = '';
+    imageMetaLineEl.style.display = 'none';
+    pushClipboardTrace('이미지 제거', '선택·미리보기 초기화됨', 'info');
+  }
+
+  function showPasteStatus(text, isError) {
+    pasteStatusEl.textContent = text || '';
+    pasteStatusEl.className = isError ? 'hint err' : 'hint ok';
+    pasteStatusEl.style.display = text ? 'block' : 'none';
+  }
+  function hidePasteStatus() {
+    pasteStatusEl.style.display = 'none';
+    pasteStatusEl.textContent = '';
+    pasteStatusEl.className = 'hint';
+  }
+
+  function showMsg(text, ok) {
+    msgEl.textContent = text || '';
+    msgEl.className = 'msg show ' + (ok ? 'ok' : 'err');
+  }
+  function hideMsg() {
+    msgEl.className = 'msg';
+  }
+
+  function getAuthHeader() {
+    var t = (tokenEl.value || '').trim();
+    if (!t) return null;
+    return 'Bearer ' + t;
+  }
+
+  function rememberToken() {
+    try {
+      sessionStorage.setItem(TOKEN_KEY, (tokenEl.value || '').trim());
+    } catch (_) {}
+  }
+
+  async function postJson(path, body) {
+    var auth = getAuthHeader();
+    if (!auth) throw new Error('관리자 토큰을 입력하세요.');
+    rememberToken();
+    var res = await fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: auth,
+      },
+      body: JSON.stringify(body),
+    });
+    var data = null;
+    try {
+      data = await res.json();
+    } catch (_) {}
+    if (!res.ok) {
+      throw new Error((data && data.error) || '요청 실패 (' + res.status + ')');
+    }
+    return data;
+  }
+
+  function getImageFileForSave() {
+    if (currentFile) return currentFile;
+    return imgEl.files && imgEl.files[0] ? imgEl.files[0] : null;
+  }
+
+  function onPasteCapture(e) {
+    if (e.defaultPrevented) {
+      pushClipboardTrace(
+        'Ctrl+V',
+        '붙여넣기 이벤트는 도착했으나 이미 defaultPrevented(다른 스크립트가 먼저 처리)',
+        'info'
+      );
+      return;
+    }
+    var cd = e.clipboardData;
+    var ae = document.activeElement;
+    var aeDesc = ae ? ae.tagName.toLowerCase() + (ae.id ? '#' + ae.id : '') : '(없음)';
+    var tg = e.target;
+    var tgDesc = tg ? tg.tagName.toLowerCase() + (tg.id ? '#' + tg.id : '') : '(없음)';
+    pushClipboardTrace(
+      'Ctrl+V',
+      '붙여넣기 이벤트 수신(캡처) · 포커스 ' + aeDesc + ' · target ' + tgDesc,
+      'info'
+    );
+
+    if (!cd) {
+      showPasteStatus('clipboardData를 읽을 수 없습니다. HTTPS(https://)인지 확인하세요.', true);
+      pushClipboardTrace('Ctrl+V', '실패: clipboardData 없음(보안 컨텍스트·브라우저 제한)', 'err');
+      return;
+    }
+
+    pushClipboardTrace('Ctrl+V', describeClipboardSnapshot(cd), 'info');
+
+    var raw = extractImageFromClipboard(e);
+
+    if (raw) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+      pushClipboardTrace('Ctrl+V', '이미지 항목/파일에서 추출 성공 · ' + formatBytes(raw.size), 'ok');
+      handleImageSource(raw, 'Ctrl+V');
+      return;
+    }
+
+    if (hasClipboardImageItem(cd)) {
+      var hint = clipboardImageHintOnFailure(cd);
+      if (hint) {
+        e.preventDefault();
+        e.stopPropagation();
+        showPasteStatus(hint, true);
+        pushClipboardTrace('Ctrl+V', '이미지 슬롯은 있으나 파일 읽기 실패 — ' + hint, 'err');
+      } else {
+        pushClipboardTrace('Ctrl+V', '이미지 타입은 보이나 추출 실패(getAsFile 등). 버튼·파일 선택을 시도하세요.', 'err');
+      }
+      return;
+    }
+
+    pushClipboardTrace(
+      'Ctrl+V',
+      '클립보드에 이미지 없음 — 텍스트만 붙여넣기로 통과(한 줄 입력란 사용 시 정상)',
+      'info'
+    );
+  }
+
+  window.addEventListener('paste', onPasteCapture, true);
+  document.addEventListener('paste', onPasteCapture, true);
+  imageDropZone.addEventListener('paste', onPasteCapture, true);
+
+  btnPickFile.addEventListener('click', function () {
+    imgEl.click();
+  });
+
+  imgEl.addEventListener('change', function () {
+    var f = imgEl.files && imgEl.files[0];
+    if (f) {
+      pushClipboardTrace('파일 선택', '선택됨: ' + (f.name || '') + ' · ' + formatBytes(f.size), 'info');
+      handleImageSource(f, '파일 선택');
+    }
+  });
+
+  btnClearImage.addEventListener('click', function () {
+    clearImageSelection();
+  });
+
+  btnClipboardRead.addEventListener('click', async function () {
+    hideMsg();
+    pushClipboardTrace('클립보드 버튼', '「클립보드에서 이미지 불러오기」클릭(사용자 제스처)', 'info');
+    if (!navigator.clipboard || typeof navigator.clipboard.read !== 'function') {
+      showPasteStatus('이 브라우저는 클립보드 읽기 API를 지원하지 않습니다. Ctrl+V 또는 파일 선택을 사용하세요.', true);
+      pushClipboardTrace('클립보드 버튼', '실패: navigator.clipboard.read 미지원', 'err');
+      return;
+    }
+    try {
+      var perm = null;
+      if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+        try {
+          perm = await navigator.permissions.query({ name: 'clipboard-read' });
+          pushClipboardTrace(
+            '클립보드 버튼',
+            '권한 clipboard-read 상태: ' + (perm && perm.state ? perm.state : '알 수 없음'),
+            'info'
+          );
+        } catch (pe) {
+          pushClipboardTrace(
+            '클립보드 버튼',
+            'permissions.query(clipboard-read) 조회 불가 — ' + (pe && pe.message ? pe.message : String(pe)),
+            'info'
+          );
+        }
+      } else {
+        pushClipboardTrace('클립보드 버튼', 'Permissions API 없음 — read() 직접 시도', 'info');
+      }
+
+      var items = await navigator.clipboard.read();
+      pushClipboardTrace('클립보드 버튼', 'read() 성공 · ClipboardItem ' + items.length + '개', 'ok');
+      var found = null;
+      var foundType = '';
+      var ti;
+      var ty;
+      var blob;
+      var ii;
+      var typeSummary = [];
+      for (ii = 0; ii < items.length; ii++) {
+        var types = items[ii].types || [];
+        typeSummary.push('[' + types.join(', ') + ']');
+        for (ti = 0; ti < types.length; ti++) {
+          ty = types[ti];
+          if (ty && ty.indexOf('image/') === 0) {
+            blob = await items[ii].getType(ty);
+            if (blob && blob.size) {
+              found = blob;
+              foundType = ty;
+              break;
+            }
+          }
+        }
+        if (found) break;
+      }
+      pushClipboardTrace('클립보드 버튼', '항목 타입 목록: ' + (typeSummary.join(' ') || '(없음)'), 'info');
+      if (found) {
+        pushClipboardTrace('클립보드 버튼', '이미지 타입 선택: ' + foundType + ' · ' + formatBytes(found.size), 'ok');
+        if (handleImageSource(found, '클립보드 API')) return;
+        return;
+      }
+      showPasteStatus(
+        '클립보드에 이미지가 없습니다. 그림·스크린샷을 복사한 뒤 다시 시도하거나 파일 선택을 사용하세요.',
+        true
+      );
+      pushClipboardTrace('클립보드 버튼', '실패: read() 결과에 image/* 타입 없음', 'err');
+    } catch (err) {
+      var en = err && err.name ? err.name : 'Error';
+      var em = err && err.message ? err.message : String(err);
+      showPasteStatus(
+        '클립보드 읽기 실패(' +
+          en +
+          '). 주소창 자물쇠에서 클립보드 권한을 허용하거나 Ctrl+V·파일 선택을 사용하세요.',
+        true
+      );
+      pushClipboardTrace('클립보드 버튼', 'read() 예외: ' + en + ' — ' + em, 'err');
+    }
+  });
+
+  imageDropZone.addEventListener('click', function () {
+    imageDropZone.focus();
+  });
+
+  document.getElementById('btnPreview').addEventListener('click', async function () {
+    hideMsg();
+    hidePasteStatus();
+    parsePreviewEl.className = 'parse-preview';
+    parsePreviewEl.innerHTML = '';
+    try {
+      var data = await postJson('/api/shipping-submit', {
+        dryRun: true,
+        rawLine: lineEl.value,
+        cafeUrl: (cafeEl.value || '').trim(),
+      });
+      if (!data.preview) throw new Error('미리보기 없음');
+      var p = data.preview;
+      parsePreviewEl.innerHTML =
+        '<strong>한 줄 파싱 미리보기</strong><br/>' +
+        '제목: ' + escapeHtml(p.title) +
+        '<br/>요약: ' + escapeHtml(p.summary) +
+        '<br/>표시용: ' + escapeHtml(p.customerDisplay) +
+        '<br/>전화(비공개·마스킹): ' + escapeHtml(p.phoneMasked);
+      parsePreviewEl.className = 'parse-preview show';
+    } catch (e) {
+      showMsg(e.message || String(e), false);
+    }
+  });
+
+  document.getElementById('btnSave').addEventListener('click', async function () {
+    hideMsg();
+    hidePasteStatus();
+    var file = getImageFileForSave();
+    if (!file) {
+      showMsg('이미지를 붙여 넣거나 파일을 선택하세요.', false);
+      return;
+    }
+    if (file.size > MAX_BYTES) {
+      showMsg('이미지는 4MB 이하로 올려 주세요.', false);
+      return;
+    }
+
+    var reader = new FileReader();
+    reader.onload = async function () {
+      try {
+        var result = String(reader.result || '');
+        var i = result.indexOf(',');
+        var b64 = i >= 0 ? result.slice(i + 1) : '';
+        if (!b64) throw new Error('이미지 읽기 실패');
+        var data = await postJson('/api/shipping-submit', {
+          rawLine: lineEl.value,
+          imageBase64: b64,
+          mimeType: file.type || 'image/jpeg',
+          cafeUrl: (cafeEl.value || '').trim(),
+        });
+        var savedId = data.item && data.item.id ? String(data.item.id) : '';
+        var verifyStatus = 0;
+        var verifyOk = false;
+        var verifyHint = '';
+        try {
+          var vr = await fetch('/api/shipping-public', {
+            method: 'GET',
+            cache: 'no-store',
+            headers: { 'Cache-Control': 'no-cache' },
+          });
+          verifyStatus = vr.status;
+          if (vr.ok) {
+            var pub = await vr.json();
+            if (savedId && pub && Array.isArray(pub.items)) {
+              var xi;
+              for (xi = 0; xi < pub.items.length; xi++) {
+                if (pub.items[xi] && String(pub.items[xi].id) === savedId) {
+                  verifyOk = true;
+                  break;
+                }
+              }
+            }
+          } else {
+            try {
+              var eb = await vr.json();
+              verifyHint = (eb && eb.hint) || (eb && eb.error) || '';
+            } catch (_) {}
+          }
+        } catch (ve) {
+          verifyHint = ve && ve.message ? ve.message : String(ve);
+        }
+
+        if (verifyOk) {
+          showMsg(
+            '저장 성공. 공개 API에서 방금 항목을 확인했습니다. 메인 페이지(https://ai.youngjaecomputer.com/)를 새로고침하면 최근 출고에 표시됩니다.',
+            true
+          );
+        } else if (verifyStatus === 503) {
+          showMsg(
+            '저장 API는 성공했으나 공개 목록이 설정되지 않았습니다(503). Vercel Production에 BLOB_READ_WRITE_TOKEN 과 SHIPPING_PAYLOAD_SECRET(16자 이상)을 추가한 뒤 재배포하세요. ' +
+              (verifyHint ? '안내: ' + verifyHint : ''),
+            false
+          );
+        } else if (verifyStatus >= 500) {
+          showMsg(
+            '저장은 되었으나 공개 API 오류(' + verifyStatus + '). 잠시 후 다시 시도하거나 Vercel 로그를 확인하세요. ' +
+              (verifyHint ? verifyHint : ''),
+            false
+          );
+        } else if (savedId) {
+          showMsg(
+            '저장은 되었으나 공개 목록에서 방금 id를 찾지 못했습니다. 새로고침 후에도 메인에 없으면 Blob·암호화 키가 저장·조회에서 동일한지 확인하세요.',
+            false
+          );
+        } else {
+          showMsg('저장 응답에 항목 정보가 없습니다. 서버 응답을 확인하세요.', false);
+        }
+        parsePreviewEl.innerHTML = data.item && data.item.title
+          ? '<strong>방금 등록</strong><br/>' + escapeHtml(data.item.title)
+          : '';
+        parsePreviewEl.className = data.item && data.item.title ? 'parse-preview show' : 'parse-preview';
+        clearImageSelection();
+      } catch (e) {
+        showMsg(e.message || String(e), false);
+      }
+    };
+    reader.onerror = function () {
+      showMsg('파일을 읽을 수 없습니다.', false);
+    };
+    reader.readAsDataURL(file);
+  });
+})();
+  </script>
+</body>
+</html>

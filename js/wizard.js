@@ -14,10 +14,12 @@ const TOTAL_STEPS = 4;
 /** 용도별 선택지 (1단계) */
 const PURPOSE_OPTIONS = [
   { id: 'gaming', label: '게이밍', value: 'gaming', icon: '🎮', desc: '게임 전용 PC' },
-  { id: 'office', label: '사무용', value: 'office', icon: '💼', desc: '문서·업무용' },
+  { id: 'ai_study', label: 'AI 공부용', value: 'ai_study', icon: '🧠', desc: 'CUDA 입문·딥러닝 학습' },
+  { id: 'local_llm', label: '로컬 LLM', value: 'local_llm', icon: '🤖', desc: '로컬 AI·LLM 추론' },
   { id: 'editing', label: '영상편집', value: 'editing', icon: '🎬', desc: '프리미어·에펙 등' },
+  { id: 'office', label: '사무용', value: 'office', icon: '💼', desc: '문서·업무용' },
   { id: '3d', label: '3D 모델링', value: '3d', icon: '🎨', desc: '블렌더·CAD 등' },
-  { id: 'ai', label: 'AI·딥러닝', value: 'ai', icon: '🤖', desc: '학습·추론용' },
+  { id: 'ai', label: '생성형 AI', value: 'ai', icon: '🔬', desc: '이미지생성·학습·추론' },
   { id: 'streaming', label: '방송·스트리밍', value: 'streaming', icon: '📺', desc: '방송·인코딩' }
 ];
 
@@ -320,7 +322,8 @@ class Wizard {
   showResults() {
     this.close();
 
-    const { recommended, noResultsReason, matchReasons } = getWizardRecommendations(this.products, this.selections);
+    const { recommended, noResultsReason, matchReasons, recommendationReasonsById } =
+      getWizardRecommendations(this.products, this.selections);
 
     if (!this.resultSection || !this.resultContainer) return;
 
@@ -337,7 +340,9 @@ class Wizard {
           office: '💼 사무용',
           editing: '🎬 영상편집',
           '3d': '🎨 3D 모델링',
-          ai: '🤖 AI·딥러닝',
+          ai: '🔬 생성형 AI',
+          ai_study: '🧠 AI 공부용',
+          local_llm: '🤖 로컬 LLM',
           streaming: '📺 방송·스트리밍'
         };
         parts.push(purposeLabels[this.selections.purpose] || '');
@@ -374,7 +379,15 @@ class Wizard {
     } else {
       const reasonMap = new Map((matchReasons || []).map(m => [String(m.productId), m.reasons || []]));
       this.resultContainer.innerHTML = recommended
-        .map(p => renderWizardResultCard(p, selectedGame, this.fpsData, reasonMap.get(String(p.id)) || []))
+        .map(p =>
+          renderWizardResultCard(
+            p,
+            selectedGame,
+            this.fpsData,
+            reasonMap.get(String(p.id)) || [],
+            recommendationReasonsById?.get(String(p.id)) || null
+          )
+        )
         .join('');
     }
 

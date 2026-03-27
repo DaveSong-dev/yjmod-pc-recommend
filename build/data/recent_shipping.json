@@ -1,0 +1,60 @@
+{
+  "_maintainer_note": "최대 6개까지 노출됩니다. title·summary·specs·date·image·cafeUrl만 수정하면 됩니다. 자동 수집 아님 — 운영에서 수동 갱신하세요.",
+  "galleryMenuUrl": "https://cafe.naver.com/f-e/cafes/31248285/menus/1?viewType=I&page=1&size=20",
+  "items": [
+    {
+      "id": "ship-001",
+      "title": "게이밍 조립 PC 출고",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMjNfMiAg/MDAxNzc0MjU5MzYwNTcz.qX2FWCzkwvx5-L6id6DD4xcVRiw6Lh6P0NC1S8xPDMEg.VYRVQViZsMc0lMe85uhi4bc5L0rCTy8YB6dDHhAj71Eg.JPEG/KakaoTalk_20260323_174018399_01.jpg?type=w800",
+      "summary": "케이스 내부 배선·완성 컷",
+      "date": "2026-03-23",
+      "specs": "고사양 게이밍 구성",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7033?boardtype=L&menuid=1&referrerAllArticles=false"
+    },
+    {
+      "id": "ship-002",
+      "title": "화이트 톤 조립 PC 출고",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMjNfMTEy/MDAxNzc0MjU5MzM2ODE5.sfk92zk_dtE4XQ_T-7iQTlA6W_Z5qFi5kPpS50uRUswg.B8OVvNGpc67ZFQCw1qJY4W8XRH2YaATQjoxcnGwv7a0g.JPEG/KakaoTalk_20260323_180110087.jpg?type=w800",
+      "summary": "출고 전 최종 점검 완료",
+      "date": "2026-03-23",
+      "specs": "RTX 시리즈 · DDR5",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7032?boardtype=L&menuid=1&referrerAllArticles=false"
+    },
+    {
+      "id": "ship-003",
+      "title": "미들타워 게이밍 출고",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMjNfMjk4/MDAxNzc0MjU5MzE0OTg1.Z-aqRy2b-MgstTd6JK2UOWe3ybExt-sZDVwCfqjHCeog.-Tz31WZijNwqmhqFp3fgkpBmN1Lir0wdg4CZlb_Qfh0g.JPEG/KakaoTalk_20260323_161958052_01.jpg?type=w800",
+      "summary": "에어플로우 케이스 구성",
+      "date": "2026-03-23",
+      "specs": "AMD R7 · RTX 급",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7031?boardtype=L&menuid=1&referrerAllArticles=false"
+    },
+    {
+      "id": "ship-004",
+      "title": "블랙 미니멀 조립 PC 출고",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMjNfNTEg/MDAxNzc0MjU5Mjg5MDgy.DSEPA0X-EqD8Y29jJALc-fjSdcZV63inEEJ7KjkH_xMg.8nSir-EHKVyeFgHKmDE6ue83mRwjGWLWIvn7honjTsMg.JPEG/KakaoTalk_20260323_112426467_01.jpg?type=w800",
+      "summary": "깔끔한 케이블 정리",
+      "date": "2026-03-23",
+      "specs": "게이밍 맞춤 사양",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7030?boardtype=L&menuid=1&referrerAllArticles=false"
+    },
+    {
+      "id": "ship-005",
+      "title": "하이엔드 조립 PC 출고",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMTdfNzUg/MDAxNzczNzQxNjk0NDE2.IjcDnZ7AMzyQ2yA0GdNUB6Gv2KWQVbLBmnnts6l0FVAg.KWwlatkHVLMs3PQBgUHVx03-MnmAH5-F-PR4U5R_0aAg.JPEG/KakaoTalk_20260317_183252208_07.jpg?type=w800",
+      "summary": "대형 쿨러·케이스 완성 컷",
+      "date": "2026-03-17",
+      "specs": "상위 CPU · 고급 GPU",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7029?boardtype=L&menuid=1&referrerAllArticles=false"
+    },
+    {
+      "id": "ship-006",
+      "title": "가성비 게이밍 출고",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMTdfMjIw/MDAxNzczNzQxNjY5MzA1.LG514PKjc-jUlRSJrG9XTWdkq8hTaxZUqLUhNow-B4cg.fIGNgtGlmI0nciRFteIxf7pyFP3uEwWvvw-5LvCSMjwg.JPEG/KakaoTalk_20260317_164243989_01.jpg?type=w800",
+      "summary": "박스 패킹·출고 준비",
+      "date": "2026-03-17",
+      "specs": "FHD~QHD 추천 구성",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7028?boardtype=L&menuid=1&referrerAllArticles=false"
+    }
+  ]
+}

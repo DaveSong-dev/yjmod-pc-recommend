@@ -1,0 +1,275 @@
+{
+  "inputs": {
+    "js/utils.js": {
+      "bytes": 8062,
+      "imports": [],
+      "format": "esm"
+    },
+    "js/recommendation_reasons.js": {
+      "bytes": 15354,
+      "imports": [
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "js/filter.js": {
+      "bytes": 23223,
+      "imports": [
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        },
+        {
+          "path": "js/recommendation_reasons.js",
+          "kind": "import-statement",
+          "original": "./recommendation_reasons.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "js/card-text-generator.js": {
+      "bytes": 18296,
+      "imports": [],
+      "format": "esm"
+    },
+    "js/render.js": {
+      "bytes": 29322,
+      "imports": [
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        },
+        {
+          "path": "js/recommendation_reasons.js",
+          "kind": "import-statement",
+          "original": "./recommendation_reasons.js"
+        },
+        {
+          "path": "js/card-text-generator.js",
+          "kind": "import-statement",
+          "original": "./card-text-generator.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "js/reco-loader.js": {
+      "bytes": 7444,
+      "imports": [
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "js/wizard.js": {
+      "bytes": 15754,
+      "imports": [
+        {
+          "path": "js/filter.js",
+          "kind": "import-statement",
+          "original": "./filter.js"
+        },
+        {
+          "path": "js/render.js",
+          "kind": "import-statement",
+          "original": "./render.js"
+        },
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "js/recent-shipping.js": {
+      "bytes": 7570,
+      "imports": [
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        }
+      ],
+      "format": "esm"
+    },
+    "js/app.js": {
+      "bytes": 21120,
+      "imports": [
+        {
+          "path": "js/utils.js",
+          "kind": "import-statement",
+          "original": "./utils.js"
+        },
+        {
+          "path": "js/filter.js",
+          "kind": "import-statement",
+          "original": "./filter.js"
+        },
+        {
+          "path": "js/render.js",
+          "kind": "import-statement",
+          "original": "./render.js"
+        },
+        {
+          "path": "js/reco-loader.js",
+          "kind": "import-statement",
+          "original": "./reco-loader.js"
+        },
+        {
+          "path": "js/wizard.js",
+          "kind": "dynamic-import",
+          "original": "./wizard.js"
+        },
+        {
+          "path": "js/recent-shipping.js",
+          "kind": "dynamic-import",
+          "original": "./recent-shipping.js"
+        }
+      ],
+      "format": "esm"
+    }
+  },
+  "outputs": {
+    "build/app.js": {
+      "imports": [
+        {
+          "path": "build/chunk-RZN5725Y.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "build/chunk-QBRJFJRK.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "build/chunk-IUKJ7NE3.js",
+          "kind": "dynamic-import"
+        },
+        {
+          "path": "build/chunk-MU23T7V4.js",
+          "kind": "dynamic-import"
+        }
+      ],
+      "exports": [],
+      "entryPoint": "js/app.js",
+      "inputs": {
+        "js/reco-loader.js": {
+          "bytesInOutput": 6626
+        },
+        "js/app.js": {
+          "bytesInOutput": 20012
+        }
+      },
+      "bytes": 26957
+    },
+    "build/chunk-IUKJ7NE3.js": {
+      "imports": [
+        {
+          "path": "build/chunk-RZN5725Y.js",
+          "kind": "import-statement"
+        },
+        {
+          "path": "build/chunk-QBRJFJRK.js",
+          "kind": "import-statement"
+        }
+      ],
+      "exports": [
+        "BUDGET_OPTIONS",
+        "DESIGN_OPTIONS",
+        "GAME_OPTIONS",
+        "PURPOSE_OPTIONS",
+        "TOTAL_STEPS",
+        "Wizard",
+        "getStepConfig"
+      ],
+      "entryPoint": "js/wizard.js",
+      "inputs": {
+        "js/wizard.js": {
+          "bytesInOutput": 16078
+        }
+      },
+      "bytes": 16370
+    },
+    "build/chunk-RZN5725Y.js": {
+      "imports": [
+        {
+          "path": "build/chunk-QBRJFJRK.js",
+          "kind": "import-statement"
+        }
+      ],
+      "exports": [
+        "buildLoadMoreSkeleton",
+        "filterProducts",
+        "filterState",
+        "getWizardRecommendations",
+        "isInStock",
+        "isReasonableInstallmentPrice",
+        "renderGroupedView",
+        "renderProductGrid",
+        "renderWizardResultCard",
+        "resetFilters"
+      ],
+      "inputs": {
+        "js/recommendation_reasons.js": {
+          "bytesInOutput": 16330
+        },
+        "js/filter.js": {
+          "bytesInOutput": 20116
+        },
+        "js/card-text-generator.js": {
+          "bytesInOutput": 19218
+        },
+        "js/render.js": {
+          "bytesInOutput": 28084
+        }
+      },
+      "bytes": 84245
+    },
+    "build/chunk-MU23T7V4.js": {
+      "imports": [
+        {
+          "path": "build/chunk-QBRJFJRK.js",
+          "kind": "import-statement"
+        }
+      ],
+      "exports": [
+        "initRecentShipping"
+      ],
+      "entryPoint": "js/recent-shipping.js",
+      "inputs": {
+        "js/recent-shipping.js": {
+          "bytesInOutput": 7043
+        }
+      },
+      "bytes": 7153
+    },
+    "build/chunk-QBRJFJRK.js": {
+      "imports": [],
+      "exports": [
+        "KAKAO_CONSULT_CHAT_URL",
+        "PRICE_RANGES",
+        "buildMonthlyPaymentHint",
+        "debounce",
+        "fetchJson",
+        "getBadgeClass",
+        "getExpectedFps",
+        "getProductGameFpsHighlights",
+        "observeScrollFade"
+      ],
+      "inputs": {
+        "js/utils.js": {
+          "bytesInOutput": 5979
+        }
+      },
+      "bytes": 6187
+    }
+  }
+}

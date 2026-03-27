@@ -1,0 +1,14 @@
+{
+  "active_version": "2.0.0",
+  "versions": {
+    "2.0.0": {
+      "feed": "v2.0.0/feed.json",
+      "consult_feed": "v2.0.0/consult.json",
+      "dataset_version": "2.0.0",
+      "parser_version": "2.1.0",
+      "rules_version": "2.0.0",
+      "tag_version": "2.0.0",
+      "released_at": "2026-03-27T01:53:55Z"
+    }
+  }
+}

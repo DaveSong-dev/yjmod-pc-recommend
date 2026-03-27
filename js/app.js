@@ -1,43 +1,106 @@
 /**
  * app.js - 메인 애플리케이션 진입점
- * 데이터 로드, UI 초기화, 이벤트 바인딩
+ *
+ * 데이터 아키텍처:
+ *   raw crawl (pc_data.json) = source of truth (가격, 품절, URL, 이름)
+ *   reco v2 (feed.json)      = enrichment overlay (추천 태그, AI 분류)
+ *   최종 상품 = raw + reco merge 결과
  */
 
 import { fetchJson, observeScrollFade, debounce } from './utils.js';
 import { filterState, filterProducts, resetFilters, isReasonableInstallmentPrice, isInStock } from './filter.js';
 import { renderProductGrid, renderGroupedView, buildLoadMoreSkeleton } from './render.js';
-import { Wizard } from './wizard.js';
+import { loadRecoEnrichment, enrichProduct, buildConsultProduct } from './reco-loader.js';
 
-// ─── 앱 상태 ────────────────────────────────────────────────
 const state = {
   products: [],
+  consultProducts: [],
   fpsData: null,
   wizard: null,
   lastUpdated: null,
-  currentView: 'main' // 'main' | 'filtered'
+  recoVersion: null,
+  recoFeedMap: null,
+  recoConsultMap: null,
+  currentView: 'main'
 };
 
-// ─── 초기화 ─────────────────────────────────────────────────
+/**
+ * raw 상품 배열 + reco maps → 병합된 상품 + 상담 상품 분리
+ */
+function mergeRawWithReco(rawProducts, feedMap, consultMap) {
+  const mainProducts = [];
+  const consultProducts = [];
+
+  for (const raw of rawProducts) {
+    const id = String(raw.id);
+
+    // consult 그룹에 해당하면 상담 섹션으로 분리
+    const consultItem = consultMap.get(id);
+    if (consultItem) {
+      consultProducts.push(buildConsultProduct(raw, consultItem));
+      continue;
+    }
+
+    // feed(consumer_general)에 있으면 enrichment 적용
+    const feedItem = feedMap.get(id);
+    const enriched = enrichProduct(raw, feedItem || null);
+    mainProducts.push(enriched);
+  }
+
+  // 정렬: reco enrichment 있는 상품 → frontend_rank_score 내림차순
+  //        reco 없는 상품 → 원래 순서 유지 (뒤쪽 배치)
+  mainProducts.sort((a, b) => {
+    const sa = a.v2?.frontend_rank_score || 0;
+    const sb = b.v2?.frontend_rank_score || 0;
+    if (sa !== sb) return sb - sa;
+    return 0;
+  });
+
+  return { mainProducts, consultProducts };
+}
+
 async function init() {
   showLoading(true);
 
   try {
-    // 병렬로 데이터 로드
+    // 1단계: raw crawl 데이터 로드 (source of truth)
     const [pcData, fpsData] = await Promise.all([
       fetchJson('./data/pc_data.json'),
       fetchJson('./data/fps_reference.json')
     ]);
 
-    if (pcData?.products) {
-      state.products = pcData.products.filter(p =>
-        isInStock(p) && isReasonableInstallmentPrice(p)
-      );
-    }
-
     state.fpsData = fpsData;
 
-    // 마지막 업데이트 시각 표시
-    if (pcData?.last_updated) {
+    if (!pcData?.products || pcData.products.length === 0) {
+      console.error('[App] raw crawl 데이터(pc_data.json) 비어 있음');
+      return;
+    }
+
+    // 2단계: reco enrichment 로드 (overlay)
+    let feedMap = new Map();
+    let consultMap = new Map();
+    try {
+      const reco = await loadRecoEnrichment();
+      feedMap = reco.feedMap;
+      consultMap = reco.consultMap;
+      state.recoVersion = reco.version;
+    } catch (recoErr) {
+      console.error('[App] reco enrichment 로드 실패 (raw만 사용):', recoErr);
+    }
+
+    state.recoFeedMap = feedMap;
+    state.recoConsultMap = consultMap;
+
+    // 3단계: raw + reco merge
+    const rawFiltered = pcData.products.filter(p =>
+      isInStock(p) && isReasonableInstallmentPrice(p)
+    );
+    const { mainProducts, consultProducts } = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+
+    state.products = mainProducts;
+    state.consultProducts = consultProducts;
+
+    if (pcData.last_updated) {
       state.lastUpdated = pcData.last_updated;
       updateLastUpdatedTime(pcData.last_updated);
     }
@@ -48,20 +111,42 @@ async function init() {
     showLoading(false);
   }
 
-  // UI 초기화
   initProductGrid();
   initFilters();
   initGroupMoreDelegation();
   initFlatLoadMoreDelegation();
   initWizard();
+  scheduleRecentShipping();
   initSearch();
   initScrollAnimations();
   initMobileMenu();
   initHeroStats();
   initUpdateTickers();
+  initConsultSection();
 }
 
-// ─── 필터 활성 여부 확인 ─────────────────────────────────────
+/** 위자드 모듈은 첫 클릭 시 로드 — 초기 파싱·다운로드 분리 */
+let wizardModulePromise = null;
+function loadWizardModule() {
+  if (!wizardModulePromise) {
+    wizardModulePromise = import('./wizard.js');
+  }
+  return wizardModulePromise;
+}
+
+function scheduleRecentShipping() {
+  const run = () => {
+    import('./recent-shipping.js')
+      .then(m => m.initRecentShipping())
+      .catch(() => {});
+  };
+  if (typeof requestIdleCallback === 'function') {
+    requestIdleCallback(() => run(), { timeout: 5000 });
+  } else {
+    window.setTimeout(run, 2500);
+  }
+}
+
 function isAnyFilterActive() {
   return Object.entries(filterState).some(([k, v]) => {
     if (k === 'search') return v !== '';
@@ -69,10 +154,13 @@ function isAnyFilterActive() {
   });
 }
 
-// ─── 제품 그리드 ─────────────────────────────────────────────
 function initProductGrid() {
   renderView();
   observeScrollFade('.product-card');
+}
+
+function getActiveSelectedGame() {
+  return typeof filterState.game === 'string' && filterState.game.trim() ? filterState.game : null;
 }
 
 function renderView() {
@@ -80,17 +168,14 @@ function renderView() {
   if (!container) return;
 
   if (isAnyFilterActive()) {
-    // 필터 적용 시: 필터링된 결과 전체 목록 (품절 제외는 filterProducts 내부에서 처리)
     const filtered = filterProducts(state.products, filterState);
-    renderProductGrid(container, filtered, null, state.fpsData);
+    renderProductGrid(container, filtered, getActiveSelectedGame(), state.fpsData, filterState);
     updateProductCount(filtered.length);
   } else {
-    // 기본 상태: 그룹별 섹션 보기 (state.products는 이미 재고 있는 상품만 포함)
     renderGroupedView(container, state.products, state.fpsData, handleGroupFilter);
     updateProductCount(state.products.length);
   }
 
-  // 일부 환경에서 opacity-0가 남아 카드가 안 보이는 현상 방지
   container.classList.remove('opacity-0');
   const spinner = document.getElementById('loading-spinner');
   if (spinner) spinner.classList.add('hidden');
@@ -103,16 +188,13 @@ function refreshGrid() {
   requestAnimationFrame(() => observeScrollFade('.product-card'));
 }
 
-// 그룹 "더보기" 클릭 시 해당 필터 적용
 function handleGroupFilter(key, value) {
-  // 모든 필터 초기화 후 해당 필터만 적용
   resetFilters();
   document.querySelectorAll('.filter-active').forEach(b => b.classList.remove('filter-active'));
 
   filterState[key] = value;
 
-  // 해당 탭과 버튼 활성화
-  const targetTabMap = { usage: 'filter-usage', installment: 'filter-usage', game: 'filter-game' };
+  const targetTabMap = { usage: 'filter-usage', installment: 'filter-usage', game: 'filter-game', bestFor: 'filter-usage' };
   const targetTab = document.querySelector(`[data-target="${targetTabMap[key] || 'filter-usage'}"]`);
   if (targetTab) {
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
@@ -123,18 +205,15 @@ function handleGroupFilter(key, value) {
     });
   }
 
-  // 버튼 활성화
   const matchBtn = document.querySelector(`.filter-btn[data-filter-key="${key}"][data-filter-value="${value}"]`);
   if (matchBtn) matchBtn.classList.add('filter-active');
 
-  // 그룹 전환 시 하단 더보기 페이지네이션 초기화
   const grid = document.getElementById('product-grid');
   if (grid) delete grid.dataset.visibleCount;
 
   refreshGrid();
   updateActiveFiltersDisplay();
 
-  // 일부 환경에서 렌더 타이밍 이슈로 카드가 비어 보이는 현상 보정
   requestAnimationFrame(() => {
     const grid = document.getElementById('product-grid');
     if (!grid || state.products.length === 0) return;
@@ -143,17 +222,21 @@ function handleGroupFilter(key, value) {
     const hasEmptyState = !!grid.querySelector('.col-span-full');
     if (cardCount > 0 || hasEmptyState) return;
 
-    const fallbackProducts = key === 'installment'
-      ? state.products.filter(p => (p.installment_months || 0) === Number(value))
-      : state.products.filter(p => (p.categories?.usage || []).includes(String(value)));
+    let fallbackProducts;
+    if (key === 'installment') {
+      fallbackProducts = state.products.filter(p => (p.installment_months || 0) === Number(value));
+    } else if (key === 'bestFor') {
+      fallbackProducts = state.products.filter(p => p.v2?.best_for_tags?.includes(String(value)));
+    } else {
+      fallbackProducts = state.products.filter(p => (p.categories?.usage || []).includes(String(value)));
+    }
 
-    renderProductGrid(grid, fallbackProducts, null, state.fpsData);
+    renderProductGrid(grid, fallbackProducts, getActiveSelectedGame(), state.fpsData, filterState);
     updateProductCount(fallbackProducts.length);
     observeScrollFade('.product-card');
     grid.classList.remove('opacity-0');
   });
 
-  // 제품 섹션으로 스크롤
   const section = document.getElementById('products-section');
   if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
@@ -163,18 +246,14 @@ function updateProductCount(count) {
   if (el) el.textContent = `${count}개 제품`;
 }
 
-// ─── 필터 ───────────────────────────────────────────────────
 function initFilters() {
-  // 모든 필터 버튼에 이벤트 등록 (data-filter-key 기반)
   document.querySelectorAll('.filter-btn[data-filter-value]').forEach(btn => {
     btn.addEventListener('click', () => {
       const key = btn.dataset.filterKey || btn.closest('[data-filter-key-group]')?.dataset.filterKeyGroup || 'game';
       let value = btn.dataset.filterValue;
 
-      // installment 필터는 숫자로 변환
       if (key === 'installment') value = parseInt(value, 10);
 
-      // 같은 key를 가진 버튼들에서 active 제거 (단, 다른 key 버튼은 유지)
       const isActive = btn.classList.contains('filter-active');
       document.querySelectorAll(`.filter-btn[data-filter-key="${key}"]`).forEach(b => {
         b.classList.remove('filter-active');
@@ -187,7 +266,6 @@ function initFilters() {
         filterState[key] = null;
       }
 
-      // 더보기 카운트 리셋
       const grid = document.getElementById('product-grid');
       if (grid) delete grid.dataset.visibleCount;
 
@@ -196,12 +274,10 @@ function initFilters() {
     });
   });
 
-  // 필터 초기화 버튼
   document.getElementById('btn-reset-filter')?.addEventListener('click', () => {
     window.resetAllFilters();
   });
 
-  // 전역 함수로 노출 (render.js의 빈 결과 버튼에서 호출)
   window.resetAllFilters = () => {
     resetFilters();
     document.querySelectorAll('.filter-active').forEach(btn => {
@@ -209,7 +285,6 @@ function initFilters() {
     });
     const searchInput = document.getElementById('search-input');
     if (searchInput) searchInput.value = '';
-    // 더보기 카운트 리셋
     const grid = document.getElementById('product-grid');
     if (grid) delete grid.dataset.visibleCount;
     refreshGrid();
@@ -217,7 +292,6 @@ function initFilters() {
   };
 }
 
-// ─── 그룹 더보기 위임(안정성 보강) ─────────────────────────────
 function initGroupMoreDelegation() {
   if (window.__groupMoreDelegationBound) return;
 
@@ -240,7 +314,6 @@ function initGroupMoreDelegation() {
   window.__groupMoreDelegationBound = true;
 }
 
-// ─── 하단 더보기 위임(전역 강제 바인딩) ─────────────────────────
 function initFlatLoadMoreDelegation() {
   if (window.__flatMoreDelegationBound) return;
 
@@ -279,7 +352,8 @@ function initFlatLoadMoreDelegation() {
         container,
         container._flatProducts || [],
         container._flatSelectedGame || null,
-        container._flatFpsData || null
+        container._flatFpsData || null,
+        container._flatFilterState ?? null
       );
       showLoadMoreToast(addedCount);
 
@@ -329,17 +403,14 @@ function updateActiveFiltersDisplay() {
   }
 }
 
-// ─── 위자드 ─────────────────────────────────────────────────
 function initWizard() {
-  state.wizard = new Wizard('wizard-modal', state.products, state.fpsData);
-
-  // 위자드 열기 버튼: 이벤트 위임으로 안정 처리
   if (!window.__wizardOpenDelegationBound) {
-    document.addEventListener('click', (e) => {
+    document.addEventListener('click', async e => {
       const btn = e.target.closest('[data-open-wizard]');
       if (!btn) return;
 
       e.preventDefault();
+      const { Wizard } = await loadWizardModule();
       if (!state.wizard) {
         state.wizard = new Wizard('wizard-modal', state.products, state.fpsData);
       }
@@ -349,18 +420,19 @@ function initWizard() {
     window.__wizardOpenDelegationBound = true;
   }
 
-  // 위자드 닫기 버튼
   document.getElementById('wizard-close')?.addEventListener('click', () => {
-    state.wizard.close();
+    state.wizard?.close();
   });
 
-  // 결과 섹션 재검색 버튼
-  document.getElementById('btn-wizard-retry')?.addEventListener('click', () => {
+  document.getElementById('btn-wizard-retry')?.addEventListener('click', async () => {
+    const { Wizard } = await loadWizardModule();
+    if (!state.wizard) {
+      state.wizard = new Wizard('wizard-modal', state.products, state.fpsData);
+    }
     state.wizard.open();
   });
 }
 
-// ─── 검색 ───────────────────────────────────────────────────
 function initSearch() {
   const input = document.getElementById('search-input');
   if (!input) return;
@@ -372,7 +444,6 @@ function initSearch() {
 
   input.addEventListener('input', (e) => debouncedSearch(e.target.value));
 
-  // 검색 지우기
   document.getElementById('search-clear')?.addEventListener('click', () => {
     input.value = '';
     filterState.search = '';
@@ -381,11 +452,8 @@ function initSearch() {
   });
 }
 
-// ─── 스크롤 애니메이션 ───────────────────────────────────────
 function initScrollAnimations() {
   observeScrollFade('.fade-in-up');
-
-  // 히어로 카운터 애니메이션
   animateCounter('hero-stat-products', state.products.length, 0, 1000);
 }
 
@@ -403,16 +471,13 @@ function animateCounter(id, target, start = 0, duration = 1000) {
   }, 16);
 }
 
-// ─── 히어로 통계 ─────────────────────────────────────────────
 function initHeroStats() {
-  // 제품 수 표시
   const statsEl = document.getElementById('hero-stat-products');
   if (statsEl) {
     setTimeout(() => animateCounter('hero-stat-products', state.products.length), 500);
   }
 }
 
-// ─── 모바일 메뉴 ─────────────────────────────────────────────
 function initMobileMenu() {
   const toggle = document.getElementById('mobile-menu-toggle');
   const menu = document.getElementById('mobile-menu');
@@ -429,7 +494,6 @@ function initMobileMenu() {
     }
   });
 
-  // 메뉴 외부 클릭 시 닫기
   document.addEventListener('click', (e) => {
     if (!toggle.contains(e.target) && !menu.contains(e.target)) {
       menu.classList.add('hidden');
@@ -437,7 +501,51 @@ function initMobileMenu() {
   });
 }
 
-// ─── 로딩 스피너 ─────────────────────────────────────────────
+function initConsultSection() {
+  const container = document.getElementById('consult-section-grid');
+  if (!container || state.consultProducts.length === 0) return;
+
+  const section = container.closest('.consult-section');
+  if (section) section.classList.remove('hidden');
+
+  const grouped = {};
+  for (const p of state.consultProducts) {
+    const g = p.consult_label || '상담 필요';
+    (grouped[g] = grouped[g] || []).push(p);
+  }
+
+  const KAKAO = 'https://pf.kakao.com/_sxmjxgT/chat';
+  let html = '';
+  for (const [label, items] of Object.entries(grouped)) {
+    const preview = items.slice(0, 3);
+    html += `
+      <div class="col-span-full mb-4">
+        <h4 class="text-sm font-bold text-gray-300 mb-3">${label} <span class="text-xs text-gray-600">${items.length}개</span></h4>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          ${preview.map(p => `
+          <div class="bg-surface border border-white/5 rounded-xl p-4 flex gap-3 items-start hover:border-accent/30 transition-colors">
+            <img src="${p.thumbnail}" alt="${String(p.name || '상담 대상 PC').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" class="w-16 h-16 rounded-lg object-contain bg-[#0d1117] flex-shrink-0"
+                 loading="lazy" onerror="this.src='https://via.placeholder.com/100x100/16213e/e94560?text=PC'"/>
+            <div class="min-w-0 flex-1">
+              <p class="text-xs font-semibold text-white line-clamp-2">${p.name}</p>
+              <p class="text-[10px] text-gray-500 mt-1">${p.subtitle}</p>
+              ${p.price > 0 ? `<p class="text-[10px] text-accent font-bold mt-1">${p.price_display}</p>` : ''}
+              ${p.summary_reason ? `<p class="text-[10px] text-gray-400 mt-1 line-clamp-2">${p.summary_reason}</p>` : ''}
+              <div class="flex gap-2 mt-2">
+                <a href="${p.url}" target="_blank" rel="noopener noreferrer"
+                   class="text-[10px] text-accent hover:text-accent/80 font-semibold">상세보기</a>
+                <a href="${KAKAO}" target="_blank" rel="noopener noreferrer"
+                   class="text-[10px] text-[#FEE500] hover:text-[#FEE500]/80 font-semibold">상담하기</a>
+              </div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>`;
+  }
+
+  container.innerHTML = html;
+}
+
 function showLoading(show) {
   const spinner = document.getElementById('loading-spinner');
   const grid = document.getElementById('product-grid');
@@ -445,7 +553,6 @@ function showLoading(show) {
   if (grid) grid.classList.toggle('opacity-0', show);
 }
 
-// ─── 마지막 업데이트 시간 ─────────────────────────────────────
 function updateLastUpdatedTime(isoString) {
   const el = document.getElementById('last-updated-time');
   if (!el) return;
@@ -462,14 +569,14 @@ function updateLastUpdatedTime(isoString) {
   }
 }
 
-// ─── 자동 업데이트(표시 + 데이터 폴링) ───────────────────────
+/**
+ * 6시간 주기 데이터 폴링 — raw 재로드 후 reco re-merge
+ */
 function initUpdateTickers() {
-  // 1) "몇 분 전" 텍스트를 1분마다 갱신
   setInterval(() => {
     if (state.lastUpdated) updateLastUpdatedTime(state.lastUpdated);
   }, 60_000);
 
-  // 2) 데이터 자동 새로고침(6시간 주기)
   setInterval(async () => {
     try {
       const pcData = await fetchJson(`./data/pc_data.json?v=${Date.now()}`);
@@ -478,20 +585,28 @@ function initUpdateTickers() {
       const nextUpdated = pcData.last_updated || null;
       if (nextUpdated && nextUpdated !== state.lastUpdated) {
         state.lastUpdated = nextUpdated;
-        state.products = pcData.products.filter(p =>
+
+        const rawFiltered = pcData.products.filter(p =>
           isInStock(p) && isReasonableInstallmentPrice(p)
         );
+
+        const feedMap = state.recoFeedMap || new Map();
+        const consultMap = state.recoConsultMap || new Map();
+        const { mainProducts, consultProducts } = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+
+        state.products = mainProducts;
+        state.consultProducts = consultProducts;
+
         updateLastUpdatedTime(nextUpdated);
         renderView();
         updateActiveFiltersDisplay();
       }
     } catch {
-      // 폴링 실패는 무시 (다음 주기 재시도)
+      // 폴링 실패는 무시
     }
   }, 6 * 60 * 60_000);
 }
 
-// ─── 헤더 스크롤 효과 ────────────────────────────────────────
 window.addEventListener('scroll', debounce(() => {
   const header = document.getElementById('main-header');
   if (!header) return;
@@ -502,7 +617,6 @@ window.addEventListener('scroll', debounce(() => {
   }
 }, 50));
 
-// ─── 스무스 앵커 스크롤 ──────────────────────────────────────
 document.addEventListener('click', (e) => {
   const anchor = e.target.closest('a[href^="#"]');
   if (!anchor) return;
@@ -511,5 +625,4 @@ document.addEventListener('click', (e) => {
   target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
-// ─── 앱 시작 ────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', init);

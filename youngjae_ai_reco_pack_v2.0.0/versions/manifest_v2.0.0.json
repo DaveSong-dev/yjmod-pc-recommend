@@ -1,0 +1,35 @@
+{
+  "package_name": "youngjae_ai_reco_pack_v2.0.0",
+  "generated_at": "2026-03-27T01:53:55Z",
+  "source_file": "youngjae_pc_rows (1).sql",
+  "dataset_version": "2.0.0",
+  "parser_version": "2.1.0",
+  "rules_version": "2.0.0",
+  "tag_version": "2.0.0",
+  "inventory_mode": {
+    "raw_soldout_all_true_detected": true,
+    "note": "recommendable은 상품 적합성 기준이며, raw_soldout은 별도 보존. raw_soldout을 라이브 필터에 그대로 쓰면 결과가 0개가 됨."
+  },
+  "counts": {
+    "total_rows": 872,
+    "recommendable_core_rows": 768,
+    "frontend_recommendable_rows": 768,
+    "recommendable_live_rows_if_raw_soldout_used": 0,
+    "raw_soldout_true_rows": 872,
+    "consumer_general_rows": 768,
+    "office_apu_consult_rows": 37,
+    "bundle_consult_rows": 23,
+    "server_ws_consult_rows": 23,
+    "consumer_consult_rows": 18,
+    "manual_review_rows": 2,
+    "missing_price_rows_before_impute": 452,
+    "estimated_price_rows_after_impute": 452,
+    "unknown_cpu_rows_after_rebuild": 8,
+    "unknown_gpu_rows_after_rebuild": 7
+  },
+  "frontend_contract": {
+    "primary_feed": "frontend/v2.0.0/youngjae_ai_reco_frontend_feed_v2.0.0.json",
+    "eligible_rule": "recommendable == true",
+    "do_not_use_raw_gate_until_inventory_fixed": true
+  }
+}

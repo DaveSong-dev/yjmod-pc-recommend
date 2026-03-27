@@ -1,0 +1,27 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "functions": {
+    "api/shipping-submit.js": {
+      "maxDuration": 60
+    },
+    "api/shipping-public.js": {
+      "maxDuration": 15
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self' https://www.youngjaecomputer.com https://youngjaecomputer.com;"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    }
+  ]
+}
