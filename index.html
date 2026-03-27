@@ -3,8 +3,19 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="영재컴퓨터 공식 PC 추천 페이지 - 게임별, 예산별 최적의 조립PC를 찾아보세요" />
-  <title>YJMOD 추천 PC | 영재컴퓨터</title>
+  <meta name="description" content="게임, 예산, 용도를 선택하면 AI가 최적의 조립PC를 추천해 드립니다. 정기 재고 확인 · 6시간마다 가격 갱신" />
+  <title>내 게임에 완벽한 PC 찾아드립니다 | YJMOD 영재컴퓨터</title>
+  <link rel="canonical" href="https://ai.youngjaecomputer.com/" />
+  <meta property="og:title" content="내 게임에 완벽한 PC 찾아드립니다 | YJMOD 영재컴퓨터" />
+  <meta property="og:description" content="게임, 예산, 용도를 선택하면 AI가 최적의 조립PC를 추천해 드립니다. 실시간 재고 확인 · 6시간마다 가격 갱신" />
+  <meta property="og:image" content="https://admin.youngjaecomputer.com/data/item/2767750720_m" />
+  <meta property="og:url" content="https://ai.youngjaecomputer.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="YJMOD 영재컴퓨터" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="내 게임에 완벽한 PC 찾아드립니다 | YJMOD 영재컴퓨터" />
+  <meta name="twitter:description" content="게임, 예산, 용도를 선택하면 AI가 최적의 조립PC를 추천해 드립니다. 실시간 재고 확인 · 6시간마다 가격 갱신" />
+  <meta name="twitter:image" content="https://admin.youngjaecomputer.com/data/item/2767750720_m" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <link rel="shortcut icon" href="./favicon.svg" />
 
@@ -154,11 +165,25 @@
         <!-- 히어로 텍스트 -->
         <div class="flex-1 text-center lg:text-left">
 
+          <!-- LCP: 히어로 대표 이미지 -->
+          <div class="mb-6 flex justify-center lg:justify-start">
+            <img
+              src="https://admin.youngjaecomputer.com/data/item/2767750720_m"
+              alt="YJMOD 영재컴퓨터 추천 조립PC 예시"
+              width="640"
+              height="360"
+              class="max-h-52 w-auto max-w-full rounded-2xl border border-white/10 object-cover shadow-2xl"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+          </div>
+
           <!-- 라이브 배지 -->
           <div class="inline-flex items-center gap-2 bg-surface border border-white/10 rounded-full px-4 py-1.5 mb-6">
             <span class="pulse-dot"></span>
             <span class="text-xs font-semibold text-gray-300">
-              실시간 재고 반영 중 ·
+              정기 재고 확인 ·
               <span id="last-updated-time" class="text-accent">최근</span> 업데이트
             </span>
           </div>
@@ -175,7 +200,7 @@
             게임, 예산, 디자인만 선택하면 영재컴퓨터의
             <strong class="text-white font-semibold">최적 조립PC 견적</strong>을 바로 추천해 드립니다.
             <br class="hidden sm:block" />
-            6시간마다 실시간으로 재고와 가격을 갱신합니다.
+            6시간마다 자동으로 재고와 가격을 갱신합니다.
           </p>
 
           <!-- CTA 버튼 -->
@@ -211,7 +236,7 @@
             <div class="w-px h-10 bg-white/10"></div>
             <div class="text-center">
               <p class="stat-number text-2xl sm:text-3xl">6H</p>
-              <p class="text-xs text-gray-500 mt-0.5">자동 갱신 주기</p>
+              <p class="text-xs text-gray-500 mt-0.5">크롤링 주기</p>
             </div>
             <div class="w-px h-10 bg-white/10"></div>
             <div class="text-center">
@@ -222,8 +247,7 @@
         </div>
 
         <!-- 히어로 비주얼 카드 (데스크톱) -->
-        <div class="hidden lg:flex flex-col gap-4 flex-shrink-0 w-72 animate-float"
-            
+        <div class="hidden lg:flex flex-col gap-4 flex-shrink-0 w-72 animate-float">
           <!-- 예시 추천 카드 -->
           <div class="bg-card border border-white/8 rounded-2xl p-4 shadow-2xl">
             <div class="flex items-center gap-2 mb-3">
@@ -254,7 +278,7 @@
                 </svg>
               </div>
               <div>
-                <p class="text-xs font-semibold text-white">실시간 재고 확인 완료</p>
+                <p class="text-xs font-semibold text-white">최근 재고 확인 완료</p>
                 <p class="text-xs text-gray-500">품절 상품 자동 제외</p>
               </div>
             </div>
@@ -350,7 +374,7 @@
     <div class="marquee-container">
       <div class="marquee-track" id="marquee-track" style="display:flex;flex-wrap:nowrap;width:max-content">
         <div class="marquee-item">🏆 20년+ 조립 노하우</div>
-        <div class="marquee-item">⚡ 6시간마다 실시간 재고 갱신</div>
+        <div class="marquee-item">⚡ 6시간마다 자동 재고 갱신</div>
         <div class="marquee-item">🔧 1년 무상 A/S 보증</div>
         <div class="marquee-item">🎮 게이밍 PC 전문</div>
         <div class="marquee-item">💳 24/36개월 무이자 할부</div>
@@ -363,7 +387,7 @@
         <div class="marquee-item">💎 프리미엄 부품만 사용</div>
         <!-- 복제 (무한 루프) -->
         <div class="marquee-item">🏆 20년+ 조립 노하우</div>
-        <div class="marquee-item">⚡ 6시간마다 실시간 재고 갱신</div>
+        <div class="marquee-item">⚡ 6시간마다 자동 재고 갱신</div>
         <div class="marquee-item">🔧 1년 무상 A/S 보증</div>
         <div class="marquee-item">🎮 게이밍 PC 전문</div>
         <div class="marquee-item">💳 24/36개월 무이자 할부</div>
@@ -391,7 +415,7 @@
           <h2 class="section-title">전체 추천 PC</h2>
           <p class="text-sm text-gray-500 mt-1">
             <span id="product-count" class="text-accent font-bold">0개 제품</span>
-            · 품절 상품 자동 제외 · 실시간 재고
+            · 품절 상품 자동 제외 · 정기 갱신
           </p>
         </div>
 
@@ -456,9 +480,36 @@
               <button class="filter-btn" data-filter-key="usage" data-filter-value="게이밍">🎮 게이밍</button>
               <button class="filter-btn" data-filter-key="usage" data-filter-value="사무/디자인">💼 사무용</button>
               <button class="filter-btn" data-filter-key="usage" data-filter-value="영상편집">🎬 영상편집</button>
-              <button class="filter-btn" data-filter-key="usage" data-filter-value="3D/모델링">🎨 3D 모델링</button>
+              <button class="filter-btn" data-filter-key="usage" data-filter-value="3D 모델링">🎨 3D 모델링</button>
               <button class="filter-btn" data-filter-key="usage" data-filter-value="AI/딥러닝">🤖 AI·딥러닝</button>
               <button class="filter-btn" data-filter-key="usage" data-filter-value="방송/스트리밍">📺 방송·스트리밍</button>
+            </div>
+            <!-- AI 추천 필터 -->
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs text-gray-500 self-center font-medium">AI 추천</span>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="AI 공부용">🧠 AI 공부용</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="로컬 LLM 입문">🤖 로컬 LLM</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="로컬 AI 입문">🔬 로컬 AI 입문</button>
+            </div>
+            <!-- 게이밍 세부 -->
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs text-gray-500 self-center font-medium">게이밍</span>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="FHD 게이밍">🖥️ FHD 게이밍</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="QHD 게이밍">🖥️ QHD 게이밍</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="4K 게이밍">🏆 4K 게이밍</button>
+            </div>
+            <!-- 영상편집 세부 -->
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs text-gray-500 self-center font-medium">영상편집</span>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="영상편집 입문">🎬 영상편집 입문</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="영상편집 표준">🎬 영상편집 표준</button>
+            </div>
+            <!-- 감성 필터 -->
+            <div class="flex flex-wrap gap-2">
+              <span class="text-xs text-gray-500 self-center font-medium">감성</span>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="화이트 감성">🤍 화이트 감성</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="블랙 감성">🖤 블랙 감성</button>
+              <button class="filter-btn" data-filter-key="bestFor" data-filter-value="사무/멀티태스킹">💼 사무/멀티태스킹</button>
             </div>
             <!-- 할부 -->
             <div class="flex flex-wrap gap-2">
@@ -509,6 +560,23 @@
 
 
   <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 상담 유도 섹션 (consult 그룹 상품)                       -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="consult-section hidden py-12 bg-surface border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-6">
+        <div class="flex items-center gap-2">
+          <span class="text-lg">💬</span>
+          <h2 class="text-lg font-bold text-white">상담이 필요한 상품</h2>
+        </div>
+        <p class="text-xs text-gray-500 mt-1">반본체, 내장그래픽, 서버/워크스테이션 등 맞춤 상담을 통해 최적의 견적을 받아보세요</p>
+      </div>
+      <div id="consult-section-grid" class="grid grid-cols-1 gap-4"></div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
   <!-- 위자드 추천 결과 섹션                                    -->
   <!-- ═══════════════════════════════════════════════════════ -->
   <section id="wizard-result-section" class="hidden py-16 bg-surface border-t border-white/5">
@@ -538,6 +606,42 @@
            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       </div>
 
+    </div>
+  </section>
+
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 최근 출고 사진 (수동 데이터 · MVP)                        -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section id="recent-shipping-section" class="py-16 bg-bg border-t border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col lg:flex-row lg:items-end justify-between gap-6 mb-8">
+        <div class="max-w-2xl">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400/90"></span>
+            <span class="text-xs font-bold text-emerald-400/90 uppercase tracking-widest">출고 현장</span>
+          </div>
+          <h2 class="section-title">최근 출고 사진</h2>
+          <p class="text-sm text-gray-500 mt-1 leading-relaxed">
+            네이버 카페에 올라온 실제 출고 사례 중 일부입니다. 매일 쌓이는 현장 사진으로 조립·출고 실체를 확인해 보세요.
+          </p>
+        </div>
+        <a id="recent-shipping-gallery-btn"
+           href="https://cafe.naver.com/f-e/cafes/31248285/menus/1?viewType=I&page=1&size=20"
+           target="_blank" rel="noopener noreferrer"
+           class="flex-shrink-0 inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-semibold text-sm
+                  bg-[#03C75A]/12 hover:bg-[#03C75A]/20 border border-[#03C75A]/35 text-[#03C75A]
+                  transition-all duration-200">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
+          </svg>
+          전체 출고 사진 보기
+        </a>
+      </div>
+
+      <div id="recent-shipping-grid"
+           class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+      </div>
     </div>
   </section>
 
@@ -670,8 +774,8 @@
                 d="M13 10V3L4 14h7v7l9-11h-7z"/>
             </svg>
           </div>
-          <h3 class="text-base font-bold text-white mb-1.5">실시간 재고 연동</h3>
-          <p class="text-sm text-gray-500 leading-relaxed">6시간마다 자동 크롤링으로 품절 상품을 즉시 제외하고, 가격 변동도 실시간 반영합니다. 보이는 상품은 모두 구매 가능한 제품입니다.</p>
+          <h3 class="text-base font-bold text-white mb-1.5">자동 재고 연동</h3>
+          <p class="text-sm text-gray-500 leading-relaxed">6시간마다 자동 크롤링으로 품절 상품을 제외하고, 가격 변동을 반영합니다. 크롤링 시점과 실제 재고 사이에 차이가 있을 수 있습니다.</p>
           <div class="flex items-center gap-2 mt-4 pt-3 border-t border-white/5">
             <span class="pulse-dot"></span>
             <span class="text-xs text-emerald-400 font-semibold">LIVE 연동 중</span>
@@ -765,7 +869,7 @@
           </div>
           <p class="text-xs text-gray-600 max-w-sm">
             이 페이지는 영재컴퓨터 공식 제품 추천 페이지입니다.<br/>
-            제품 데이터는 6시간마다 자동으로 갱신됩니다.
+            제품 데이터는 6시간 주기로 크롤링하여 갱신됩니다.
           </p>
         </div>
 
@@ -791,6 +895,27 @@
     </div>
   </footer>
 
+  <!-- 플로팅 카카오 상담 (링크 단일 출처) -->
+  <a
+    id="floating-kakao-consult"
+    class="floating-kakao-cta"
+    href="https://pf.kakao.com/_sxmjxgT/chat"
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="24시간 카카오톡 상담, 새 창에서 열립니다"
+  >
+    <span class="floating-kakao-cta__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+          stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </span>
+    <span class="floating-kakao-cta__text">
+      <span class="floating-kakao-cta__title floating-kakao-cta__title--short">24시간 카톡 상담</span>
+      <span class="floating-kakao-cta__title floating-kakao-cta__title--full">24시간 카카오 상담</span>
+      <span class="floating-kakao-cta__sub">지금 바로 상담하기</span>
+    </span>
+  </a>
 
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- 위자드 모달                                             -->

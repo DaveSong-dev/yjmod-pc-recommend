@@ -28,3 +28,7 @@
 ## E. 사용자 안내 규칙
 - [ ] `in_progress` 단계에서는 "진행 중"으로만 안내
 - [ ] 3중 확인 완료 전 "반영 완료" 표현 금지
+
+## F. 운영 메모 (상시 유지)
+- [ ] `getExpectedFps` 문구와 `verify_live_fps.py` 규칙 정합성 — [`ops/OPERATIONAL_MEMO.md`](OPERATIONAL_MEMO.md) §1
+- [ ] `enrich_game_fps.py` → `pc_data.json` 갱신 정책 — 동 파일 §2
