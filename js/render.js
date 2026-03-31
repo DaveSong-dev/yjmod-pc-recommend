@@ -178,7 +178,8 @@ function renderProductCard(
                     hover:border-accent/40 hover:shadow-[0_0_30px_rgba(233,69,96,0.15)] transition-all duration-300
                     flex flex-col" data-id="${product.id}">
       <!-- 썸네일 -->
-      <div class="relative overflow-hidden h-52 bg-[#0d1117] flex-shrink-0 flex items-center justify-center">
+      <a href="${product.url}" target="_blank" rel="noopener noreferrer"
+         class="relative overflow-hidden h-52 bg-[#0d1117] flex-shrink-0 flex items-center justify-center block cursor-pointer">
         <img
           src="${product.thumbnail}"
           alt="${product.name}"
@@ -195,7 +196,7 @@ function renderProductCard(
         <!-- 케이스 색상 -->
         <span class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-white/20 ${product.case_color === '화이트' ? 'bg-white' : 'bg-gray-800'}"
               title="${product.case_color || ''} 케이스"></span>
-      </div>
+      </a>
 
       <!-- 콘텐츠 -->
       <div class="flex flex-col flex-1 p-5 gap-3">
@@ -210,7 +211,10 @@ function renderProductCard(
           </span>` : '')}
           ${gameSummary ? `
           <p class="text-[11px] font-semibold text-accent mb-1">${gameSummary.summaryText}</p>` : ''}
-          <h3 class="text-sm font-bold text-white leading-snug line-clamp-2">${product.name}</h3>
+          <h3 class="text-sm font-bold leading-snug line-clamp-2">
+            <a href="${product.url}" target="_blank" rel="noopener noreferrer"
+               class="text-white hover:text-accent transition-colors duration-200">${product.name}</a>
+          </h3>
           <p class="text-xs text-gray-400 mt-1">${product.subtitle || ''}</p>
           ${summaryReason ? `<p class="text-[11px] text-emerald-400/80 mt-1.5 leading-snug line-clamp-2">${summaryReason}</p>` : ''}
           ${renderRecReasonsBlock(recommendationReasons, { wizard: false })}
@@ -441,7 +445,8 @@ function renderWizardResultCard(
                     hover:border-accent/40 hover:shadow-[0_0_40px_rgba(233,69,96,0.2)] transition-all duration-300
                     flex flex-col" data-id="${product.id}">
       <!-- 상단 이미지 -->
-      <div class="relative overflow-hidden h-56 bg-[#0d1117] flex-shrink-0 flex items-center justify-center">
+      <a href="${product.url}" target="_blank" rel="noopener noreferrer"
+         class="relative overflow-hidden h-56 bg-[#0d1117] flex-shrink-0 flex items-center justify-center block cursor-pointer">
         <img
           src="${product.thumbnail}"
           alt="${product.name}"
@@ -462,7 +467,7 @@ function renderWizardResultCard(
         <span class="absolute bottom-3 left-3 px-2.5 py-1 rounded-lg text-xs font-bold border ${tier.cls}">
           ${tier.label}
         </span>
-      </div>
+      </a>
 
       <!-- 콘텐츠 -->
       <div class="flex flex-col flex-1 p-5 gap-4">
@@ -476,7 +481,10 @@ function renderWizardResultCard(
           </span>` : '')}
           ${gameSummary ? `
           <p class="text-xs font-semibold text-accent mb-1">${gameSummary.summaryText}</p>` : ''}
-          <h3 class="text-base font-bold text-white leading-snug">${product.name}</h3>
+          <h3 class="text-base font-bold leading-snug">
+            <a href="${product.url}" target="_blank" rel="noopener noreferrer"
+               class="text-white hover:text-accent transition-colors duration-200">${product.name}</a>
+          </h3>
           <p class="text-sm text-gray-400 mt-1">${product.subtitle || ''}</p>
           ${v2wSummary ? `<p class="text-xs text-emerald-400/80 mt-1.5 leading-snug line-clamp-2">${v2wSummary}</p>` : ''}
           ${gameHighlights.length ? `
