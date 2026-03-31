@@ -11,9 +11,6 @@
     "api/revive-product.js": {
       "maxDuration": 60
     },
-    "api/soldout-log.js": {
-      "maxDuration": 15
-    },
     "api/admin-auth.js": {
       "maxDuration": 10
     }

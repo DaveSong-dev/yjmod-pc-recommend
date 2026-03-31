@@ -261,9 +261,9 @@
         loadMsg.className = 'msg';
         tbody.innerHTML = '';
         try {
-          var r = await fetch('/api/soldout-log?t=' + Date.now(), { cache: 'no-store' });
+          var r = await fetch('/data/soldout_log.json?t=' + Date.now(), { cache: 'no-store' });
           if (!r.ok) {
-            loadMsg.textContent = '최신 품절 로그를 불러올 수 없습니다 (' + r.status + ').';
+            loadMsg.textContent = 'soldout_log.json을 불러올 수 없습니다 (' + r.status + ').';
             loadMsg.className = 'msg err';
             return;
           }
