@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-01T10:35:58.778520+09:00",
+  "last_updated": "2026-04-01T16:27:52.159487+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -14,7 +14,7 @@
       "id": "2",
       "title": "배송 받은 컴퓨터가 작동이 잘 안되신다구요?",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/52?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfNDgg/MDAxNzIxMTE4MTE3MjAz.N44ZlGR2E7hbdXRKktDEPhXbOhWvIJXWUWxA5Xr8ZGcg.j_Mb2LPau1R3vTDUKNkoiSsp20yZIR0DaYRnzNwP0-Eg.JPEG/20231120163026_38db3.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-04-01",
       "tags": []
     },
@@ -106,7 +106,7 @@
       "id": "13",
       "title": "[워크스테이션]이*훈님 (010-****-4746) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7059?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjAzMzBfMjk3/MDAxNzc0ODY0Mzg4ODkz.K3u_9ewfLM6rYFyd6Myl7Gj-mDpHFjZwC-FvsjdICKgg.YUU7ZLmp2Hv6qoo464m9-gqXjyFekeNBn5NPDCJwAH0g.JPEG/KakaoTalk_20260330_152515849_01.jpg?type=w1600",
       "date": "2026-04-01",
       "tags": [
         "워크스테이션"
