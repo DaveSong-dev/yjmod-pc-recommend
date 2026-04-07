@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-04-07T10:25:38.996277+09:00",
+  "last_updated": "2026-04-07T16:21:45.209534+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -88,7 +88,7 @@
       "id": "11",
       "title": "[조립컴퓨터]임*구님 (010-****-9545) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7087?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA0MDNfMjA3/MDAxNzc1MjEwMDg3MjEx.OhWcsKr-I8kQldzIZl-cn9TReHmfFkWWuCLmVgqpAFUg.9vijnD0KsZ_9O99wfxWMrEBCyXto3B7XhXeStVllGWQg.JPEG/KakaoTalk_20260403_150347215_01.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-04-07",
       "tags": []
     },
@@ -104,7 +104,7 @@
       "id": "13",
       "title": "[조립컴퓨터]그***타 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7085?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA0MDNfMjU4/MDAxNzc1MjEwMDM1MjUz.DPftdzvJ_jiDrKmhGCPvpcJ52OEq-ruCzUcaY9GsQLMg.-Pvxbku_RTGWvyU0EAwuubhBImjKKHlTQYx1R9fgLpEg.JPEG/KakaoTalk_20260403_184640375_01.jpg?type=w1600",
       "date": "2026-04-07",
       "tags": []
     },
