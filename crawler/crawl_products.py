@@ -106,6 +106,20 @@ CATEGORIES = [
     {"name": "오버워치2_레거시", "vi": "369", "idx": "11", "games": ["오버워치2"], "usage": ["게이밍"]},
     # 372/3: 사이트 푸터·메뉴 "방송·스트리밍" + 발로란트 노출 겹침 → 용도 병행
     {"name": "방송스트리밍_발로란트_372", "vi": "372", "idx": "3", "games": ["발로란트"], "usage": ["게이밍", "방송/스트리밍"]},
+    # ─── 영재컴퓨터 기획전 (ca_id_index=16) ─────────────────────
+    # vi=319: 기획전 부모, vi=412~414: 하위 기획전 섹션 3개
+    {"name": "기획전_메인",  "vi": "319", "idx": "16", "games": [], "usage": ["게이밍", "사무/디자인", "영상편집", "AI/딥러닝"]},
+    {"name": "기획전_섹션1", "vi": "412", "idx": "16", "games": [], "usage": ["게이밍", "사무/디자인", "영상편집", "AI/딥러닝"]},
+    {"name": "기획전_섹션2", "vi": "413", "idx": "16", "games": [], "usage": ["게이밍", "사무/디자인", "영상편집", "AI/딥러닝"]},
+    {"name": "기획전_섹션3", "vi": "414", "idx": "16", "games": [], "usage": ["게이밍", "사무/디자인", "영상편집", "AI/딥러닝"]},
+    # ─── 게임용PC 추가 ──────────────────────────────────────────
+    # vi=3: 게임용PC 부모 (FPS/RPG/최신AAA 묶음) — 개별 게임 카테고리에 없는 상품 커버
+    {"name": "게임용PC_부모", "vi": "3",   "idx": "2",  "games": [], "usage": ["게이밍"]},
+    # vi=415: 새로 발견된 게임 카테고리 (2026-04 신규 확인)
+    {"name": "게임용_신규",   "vi": "415", "idx": "2",  "games": [], "usage": ["게이밍"]},
+    # ─── 영상편집 추가 ──────────────────────────────────────────
+    # vi=411: 기존 408·409·410 외에 새로 발견된 영상편집 카테고리
+    {"name": "영상편집_신규", "vi": "411", "idx": "3",  "games": [], "usage": ["영상편집"]},
 ]
 
 # ─── Installment 페이지 (GET 요청, 할부 상품) ─────────────────
@@ -129,6 +143,10 @@ RECOMMEND_PAGES = [
 ]
 
 SHOP_BASE = f"{BASE_URL}/shop"
+# 카테고리 목록 본문은 list.php가 아니라 iframe POST 로 로드됨 (품절제외=stock 0, 품절포함=stock 1)
+LIST_CONTENT_INC = f"{SHOP_BASE}/list_content.inc.php"
+LIST_STOCK_EXCLUDE = "0"  # 체크박스 "품절제외" ON → 품절 상품 숨김
+LIST_STOCK_INCLUDE_SOLDOUT = "1"  # 품절제외 해제 (빈 stock 과 동일 동작)
 
 # 품절·가격보류 추적 (프로젝트 루트 data/)
 SOLDOUT_LOG_PATH = Path(__file__).resolve().parent.parent / "data" / "soldout_log.json"
@@ -197,11 +215,13 @@ def _thread_local_session():
     return s
 
 
-def _fetch_product_detail_worker(item_id, category):
+def _fetch_product_detail_worker(item_id, category, list_in_stock_hint=None):
     """스레드에서 상세 파싱. 예외 시 해당 상품만 스킵."""
     try:
         sess = _thread_local_session()
-        return item_id, parse_product_detail(item_id, category, sess)
+        return item_id, parse_product_detail(
+            item_id, category, sess, list_in_stock_hint=list_in_stock_hint
+        )
     except Exception as e:
         safe_print(f"    [ERROR] 상세 조회 예외 it_id={item_id}: {e}")
         return item_id, None
@@ -209,10 +229,19 @@ def _fetch_product_detail_worker(item_id, category):
 
 def run_parallel_detail_fetch(pairs, all_products, label=""):
     """
-    (item_id, category) 목록을 BATCH_SIZE 단위로 나눠 ThreadPoolExecutor로 처리.
+    (item_id, category) 또는 (item_id, category, list_in_stock_hint) 목록을 배치 처리.
+    list_in_stock_hint: 목록 API 힌트 True=판매 추정, False=품절 추정, None=없음.
     이미 all_products에 있는 id는 건너뜀.
     """
-    to_run = [(iid, cat) for iid, cat in pairs if iid not in all_products]
+    to_run = []
+    for p in pairs:
+        if len(p) == 2:
+            iid, cat = p
+            hint = None
+        else:
+            iid, cat, hint = p[0], p[1], p[2]
+        if iid not in all_products:
+            to_run.append((iid, cat, hint))
     if not to_run:
         return
 
@@ -228,8 +257,10 @@ def run_parallel_detail_fetch(pairs, all_products, label=""):
         for start in range(0, len(to_run), BATCH_SIZE):
             batch = to_run[start : start + BATCH_SIZE]
             future_to_id = {
-                executor.submit(_fetch_product_detail_worker, iid, cat): iid
-                for iid, cat in batch
+                executor.submit(
+                    _fetch_product_detail_worker, iid, cat, hint
+                ): iid
+                for iid, cat, hint in batch
             }
             for future in as_completed(future_to_id):
                 iid = future_to_id[future]
@@ -351,7 +382,7 @@ def collect_installment_item_ids(session):
 
 
 def collect_recommend_item_ids(session):
-    """Recommend 페이지(POST, stock=0)에서 상품 ID + 카테고리 수집"""
+    """Recommend 페이지 POST — stock 0·1 둘 다 조회해 품절 제외 목록에 없는 ID까지 수집"""
     results = {}
     safe_print(f"\n[Recommend] {len(RECOMMEND_PAGES)}개 페이지 수집 시작")
     for page in RECOMMEND_PAGES:
@@ -360,29 +391,199 @@ def collect_recommend_item_ids(session):
             f"?ca_id=h0&ca_id_vi={page['vi']}&ca_id_index={page['idx']}"
         )
         try:
-            resp = session.post(
-                url,
-                data={"ca_id": "h0", "stock": "0", "s_order": "best"},
-                timeout=15,
-            )
-            resp.encoding = "utf-8"
-            html = resp.text
-            ids = set(re.findall(r"go_item\(['\"](\d+)['\"]\)", html))
-            ids.update(re.findall(r"item\.php\?it_id=(\d+)", html))
-            ids.update(re.findall(r"/data/item/(\d+)_", html))
-            for item_id in ids:
+            merged = set()
+            for stock in (LIST_STOCK_EXCLUDE, LIST_STOCK_INCLUDE_SOLDOUT):
+                resp = session.post(
+                    url,
+                    data={"ca_id": "h0", "stock": stock, "s_order": "best"},
+                    timeout=15,
+                )
+                resp.encoding = "utf-8"
+                html = resp.text
+                merged.update(re.findall(r"go_item\(['\"](\d+)['\"]\)", html))
+                merged.update(re.findall(r"item\.php\?it_id=(\d+)", html))
+                merged.update(re.findall(r"/data/item/(\d+)_", html))
+            for item_id in merged:
                 if item_id not in results:
                     results[item_id] = {
                         "name": page["name"],
                         "games": page.get("games", []),
                         "usage": page.get("usage", []),
                     }
-            safe_print(f"  {page['name']}: {len(ids)}개")
+            safe_print(f"  {page['name']}: {len(merged)}개")
         except Exception as e:
             safe_print(f"  [ERROR] {page['name']}: {e}")
         time.sleep(1.0)
     safe_print(f"[Recommend] 총 {len(results)}개 고유 ID 수집")
     return results
+
+
+def is_soldout_list_cell(card_html):
+    """목록 행(nList_Cell) HTML에서 품절 표시 여부 (텍스트·클래스)."""
+    if not card_html:
+        return False
+    low = card_html.lower()
+    for text in ("품절", "일시품절", "sold out", "soldout", "재고없음", "재고 없음"):
+        if text.lower() in low or text in card_html:
+            return True
+    if re.search(r"class=[\"'][^\"']*sold[^\"']*out", card_html, re.I):
+        return True
+    if re.search(r"it_soldout|sold-out|item_soldout", card_html, re.I):
+        return True
+    return False
+
+
+def extract_product_ids_from_nlist_html(html):
+    """list_content HTML에서 상품 행(nList_Cell)마다 대표 it_id 1개씩 추출 (순서 유지)."""
+    if not html:
+        return []
+    parts = re.split(r"(?=<div id=\"nList_Cell\">)", html)
+    seen = set()
+    ordered = []
+    for part in parts:
+        if "nList_Cell" not in part[:80]:
+            continue
+        m = re.search(r"item\.php\?it_id=(\d+)", part)
+        if not m:
+            continue
+        iid = m.group(1)
+        if iid not in seen:
+            seen.add(iid)
+            ordered.append(iid)
+    return ordered
+
+
+def extract_list_cell_stock_flags(html):
+    """각 nList_Cell별 (it_id, 목록상 품절 추정) — 카드 내 품절 문구/클래스."""
+    out = {}
+    if not html:
+        return out
+    parts = re.split(r"(?=<div id=\"nList_Cell\">)", html)
+    for part in parts:
+        if "nList_Cell" not in part[:80]:
+            continue
+        m = re.search(r"item\.php\?it_id=(\d+)", part)
+        if not m:
+            continue
+        iid = m.group(1)
+        out[iid] = is_soldout_list_cell(part)
+    return out
+
+
+def category_list_url(category, page=1):
+    """list.php Referer URL (iframe 로드와 동일 쿼리)."""
+    if category.get("ca_id"):
+        q = f"ca_id={category['ca_id']}"
+    else:
+        q = f"ca_id=h0&ca_id_vi={category['vi']}&ca_id_index={category['idx']}"
+    u = f"{SHOP_BASE}/list.php?{q}"
+    if page > 1:
+        u += f"&page={page}"
+    return u
+
+
+def post_list_content(session, category, page, stock_val):
+    """
+    list_content.inc.php POST — 쇼핑몰 nList_submit 과 동일 필드.
+    stock: LIST_STOCK_EXCLUDE(0)=품절제외, LIST_STOCK_INCLUDE_SOLDOUT(1)=품절 포함
+    """
+    referer = category_list_url(category, page)
+    data = {
+        "ca_id": (category.get("ca_id") or "h0"),
+        "ca_id_vi": str(category.get("vi") or ""),
+        "ca_id_index": str(category.get("idx") or ""),
+        "page": str(page),
+        "stock": str(stock_val),
+        "s_order": "",
+        "limit": "",
+        "offset": "",
+        "it_maker_search": "",
+        "sfl": "",
+        "stx": "",
+        "search_option": "",
+    }
+    if category.get("ca_id"):
+        data["ca_id"] = category["ca_id"]
+    r = session.post(
+        LIST_CONTENT_INC,
+        data=data,
+        headers={**HEADERS, "Referer": referer},
+        timeout=20,
+    )
+    r.encoding = "utf-8"
+    return r.text
+
+
+def collect_category_item_ids_via_list_content(session, category):
+    """
+    카테고리별 list_content 이중 로드(stock 0 + 1)로 ID 합집합 및 재고 힌트.
+    힌트: stock=0 목록에 있으면 판매중 추정(True), stock=1 전용이면 품절 추정(False).
+    """
+    hints = {}
+    ordered_ids = []
+    seen = set()
+    try:
+        session.get(category_list_url(category, 1), timeout=15)
+    except Exception:
+        pass
+
+    no_new_streak = 0
+    for page in range(1, 21):
+        try:
+            html_ex = post_list_content(session, category, page, LIST_STOCK_EXCLUDE)
+            html_in = post_list_content(session, category, page, LIST_STOCK_INCLUDE_SOLDOUT)
+        except Exception as e:
+            safe_print(f"    [WARN] list_content 실패 page={page}: {e}")
+            no_new_streak += 1
+            if no_new_streak >= 2:
+                break
+            continue
+
+        ids_ex = set(extract_product_ids_from_nlist_html(html_ex))
+        ids_in = set(extract_product_ids_from_nlist_html(html_in))
+        cell_in = extract_list_cell_stock_flags(html_in)
+        cell_ex = extract_list_cell_stock_flags(html_ex)
+
+        if not ids_ex and not ids_in:
+            no_new_streak += 1
+            if no_new_streak >= 2:
+                break
+            time.sleep(0.3)
+            continue
+        no_new_streak = 0
+
+        for iid in ids_ex:
+            hints[iid] = True
+        for iid in ids_in - ids_ex:
+            hints[iid] = False
+        for iid, sold in cell_in.items():
+            if sold:
+                hints[iid] = False
+        for iid, sold in cell_ex.items():
+            if sold and iid in ids_ex:
+                hints[iid] = False
+
+        page_new = 0
+        for iid in extract_product_ids_from_nlist_html(html_in):
+            if iid not in seen:
+                seen.add(iid)
+                ordered_ids.append(iid)
+                page_new += 1
+        for iid in extract_product_ids_from_nlist_html(html_ex):
+            if iid not in seen:
+                seen.add(iid)
+                ordered_ids.append(iid)
+                page_new += 1
+
+        if len(ordered_ids) >= MAX_PRODUCTS_PER_CATEGORY:
+            break
+        if page_new == 0:
+            no_new_streak += 1
+            if no_new_streak >= 2:
+                break
+        time.sleep(0.35)
+
+    return ordered_ids[:MAX_PRODUCTS_PER_CATEGORY], hints
 
 
 # ─── Selenium 드라이버 ──────────────────────────────────────────
@@ -803,11 +1004,69 @@ def validate_price_against_gpu(name, cpu_full, gpu_full, price):
     return False, price
 
 
+def _soldout_stub_product(item_id, category, name, url, soup):
+    """상세 불완전·품절 확정 시 최소 레코드 (스펙·가격 없음)."""
+    page_text = soup.get_text() if soup else ""
+    tier = classify_tier("")
+    price_range = classify_price_range(0)
+    games = extract_game_tags(name or "", page_text[:2000], category["games"], page_text)
+    usage = classify_usage(name or "", category["usage"], tier)
+    game_fps = extract_game_fps_map(name or "", page_text)
+    thumbnail = f"https://admin.youngjaecomputer.com/data/item/{item_id}_m"
+    product = {
+        "id": item_id,
+        "name": (name or f"상품 {item_id}")[:80],
+        "subtitle": "",
+        "url": url,
+        "thumbnail": thumbnail,
+        "price": 0,
+        "price_monthly": 0,
+        "installment_months": 0,
+        "price_display": "품절",
+        "in_stock": False,
+        "specs": {
+            "cpu": "",
+            "cpu_short": "",
+            "gpu": "",
+            "gpu_short": "",
+            "gpu_key": "",
+            "ram": "",
+            "ssd": "",
+            "mainboard": "",
+            "power": "",
+            "case": "",
+            "cooler": "",
+        },
+        "categories": {
+            "games": games,
+            "tier": tier,
+            "price_range": price_range,
+            "usage": usage,
+        },
+        "game_fps": {
+            game: {
+                "fps": info["fps"],
+                "resolution": info["resolution"],
+                "label": info["label"],
+            }
+            for game, info in game_fps.items()
+        },
+        "game_fps_highlights": [info["highlight"] for info in game_fps.values()],
+        "case_color": "블랙",
+        "badge": "",
+        "badge_color": "gray",
+    }
+    safe_print(f"    [품절·stub] {product['name'][:50]}")
+    return product
+
+
 # ─── 상품 상세 파싱 ────────────────────────────────────────────
-def parse_product_detail(item_id, category, session):
+def parse_product_detail(item_id, category, session, list_in_stock_hint=None):
     url = f"{SHOP_BASE}/item.php?it_id={item_id}"
     soup = None
     final_url = url
+    resp = None
+    last_error = None
     for _ in range(2):
         try:
             resp = session.get(url, timeout=15)
@@ -825,13 +1084,13 @@ def parse_product_detail(item_id, category, session):
     # 리다이렉트로 다른 상품 페이지로 이동된 경우 → 품절로 간주
     if final_url != url and f"it_id={item_id}" not in final_url:
         print(f"    [품절] 리다이렉트 감지: {item_id} → {final_url[:80]}")
-        return None
+        return _soldout_stub_product(item_id, category, f"상품 {item_id}", url, soup)
 
     # 페이지에 요청한 item_id가 포함되어 있는지 검증 (다른 상품으로 대체되었는지)
     page_html = resp.text if resp else ""
     if item_id not in page_html:
         print(f"    [품절] 상품ID 불일치: {item_id}")
-        return None
+        return _soldout_stub_product(item_id, category, f"상품 {item_id}", url, soup)
 
     # ── 제목: <title> 태그 우선, h2 보조 ──
     name = ""
@@ -874,37 +1133,39 @@ def parse_product_detail(item_id, category, session):
             print(f"    [SKIP] PC 아님 (모니터/주변기기): {name[:40]}")
             return None
 
-    # ── 재고 판단 ──
+    # ── 재고 판단 (페이지 신호 → force_soldout, 상세 우선·구매 버튼 있으면 해제) ──
     page_text = soup.get_text()
+    force_soldout = False
 
     # 1) h2가 정확히 "품절"이면 품절
     h2 = soup.find("h2")
     if h2 and h2.get_text(strip=True) == "품절":
         print(f"    [품절] {name[:40]}")
-        return None
+        force_soldout = True
 
     # 2) 특정 품절 클래스 존재 시
     if soup.find(class_=re.compile(r"sold.?out|it_soldout", re.I)):
         print(f"    [품절] {name[:40]}")
-        return None
+        force_soldout = True
 
     # 3) "재고확인" 배너만 품절 처리 (공통 문구 "재고 확인 완료"는 제외)
-    # "재고확인" 뒤에 가격/숫자가 오는 경우(예: 재고확인 28-29만원)만 재고 미확정으로 간주
     if "재고확인" in page_text and re.search(r"재고확인\s*[\d~\-만원]", page_text):
         print(f"    [품절] 재고확인: {name[:40]}")
-        return None
+        force_soldout = True
 
-    # 4) 품절/재고없음 키워드가 본문에 있고, 구매 버튼이 없을 때만 품절 처리
-    # ("품절 알림", "재고 확인 완료" 등 다른 맥락은 구매 버튼으로 재고 상품 구분)
+    # 4) 품절/재고없음 키워드 + 구매 버튼 없음
     soldout_keywords = ["품절", "일시품절", "재고없음", "재고 없음", "sold out", "out of stock"]
     page_text_low = page_text.lower()
-    if any(kw in page_text_low for kw in [k.lower() for k in soldout_keywords]):
-        buy_btn = soup.find(string=re.compile(r"구매|바로구매|장바구니", re.I))
-        if not buy_btn:
-            print(f"    [품절] {name[:40]}")
-            return None
+    sold_kw = any(kw in page_text_low for kw in [k.lower() for k in soldout_keywords])
+    buy_btn_early = soup.find(string=re.compile(r"구매|바로구매|장바구니", re.I))
+    if sold_kw and not buy_btn_early:
+        print(f"    [품절] {name[:40]}")
+        force_soldout = True
 
-    # 5) 가격 없음은 아래 파싱 단계에서 SKIP 처리
+    if force_soldout and buy_btn_early:
+        force_soldout = False
+
+    # 5) 가격 없음은 아래 파싱 단계에서 SKIP 처리 (품절 강제 시 완화)
 
     # ── 스펙 파싱 (div 기반 → table 기반 순서로 시도) ──
     specs_raw = {}
@@ -960,6 +1221,8 @@ def parse_product_detail(item_id, category, session):
     board_full = specs_raw.get("메인보드", "")
 
     if not cpu_full or not gpu_full:
+        if force_soldout or list_in_stock_hint is False:
+            return _soldout_stub_product(item_id, category, name, url, soup)
         print(f"    [SKIP] CPU/GPU 정보 없음: {name[:40]}")
         return None
 
@@ -999,8 +1262,10 @@ def parse_product_detail(item_id, category, session):
             price = max(price, alt_total)
 
     if price < 100_000:
-        print(f"    [SKIP] 가격 파싱 실패: {name[:40]}")
-        return None
+        if not force_soldout:
+            print(f"    [SKIP] 가격 파싱 실패: {name[:40]}")
+            return None
+        price = 0
 
     MIN_PC_PRICE = 500_000
 
@@ -1027,7 +1292,7 @@ def parse_product_detail(item_id, category, session):
         price_monthly = 0
         safe_print(f"    [가격검증실패] GPU 대비 비현실적 가격 → price=0: {name[:40]}")
 
-    if not price_crawl_error:
+    if not price_crawl_error and not force_soldout:
         if price < MIN_PC_PRICE and installment_months == 0:
             print(f"    [SKIP] 가격 비정상({price:,}원 < {MIN_PC_PRICE:,}원): {name[:40]}")
             return None
@@ -1045,7 +1310,12 @@ def parse_product_detail(item_id, category, session):
     case_color = detect_case_color(case_full or name)
 
     # ── 썸네일 ──
-    thumbnail = f"https://admin.youngjaecomputer.com/data/item/{item_id}_m"
+    thumbnail_url = f"https://admin.youngjaecomputer.com/data/item/{item_id}_m"
+    try:
+        thumb_resp = session.head(thumbnail_url, timeout=5, allow_redirects=True)
+        thumbnail = thumbnail_url if thumb_resp.status_code == 200 else None
+    except Exception:
+        thumbnail = thumbnail_url  # 네트워크 오류 시 보수적으로 유지
 
     # ── 뱃지 ──
     badge = ""
@@ -1065,7 +1335,9 @@ def parse_product_detail(item_id, category, session):
     elif case_color == "화이트":
         badge, badge_color = "화이트 감성", "white"
 
-    if price_crawl_error:
+    if force_soldout:
+        price_display_str = "품절"
+    elif price_crawl_error:
         price_display_str = "가격 확인 필요"
     else:
         display_price = price_monthly if installment_months > 0 and price_monthly > 0 else price
@@ -1073,6 +1345,11 @@ def parse_product_detail(item_id, category, session):
             price_display_str = f"월 {format_price_display(display_price)}"
         else:
             price_display_str = format_price_display(display_price)
+
+    buy_btn = soup.find(string=re.compile(r"구매|바로구매|장바구니", re.I))
+    in_stock = not force_soldout and not price_crawl_error
+    if not force_soldout and list_in_stock_hint is False and not buy_btn:
+        in_stock = False
 
     product = {
         "id": item_id,
@@ -1084,7 +1361,7 @@ def parse_product_detail(item_id, category, session):
         "price_monthly": price_monthly,
         "installment_months": installment_months,
         "price_display": price_display_str,
-        "in_stock": not price_crawl_error,
+        "in_stock": in_stock,
         "specs": {
             "cpu": cpu_full[:50],
             "cpu_short": cpu_s,
@@ -1122,7 +1399,9 @@ def parse_product_detail(item_id, category, session):
     if price_event is not None:
         product["price_event"] = price_event
 
-    if price_crawl_error:
+    if force_soldout:
+        safe_print(f"    [품절·상세] {name[:50]} | {tier}")
+    elif price_crawl_error:
         safe_print(f"    [보류] {name[:50]} | 가격검증실패 | {tier}")
     else:
         safe_print(f"    [OK] {name[:50]} | {format_price_display(price)} | {tier}")
@@ -1130,66 +1409,63 @@ def parse_product_detail(item_id, category, session):
 
 
 # ─── 메인 ──────────────────────────────────────────────────────
-def main():
+def main(category_phase_limit=None):
     print("=" * 60)
     print("영재컴퓨터 제품 크롤러 v2 시작")
     print(f"시작 시간: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
 
     all_products = {}
-    driver = None
     session = requests.Session()
     session.headers.update(HEADERS)
 
-    try:
-        if SELENIUM_AVAILABLE:
-            print("[INFO] Selenium 드라이버 초기화...")
-            driver = create_driver()
+    dynamic_categories = discover_dynamic_categories(session)
+    merged_categories = []
+    seen_keys = set()
+    for cat in (CATEGORIES + dynamic_categories):
+        key = f"ca:{cat['ca_id']}" if cat.get("ca_id") else f"vi:{cat['vi']}:{cat['idx']}"
+        if key in seen_keys:
+            continue
+        seen_keys.add(key)
+        merged_categories.append(cat)
 
-        dynamic_categories = discover_dynamic_categories(session)
-        merged_categories = []
-        seen_keys = set()
-        for cat in (CATEGORIES + dynamic_categories):
-            key = f"ca:{cat['ca_id']}" if cat.get("ca_id") else f"vi:{cat['vi']}:{cat['idx']}"
-            if key in seen_keys:
-                continue
-            seen_keys.add(key)
-            merged_categories.append(cat)
-
-        print(f"[INFO] 고정 카테고리 {len(CATEGORIES)}개 + 동적 카테고리 {len(dynamic_categories)}개")
-
-        # 1단계: 메인페이지 상품
-        main_item_ids = collect_main_page_item_ids(session)
-        cat_main = {"name": "MAIN_PAGE", "games": [], "usage": []}
-        run_parallel_detail_fetch(
-            [(iid, cat_main) for iid in main_item_ids], all_products, "메인페이지"
+    if category_phase_limit is not None:
+        merged_categories = merged_categories[:category_phase_limit]
+        print(
+            f"[INFO] --category-phase-limit: 4단계 대상 카테고리 {len(merged_categories)}개로 제한"
         )
 
-        # 2단계: Installment 페이지
-        installment_ids = collect_installment_item_ids(session)
-        cat_inst = {"name": "INSTALLMENT", "games": [], "usage": []}
+    print(f"[INFO] 고정 카테고리 {len(CATEGORIES)}개 + 동적 카테고리 {len(dynamic_categories)}개")
+
+    # 1단계: 메인페이지 상품
+    main_item_ids = collect_main_page_item_ids(session)
+    cat_main = {"name": "MAIN_PAGE", "games": [], "usage": []}
+    run_parallel_detail_fetch(
+        [(iid, cat_main) for iid in main_item_ids], all_products, "메인페이지"
+    )
+
+    # 2단계: Installment 페이지
+    installment_ids = collect_installment_item_ids(session)
+    cat_inst = {"name": "INSTALLMENT", "games": [], "usage": []}
+    run_parallel_detail_fetch(
+        [(iid, cat_inst) for iid in installment_ids], all_products, "Installment"
+    )
+
+    # 3단계: Recommend 페이지
+    recommend_data = collect_recommend_item_ids(session)
+    run_parallel_detail_fetch(
+        list(recommend_data.items()), all_products, "Recommend"
+    )
+
+    # 4단계: 카테고리 — list_content.inc.php 이중 POST(stock 0+1)로 ID·재고 힌트
+    for cat in merged_categories:
+        ids, stock_hints = collect_category_item_ids_via_list_content(session, cat)
+        safe_print(f"  [{cat['name']}] {len(ids)}개 발견 (list_content)")
         run_parallel_detail_fetch(
-            [(iid, cat_inst) for iid in installment_ids], all_products, "Installment"
+            [(iid, cat, stock_hints.get(iid)) for iid in ids],
+            all_products,
+            cat["name"],
         )
-
-        # 3단계: Recommend 페이지
-        recommend_data = collect_recommend_item_ids(session)
-        run_parallel_detail_fetch(
-            list(recommend_data.items()), all_products, "Recommend"
-        )
-
-        # 4단계: 카테고리 Selenium 수집
-        if driver:
-            for cat in merged_categories:
-                ids = get_item_ids_from_category(driver, cat)
-                safe_print(f"  [{cat['name']}] {len(ids)}개 발견")
-                run_parallel_detail_fetch(
-                    [(iid, cat) for iid in ids], all_products, cat["name"]
-                )
-
-    finally:
-        if driver:
-            driver.quit()
 
     products_list = list(all_products.values())
     safe_print(f"\n총 {len(products_list)}개 제품 수집 완료")
@@ -1233,8 +1509,15 @@ if __name__ == "__main__":
         action="store_true",
         help="크롤링 없이 인자/임포트만 확인하고 종료",
     )
+    parser.add_argument(
+        "--category-phase-limit",
+        type=int,
+        default=None,
+        metavar="N",
+        help="4단계(카테고리 list_content)만 상위 N개 카테고리로 제한 (테스트용)",
+    )
     cli_args = parser.parse_args()
     if cli_args.dry_run:
-        print("[dry-run] OK (네트워크·Selenium 미실행)")
+        print("[dry-run] OK (네트워크 미실행)")
         sys.exit(0)
-    main()
+    main(category_phase_limit=cli_args.category_phase_limit)
