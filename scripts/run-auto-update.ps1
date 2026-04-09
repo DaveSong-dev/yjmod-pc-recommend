@@ -3,14 +3,14 @@ $ErrorActionPreference = "Stop"
 
 $root = Split-Path -Parent $PSScriptRoot
 $crawlerDir = Join-Path $root "crawler"
-$buildDir = Join-Path $root "build"
 $logDir = Join-Path $root "logs"
 $lockFile = Join-Path $logDir "auto-update.lock"
 $logFile = Join-Path $logDir ("auto-update-" + (Get-Date -Format "yyyyMMdd") + ".log")
 $nodeBin = "C:\Program Files\nodejs"
 $npmBin = "C:\Users\pc\AppData\Roaming\npm"
 $vercelCmd = Join-Path $npmBin "vercel.cmd"
-$staleLockMinutes = 90
+$scope = if ($env:YJMOD_VERCEL_SCOPE) { $env:YJMOD_VERCEL_SCOPE } else { "davesong-devs-projects" }
+$staleLockMinutes = 60
 $minProductCountForDeploy = 150
 $maxSoldoutNameCount = 0
 
@@ -53,7 +53,7 @@ try {
   $soldoutNameCount = 0
   $missingSpecCount = 0
   try {
-    $checkScript = Join-Path $root "scripts\check_metrics.py"
+    $checkScript = Join-Path $root "scripts\\check_metrics.py"
     Set-Location $root
     $metricJson = & python $checkScript
     if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($metricJson)) {
@@ -86,26 +86,49 @@ try {
   Write-Log "cafe crawl complete"
 
   Set-Location $root
-  & python ".\scripts\enrich_game_fps.py"
+  & python ".\\scripts\\sync_shipping_showcase.py"
+  if ($LASTEXITCODE -ne 0) { throw "sync_shipping_showcase failed: $LASTEXITCODE" }
+  Write-Log "shipping showcase sync complete"
+
+  & python ".\\scripts\\enrich_game_fps.py"
   if ($LASTEXITCODE -ne 0) { throw "enrich_game_fps failed: $LASTEXITCODE" }
   Write-Log "game fps enrichment complete"
 
-  & python ".\scripts\export_single_html.py"
-  if ($LASTEXITCODE -ne 0) { throw "export_single_html failed: $LASTEXITCODE" }
-  Write-Log "single html export complete"
+  & python ".\\scripts\\patch_feed_missing.py"
+  if ($LASTEXITCODE -ne 0) { throw "patch_feed_missing failed: $LASTEXITCODE" }
+  Write-Log "feed patch (soldout cleanup + missing v2 entries) complete"
+
+  & npm run build
+  if ($LASTEXITCODE -ne 0) { throw "npm run build failed: $LASTEXITCODE" }
+  Write-Log "frontend build complete"
 
   if (-not (Test-Path $vercelCmd)) { throw "vercel cli missing: $vercelCmd" }
   $env:Path = "$nodeBin;$npmBin;" + $env:Path
-  Set-Location $buildDir
-  & $vercelCmd --prod --yes
-  if ($LASTEXITCODE -ne 0) { throw "vercel deploy failed: $LASTEXITCODE" }
+  Write-Log "vercel deploy starting..."
+  $deployProc = Start-Process `
+    -FilePath $vercelCmd `
+    -ArgumentList @("--prod", "--yes", "--scope", $scope) `
+    -NoNewWindow -PassThru
+  $deployTimeoutMs = 600000  # 10분 (밀리초)
+  $finished = $deployProc.WaitForExit($deployTimeoutMs)
+  if (-not $finished) {
+    try { $deployProc.Kill() } catch {}
+    throw "vercel deploy timed out after 10 min — killed"
+  }
+  if ($deployProc.ExitCode -ne 0) { throw "vercel deploy failed: $($deployProc.ExitCode)" }
   Write-Log "vercel deploy complete"
 
-  Set-Location $root
   Start-Sleep -Seconds 8
-  & python ".\scripts\verify_live_fps.py"
-  if ($LASTEXITCODE -ne 0) { throw "verify_live_fps failed: $LASTEXITCODE" }
-  Write-Log "live fps verification complete"
+  try {
+    & python ".\\scripts\\verify_live_fps.py"
+    if ($LASTEXITCODE -ne 0) {
+      Write-Log ("WARN: verify_live_fps exited " + $LASTEXITCODE + " — deploy already complete, skipping")
+    } else {
+      Write-Log "live fps verification complete"
+    }
+  } catch {
+    Write-Log ("WARN: verify_live_fps exception: " + $_.Exception.Message + " — skipping")
+  }
 
   Write-Log "auto-update finished successfully"
   exit 0

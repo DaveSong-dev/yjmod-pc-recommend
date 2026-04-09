@@ -32,15 +32,6 @@ function normalizeUsageTag(tag) {
   return USAGE_TAG_NORMALIZE[tag] || tag;
 }
 
-const CONSULT_GROUP_LABELS = {
-  office_apu_consult: '사무/내장그래픽 상담',
-  bundle_consult: '반본체/부품 상담',
-  server_ws_consult: '서버/워크스테이션 상담',
-  consumer_consult: '맞춤 견적 상담',
-  manual_review: '수동 검토 필요',
-  manual_consult: '맞춤 상담'
-};
-
 /**
  * manifest → active version → feed.json + consult.json 로드
  * reco 아이템을 it_id 기준 Map으로 반환 (상품 객체를 만들지 않음)
@@ -177,26 +168,15 @@ export function enrichProduct(rawProduct, recoItem) {
 }
 
 /**
- * raw 상품 + consult reco 아이템 → 상담 유도 카드
- * 가격/URL/이름은 raw 기준
+ * consult.json 한 건을 feed 형태에 가깝게 보정해 enrichProduct에 넘길 때 사용.
+ * (별도 상담 섹션 없이 메인 그리드에 합류)
  */
-export function buildConsultProduct(rawProduct, consultItem) {
+export function consultItemToRecoOverlay(consultItem) {
+  if (!consultItem) return null;
   return {
-    id: rawProduct.id,
-    name: rawProduct.name,
-    subtitle: rawProduct.subtitle || `${consultItem.cpu_norm || ''} + ${consultItem.gpu_norm || ''}`.trim(),
-    url: rawProduct.url,
-    thumbnail: rawProduct.thumbnail,
-    price: rawProduct.price,
-    price_display: rawProduct.price_display,
-    in_stock: rawProduct.in_stock,
-    case_color: rawProduct.case_color || (COLOR_KR[consultItem.case_color] ?? null),
-    recommend_group: consultItem.recommend_group || '',
-    consult_label: CONSULT_GROUP_LABELS[consultItem.recommend_group] || '상담 필요',
-    exclude_reason: consultItem.exclude_reason || [],
-    summary_reason: consultItem.summary_reason || '',
-    selling_points: consultItem.selling_points || [],
-    display_badges: consultItem.display_badges || [],
-    consult_required: consultItem.consult_required !== false
+    ...consultItem,
+    frontend_rank_score: consultItem.frontend_rank_score ?? 0,
+    frontend_game_tags: consultItem.frontend_game_tags ?? [],
+    frontend_usage_tags: consultItem.frontend_usage_tags ?? []
   };
 }

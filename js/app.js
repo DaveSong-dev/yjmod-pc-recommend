@@ -8,47 +8,73 @@
  */
 
 import { fetchJson, observeScrollFade, debounce } from './utils.js';
+import { initDetailDrawer, openDetailDrawer } from './detail-drawer.js';
+import {
+  createFlowLogger,
+  debugCatalog,
+  debugDomUpdate,
+  debugEvent,
+  debugRender,
+  debugState,
+  getBuildId,
+  isDebugMode
+} from './debug.js';
+import { initFilterCompactBar, syncFilterCompactChips } from './filter-compact.js';
 import { filterState, filterProducts, resetFilters, isReasonableInstallmentPrice, isInStock } from './filter.js';
 import { renderProductGrid, renderGroupedView, buildLoadMoreSkeleton } from './render.js';
-import { loadRecoEnrichment, enrichProduct, buildConsultProduct } from './reco-loader.js';
+import { loadRecoEnrichment, enrichProduct, consultItemToRecoOverlay } from './reco-loader.js';
+import { loadCategoryMap, getCategoryCode } from './supabase-categories.js';
+import {
+  buildPriceBand,
+  serializeFilterState,
+  serializeWizardSelections,
+  trackEvent
+} from './analytics.js';
 
 const state = {
   products: [],
-  consultProducts: [],
   fpsData: null,
   wizard: null,
   lastUpdated: null,
   recoVersion: null,
   recoFeedMap: null,
   recoConsultMap: null,
-  currentView: 'main'
+  soldoutIds: new Set(),
+  currentView: 'main',
+  bootPromise: null,
+  shellBound: false,
+  dataUiBound: false,
+  catalogReady: false,
+  catalogError: null,
+  catalogLoadPromise: null,
+  updateTickersBound: false
 };
 
+const appLog = createFlowLogger('App');
+const CATALOG_READY_TIMEOUT_MS = 8000;
+
 /**
- * raw 상품 배열 + reco maps → 병합된 상품 + 상담 상품 분리
+ * raw 상품 배열 + reco maps → 병합 (feed 우선, 없으면 consult.json 오버레이로 메인 그리드에 포함)
  */
 function mergeRawWithReco(rawProducts, feedMap, consultMap) {
   const mainProducts = [];
-  const consultProducts = [];
 
   for (const raw of rawProducts) {
     const id = String(raw.id);
-
-    // consult 그룹에 해당하면 상담 섹션으로 분리
-    const consultItem = consultMap.get(id);
-    if (consultItem) {
-      consultProducts.push(buildConsultProduct(raw, consultItem));
-      continue;
-    }
-
-    // feed(consumer_general)에 있으면 enrichment 적용
     const feedItem = feedMap.get(id);
-    const enriched = enrichProduct(raw, feedItem || null);
+    const consultItem = consultMap.get(id);
+
+    let enriched;
+    if (feedItem) {
+      enriched = enrichProduct(raw, feedItem);
+    } else if (consultItem) {
+      enriched = enrichProduct(raw, consultItemToRecoOverlay(consultItem));
+    } else {
+      enriched = enrichProduct(raw, null);
+    }
     mainProducts.push(enriched);
   }
 
-  // 정렬: reco enrichment 있는 상품 → frontend_rank_score 내림차순
-  //        reco 없는 상품 → 원래 순서 유지 (뒤쪽 배치)
   mainProducts.sort((a, b) => {
     const sa = a.v2?.frontend_rank_score || 0;
     const sb = b.v2?.frontend_rank_score || 0;
@@ -56,73 +82,273 @@ function mergeRawWithReco(rawProducts, feedMap, consultMap) {
     return 0;
   });
 
-  return { mainProducts, consultProducts };
+  return mainProducts;
 }
 
-async function init() {
-  showLoading(true);
+function syncWizardCatalog() {
+  state.wizard?.setCatalog?.(state.products, state.fpsData);
+}
 
-  try {
-    // 1단계: raw crawl 데이터 로드 (source of truth)
-    const [pcData, fpsData] = await Promise.all([
-      fetchJson('./data/pc_data.json'),
-      fetchJson('./data/fps_reference.json')
-    ]);
+function renderCatalogLoadFailure(message = '상품 데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.') {
+  const container = document.getElementById('product-grid');
+  if (!container) return;
 
-    state.fpsData = fpsData;
+  container.innerHTML = `
+    <div class="col-span-full rounded-2xl border border-white/10 bg-card px-6 py-12 text-center">
+      <p class="text-sm font-semibold text-white">상품 목록을 준비하지 못했습니다.</p>
+      <p class="mt-2 text-sm text-gray-400">${message}</p>
+      <div class="mt-5 flex flex-wrap items-center justify-center gap-3">
+        <button
+          type="button"
+          data-open-wizard
+          data-source-section="catalog_failure_retry"
+          class="px-4 py-2 rounded-xl bg-accent hover:bg-red-500 text-white text-sm font-semibold transition-colors"
+        >
+          맞춤 추천 다시 시도
+        </button>
+        <a
+          href="#products-section"
+          class="px-4 py-2 rounded-xl border border-white/10 hover:border-white/20 text-sm text-gray-300 hover:text-white transition-colors"
+        >
+          전체 제품 보기
+        </a>
+      </div>
+    </div>
+  `;
+  container.classList.remove('opacity-0');
+  updateProductCount(0);
+}
 
-    if (!pcData?.products || pcData.products.length === 0) {
-      console.error('[App] raw crawl 데이터(pc_data.json) 비어 있음');
-      return;
-    }
+function bindAppShell() {
+  if (state.shellBound) return;
 
-    // 2단계: reco enrichment 로드 (overlay)
-    let feedMap = new Map();
-    let consultMap = new Map();
-    try {
-      const reco = await loadRecoEnrichment();
-      feedMap = reco.feedMap;
-      consultMap = reco.consultMap;
-      state.recoVersion = reco.version;
-    } catch (recoErr) {
-      console.error('[App] reco enrichment 로드 실패 (raw만 사용):', recoErr);
-    }
-
-    state.recoFeedMap = feedMap;
-    state.recoConsultMap = consultMap;
-
-    // 3단계: raw + reco merge
-    const rawFiltered = pcData.products.filter(p =>
-      isInStock(p) && isReasonableInstallmentPrice(p)
-    );
-    const { mainProducts, consultProducts } = mergeRawWithReco(rawFiltered, feedMap, consultMap);
-
-    state.products = mainProducts;
-    state.consultProducts = consultProducts;
-
-    if (pcData.last_updated) {
-      state.lastUpdated = pcData.last_updated;
-      updateLastUpdatedTime(pcData.last_updated);
-    }
-
-  } catch (err) {
-    console.error('[App] 데이터 로드 오류:', err);
-  } finally {
-    showLoading(false);
-  }
-
-  initProductGrid();
   initFilters();
+  initFilterCompactBar();
   initGroupMoreDelegation();
   initFlatLoadMoreDelegation();
   initWizard();
-  scheduleRecentShipping();
+  initAnalyticsDelegation();
   initSearch();
-  initScrollAnimations();
   initMobileMenu();
+
+  state.shellBound = true;
+  appLog('shell:bound');
+  debugRender('bindAppShell()', {
+    shellBound: state.shellBound
+  });
+}
+
+function bindDataUi() {
+  if (state.dataUiBound) {
+    renderView();
+    updateActiveFiltersDisplay();
+    requestAnimationFrame(() => observeScrollFade('.product-card'));
+    return;
+  }
+
+  initProductGrid();
+  updateActiveFiltersDisplay();
+  initScrollAnimations();
   initHeroStats();
   initUpdateTickers();
-  initConsultSection();
+  scheduleRecentShipping();
+  initDetailDrawerDelegation();
+
+  state.dataUiBound = true;
+  appLog('shell:data-bound', { productCount: state.products.length });
+}
+
+async function loadCatalogData({ force = false, source = 'init' } = {}) {
+  if (state.catalogReady && !force) return true;
+  if (state.catalogLoadPromise && !force) return state.catalogLoadPromise;
+
+  state.catalogLoadPromise = (async () => {
+    appLog('catalog:load:start', { force, source });
+
+    try {
+      const [pcData, fpsData] = await Promise.all([
+        fetchJson('./data/pc_data.json'),
+        fetchJson('./data/fps_reference.json')
+      ]);
+
+      if (!pcData?.products || pcData.products.length === 0) {
+        state.catalogReady = false;
+        state.catalogError = 'missing_pc_data';
+        console.error('[App] raw crawl 데이터(pc_data.json) 비어 있음');
+        return false;
+      }
+
+      state.fpsData = fpsData;
+
+      let feedMap = new Map();
+      let consultMap = new Map();
+      try {
+        const reco = await loadRecoEnrichment();
+        feedMap = reco.feedMap;
+        consultMap = reco.consultMap;
+        state.recoVersion = reco.version;
+      } catch (recoErr) {
+        appLog('catalog:reco-fallback', {
+          source,
+          reason: String(recoErr?.message || recoErr || 'unknown')
+        });
+      }
+
+      state.recoFeedMap = feedMap;
+      state.recoConsultMap = consultMap;
+
+      const soldoutIds = new Set();
+      try {
+        const soldoutLog = await fetchJson('./data/soldout_log.json');
+        for (const entry of soldoutLog?.soldout ?? []) {
+          if (entry.revived !== true) soldoutIds.add(String(entry.id));
+        }
+      } catch (error) {
+        appLog('catalog:soldout-fallback', {
+          source,
+          reason: String(error?.message || error || 'unknown')
+        });
+      }
+      state.soldoutIds = soldoutIds;
+
+      const rawFiltered = pcData.products.filter((product) =>
+        isInStock(product, soldoutIds) && isReasonableInstallmentPrice(product)
+      );
+
+      state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+
+      // Supabase product_codes 카테고리 로드 → 각 상품에 supaCat 첨부
+      try {
+        const catMap = await loadCategoryMap();
+        state.products.forEach(p => {
+          p.supaCat = getCategoryCode(p.id) || null;
+        });
+      } catch (catErr) {
+        appLog('catalog:category-fallback', { reason: String(catErr?.message || catErr) });
+      }
+
+      state.lastUpdated = pcData.last_updated || null;
+      state.catalogReady = state.products.length > 0;
+      state.catalogError = state.catalogReady ? null : 'empty_after_filter';
+
+      if (state.lastUpdated) {
+        updateLastUpdatedTime(state.lastUpdated);
+      }
+
+      syncWizardCatalog();
+      appLog('catalog:load:success', {
+        source,
+        productCount: state.products.length,
+        recoVersion: state.recoVersion || null
+      });
+      return state.catalogReady;
+    } catch (error) {
+      state.catalogReady = false;
+      state.catalogError = error;
+      console.error('[App] 데이터 로드 오류:', error);
+      appLog('catalog:load:error', {
+        source,
+        error: String(error?.message || error || 'unknown')
+      });
+      return false;
+    } finally {
+      if (!state.catalogReady) {
+        state.catalogLoadPromise = null;
+      }
+    }
+  })();
+
+  return state.catalogLoadPromise;
+}
+
+async function ensureCatalogReady(source = 'unknown') {
+  debugCatalog('start', {
+    source,
+    catalogReady: state.catalogReady,
+    hasPendingPromise: Boolean(state.catalogLoadPromise)
+  });
+
+  const ready = await Promise.race([
+    loadCatalogData({ source }),
+    new Promise(resolve => {
+      window.setTimeout(() => resolve('__timeout__'), CATALOG_READY_TIMEOUT_MS);
+    })
+  ]);
+
+  if (ready === '__timeout__') {
+    state.catalogError = 'catalog_timeout';
+    state.catalogLoadPromise = null;
+    appLog('catalog:load:timeout', {
+      source,
+      timeoutMs: CATALOG_READY_TIMEOUT_MS
+    });
+    debugCatalog('timeout', {
+      source,
+      timeoutMs: CATALOG_READY_TIMEOUT_MS
+    });
+    renderCatalogLoadFailure('상품 데이터를 불러오는 데 시간이 오래 걸리고 있습니다. 잠시 후 다시 시도해 주세요.');
+    return false;
+  }
+
+  if (!ready) {
+    debugCatalog('failed', {
+      source,
+      catalogError: String(state.catalogError?.message || state.catalogError || 'unknown')
+    });
+    renderCatalogLoadFailure();
+    return false;
+  }
+
+  bindDataUi();
+  debugCatalog('success', {
+    source,
+    productCount: state.products.length,
+    recoVersion: state.recoVersion || null
+  });
+  return true;
+}
+
+async function init() {
+  if (state.bootPromise) return state.bootPromise;
+
+  state.bootPromise = (async () => {
+    appLog('init:start', {
+      protocol: window.location.protocol,
+      readyState: document.readyState
+    });
+    if (isDebugMode()) {
+      console.log(`[BUILD] ${getBuildId()}`);
+    }
+    debugRender('init()', {
+      protocol: window.location.protocol,
+      readyState: document.readyState,
+      buildId: getBuildId()
+    });
+
+    bindAppShell();
+    showLoading(true);
+
+    const ready = await ensureCatalogReady('init');
+
+    showLoading(false);
+
+    if (!ready) {
+      appLog('init:catalog-unavailable');
+      return;
+    }
+
+    appLog('init:complete', {
+      productCount: state.products.length,
+      wizardReady: Boolean(state.wizard)
+    });
+    debugState({
+      catalogReady: state.catalogReady,
+      productCount: state.products.length,
+      wizardReady: Boolean(state.wizard)
+    });
+  })();
+
+  return state.bootPromise;
 }
 
 /** 위자드 모듈은 첫 클릭 시 로드 — 초기 파싱·다운로드 분리 */
@@ -134,7 +360,68 @@ function loadWizardModule() {
   return wizardModulePromise;
 }
 
+function getWizardPriceBand(selections) {
+  if (!selections?.budget) return null;
+  return buildPriceBand({
+    budget_under100: '100만 원 이하',
+    budget_100_200: '100~200만 원',
+    budget_200_300: '200~300만 원',
+    budget_over300: '300만 원 이상'
+  }[selections.budget]);
+}
+
+function getSelectionSnapshot(sourceSection = '') {
+  if (String(sourceSection).startsWith('wizard')) {
+    return {
+      selected_filters: serializeWizardSelections(state.wizard?.selections),
+      price_band: getWizardPriceBand(state.wizard?.selections)
+    };
+  }
+
+  return {
+    selected_filters: serializeFilterState(filterState),
+    price_band: buildPriceBand(filterState.priceRange)
+  };
+}
+
+function closeMobileMenu() {
+  const toggle = document.getElementById('mobile-menu-toggle');
+  const menu = document.getElementById('mobile-menu');
+  if (!toggle || !menu) return;
+  menu.classList.add('hidden');
+  toggle.setAttribute('aria-expanded', 'false');
+}
+
+function initAnalyticsDelegation() {
+  if (window.__yjmodAnalyticsDelegationBound) return;
+
+  document.addEventListener('click', (event) => {
+    const trackEl = event.target.closest('[data-track-click]');
+    if (!trackEl) return;
+
+    const eventName = `${trackEl.dataset.trackClick}_click`;
+    const sourceSection = trackEl.dataset.sourceSection || 'unknown';
+    const selectionSnapshot = getSelectionSnapshot(sourceSection);
+
+    trackEvent(eventName, {
+      source_section: sourceSection,
+      ...selectionSnapshot,
+      product_id: trackEl.dataset.productId || null,
+      product_name: trackEl.dataset.productName || null,
+      category: trackEl.dataset.category || null,
+      price_band: trackEl.dataset.priceBand || selectionSnapshot.price_band || null
+    });
+  });
+
+  window.__yjmodAnalyticsDelegationBound = true;
+}
+
 function scheduleRecentShipping() {
+  if (window.location?.protocol === 'file:') {
+    document.getElementById('recent-shipping-section')?.classList.add('hidden');
+    return;
+  }
+
   const run = () => {
     import('./recent-shipping.js')
       .then(m => m.initRecentShipping())
@@ -401,6 +688,7 @@ function updateActiveFiltersDisplay() {
   } else {
     indicator.classList.add('hidden');
   }
+  syncFilterCompactChips();
 }
 
 function initWizard() {
@@ -410,26 +698,89 @@ function initWizard() {
       if (!btn) return;
 
       e.preventDefault();
+      const game = btn.dataset.game || null;
+      const purpose = btn.dataset.purpose || null;
+      const sourceSection = btn.dataset.sourceSection || 'wizard_entry';
+
+      appLog('wizard:trigger', {
+        sourceSection,
+        purpose,
+        game,
+        catalogReady: state.catalogReady
+      });
+      debugEvent('wizard_open', {
+        sourceSection,
+        purpose,
+        game,
+        buildId: getBuildId()
+      });
+      debugState({
+        sourceSection,
+        purpose,
+        game,
+        catalogReady: state.catalogReady
+      });
+
+      showLoading(true);
+      const ready = await ensureCatalogReady(`wizard:${sourceSection}`);
+      showLoading(false);
+      if (!ready) return;
+
       const { Wizard } = await loadWizardModule();
       if (!state.wizard) {
         state.wizard = new Wizard('wizard-modal', state.products, state.fpsData);
+      } else {
+        syncWizardCatalog();
       }
-      const game = btn.dataset.game || null;
-      state.wizard.open(game ? { game } : {});
+      state.wizard.open({
+        ...(game ? { game } : {}),
+        ...(purpose ? { purpose } : {}),
+        sourceSection
+      });
+      debugDomUpdate({
+        modal_visible: !state.wizard.modal?.classList.contains('hidden'),
+        sourceSection
+      });
+      trackEvent('wizard_open', {
+        source_section: sourceSection,
+        selected_filters: serializeWizardSelections({
+          purpose: game ? 'gaming' : purpose,
+          game,
+          budget: null,
+          design: null
+        }),
+        price_band: null
+      });
+      closeMobileMenu();
     });
     window.__wizardOpenDelegationBound = true;
   }
 
-  document.getElementById('wizard-close')?.addEventListener('click', () => {
-    state.wizard?.close();
-  });
-
   document.getElementById('btn-wizard-retry')?.addEventListener('click', async () => {
+    debugEvent('retry_click', {
+      sourceSection: 'wizard_result'
+    });
+    showLoading(true);
+    const ready = await ensureCatalogReady('wizard:retry');
+    showLoading(false);
+    if (!ready) return;
+
     const { Wizard } = await loadWizardModule();
     if (!state.wizard) {
       state.wizard = new Wizard('wizard-modal', state.products, state.fpsData);
+    } else {
+      syncWizardCatalog();
     }
-    state.wizard.open();
+    trackEvent('retry_click', {
+      source_section: 'wizard_result',
+      selected_filters: serializeWizardSelections(state.wizard?.selections),
+      price_band: getWizardPriceBand(state.wizard?.selections)
+    });
+    state.wizard.open({ sourceSection: 'wizard_result_retry' });
+    debugDomUpdate({
+      modal_visible: !state.wizard.modal?.classList.contains('hidden'),
+      sourceSection: 'wizard_result_retry'
+    });
   });
 }
 
@@ -440,6 +791,7 @@ function initSearch() {
   const debouncedSearch = debounce((value) => {
     filterState.search = value.trim();
     refreshGrid();
+    updateActiveFiltersDisplay();
   }, 300);
 
   input.addEventListener('input', (e) => debouncedSearch(e.target.value));
@@ -448,6 +800,7 @@ function initSearch() {
     input.value = '';
     filterState.search = '';
     refreshGrid();
+    updateActiveFiltersDisplay();
     input.focus();
   });
 }
@@ -476,6 +829,27 @@ function initHeroStats() {
   if (statsEl) {
     setTimeout(() => animateCounter('hero-stat-products', state.products.length), 500);
   }
+  // 히어로 중앙 CTA 인라인 카운터 동기화
+  const statsEl2 = document.getElementById('hero-stat-products-2');
+  if (statsEl2) {
+    setTimeout(() => animateCounter('hero-stat-products-2', state.products.length), 500);
+  }
+}
+
+function initDetailDrawerDelegation() {
+  initDetailDrawer(state.fpsData);
+
+  if (!window.__detailDrawerBound) {
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('[data-open-detail]');
+      if (!btn) return;
+      e.preventDefault();
+      const productId = String(btn.dataset.openDetail);
+      const product = state.products.find(p => String(p.id) === productId);
+      if (product) openDetailDrawer(product);
+    });
+    window.__detailDrawerBound = true;
+  }
 }
 
 function initMobileMenu() {
@@ -497,53 +871,16 @@ function initMobileMenu() {
   document.addEventListener('click', (e) => {
     if (!toggle.contains(e.target) && !menu.contains(e.target)) {
       menu.classList.add('hidden');
+      toggle.setAttribute('aria-expanded', 'false');
     }
   });
-}
 
-function initConsultSection() {
-  const container = document.getElementById('consult-section-grid');
-  if (!container || state.consultProducts.length === 0) return;
-
-  const section = container.closest('.consult-section');
-  if (section) section.classList.remove('hidden');
-
-  const grouped = {};
-  for (const p of state.consultProducts) {
-    const g = p.consult_label || '상담 필요';
-    (grouped[g] = grouped[g] || []).push(p);
-  }
-
-  const KAKAO = 'https://pf.kakao.com/_sxmjxgT/chat';
-  let html = '';
-  for (const [label, items] of Object.entries(grouped)) {
-    const preview = items.slice(0, 3);
-    html += `
-      <div class="col-span-full mb-4">
-        <h4 class="text-sm font-bold text-gray-300 mb-3">${label} <span class="text-xs text-gray-600">${items.length}개</span></h4>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          ${preview.map(p => `
-          <div class="bg-surface border border-white/5 rounded-xl p-4 flex gap-3 items-start hover:border-accent/30 transition-colors">
-            <img src="${p.thumbnail}" alt="${String(p.name || '상담 대상 PC').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;')}" class="w-16 h-16 rounded-lg object-contain bg-[#0d1117] flex-shrink-0"
-                 loading="lazy" onerror="this.src='https://via.placeholder.com/100x100/16213e/e94560?text=PC'"/>
-            <div class="min-w-0 flex-1">
-              <p class="text-xs font-semibold text-white line-clamp-2">${p.name}</p>
-              <p class="text-[10px] text-gray-500 mt-1">${p.subtitle}</p>
-              ${p.price > 0 ? `<p class="text-[10px] text-accent font-bold mt-1">${p.price_display}</p>` : ''}
-              ${p.summary_reason ? `<p class="text-[10px] text-gray-400 mt-1 line-clamp-2">${p.summary_reason}</p>` : ''}
-              <div class="flex gap-2 mt-2">
-                <a href="${p.url}" target="_blank" rel="noopener noreferrer"
-                   class="text-[10px] text-accent hover:text-accent/80 font-semibold">상세보기</a>
-                <a href="${KAKAO}" target="_blank" rel="noopener noreferrer"
-                   class="text-[10px] text-[#FEE500] hover:text-[#FEE500]/80 font-semibold">상담하기</a>
-              </div>
-            </div>
-          </div>`).join('')}
-        </div>
-      </div>`;
-  }
-
-  container.innerHTML = html;
+  menu.addEventListener('click', (event) => {
+    const actionable = event.target.closest('a, button');
+    if (!actionable) return;
+    menu.classList.add('hidden');
+    toggle.setAttribute('aria-expanded', 'false');
+  });
 }
 
 function showLoading(show) {
@@ -573,6 +910,9 @@ function updateLastUpdatedTime(isoString) {
  * 6시간 주기 데이터 폴링 — raw 재로드 후 reco re-merge
  */
 function initUpdateTickers() {
+  if (state.updateTickersBound) return;
+  state.updateTickersBound = true;
+
   setInterval(() => {
     if (state.lastUpdated) updateLastUpdatedTime(state.lastUpdated);
   }, 60_000);
@@ -587,15 +927,13 @@ function initUpdateTickers() {
         state.lastUpdated = nextUpdated;
 
         const rawFiltered = pcData.products.filter(p =>
-          isInStock(p) && isReasonableInstallmentPrice(p)
+          isInStock(p, state.soldoutIds) && isReasonableInstallmentPrice(p)
         );
 
         const feedMap = state.recoFeedMap || new Map();
         const consultMap = state.recoConsultMap || new Map();
-        const { mainProducts, consultProducts } = mergeRawWithReco(rawFiltered, feedMap, consultMap);
-
-        state.products = mainProducts;
-        state.consultProducts = consultProducts;
+        state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+        syncWizardCatalog();
 
         updateLastUpdatedTime(nextUpdated);
         renderView();
@@ -605,6 +943,13 @@ function initUpdateTickers() {
       // 폴링 실패는 무시
     }
   }, 6 * 60 * 60_000);
+}
+
+function scrollToAnchorTarget(target) {
+  if (!target) return;
+  const headerHeight = document.getElementById('main-header')?.offsetHeight || 64;
+  const top = target.getBoundingClientRect().top + window.pageYOffset - headerHeight - 12;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
 }
 
 window.addEventListener('scroll', debounce(() => {
@@ -620,9 +965,19 @@ window.addEventListener('scroll', debounce(() => {
 document.addEventListener('click', (e) => {
   const anchor = e.target.closest('a[href^="#"]');
   if (!anchor) return;
-  e.preventDefault();
   const target = document.querySelector(anchor.getAttribute('href'));
-  target?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (!target) return;
+  e.preventDefault();
+  closeMobileMenu();
+  scrollToAnchorTarget(target);
 });
 
-document.addEventListener('DOMContentLoaded', init);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    void init();
+  }, { once: true });
+} else {
+  queueMicrotask(() => {
+    void init();
+  });
+}

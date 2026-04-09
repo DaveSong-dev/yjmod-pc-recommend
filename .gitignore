@@ -1,8 +1,7 @@
-# ─── Python ──────────────────────────────────────────────────
+# Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyc
 .Python
 env/
 venv/
@@ -10,34 +9,43 @@ venv/
 ENV/
 pip-log.txt
 
-# ─── 환경변수 (절대 커밋하지 말 것) ──────────────────────────
+# Environment and secrets
 .env
 .env.local
 .env.*.local
 secrets.json
 
-# ─── 크롤러 임시 파일 ─────────────────────────────────────────
+# Node / frontend
+node_modules/
+dist/
+.cache/
+.vercel/
+build/
+
+# Local tooling and scratch work
+.claude/
+.cursor/
+work/
+subagents/
+
+# Logs and temp files
+*.log
+logs/
+debug-schtasks-err.txt
 crawler/debug_*.html
 crawler/screenshot_*.png
-crawler/__pycache__/
+crawler/_snippet_out.txt
 
-# ─── OS 시스템 파일 ───────────────────────────────────────────
+# OS / editor
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# ─── 에디터 설정 ──────────────────────────────────────────────
 .idea/
 *.swp
 *.swo
 *~
 
-# ─── 로그 ─────────────────────────────────────────────────────
-*.log
-logs/
-debug-schtasks-err.txt
-
-# ─── Node (혹시 나중에 빌드 도구 추가 시) ──────────────────────
-node_modules/
-dist/
-.cache/
+# Local handoff / notes
+filter_dataset_improvement_for_cursor.md
+wizard_scroll_bug_fix_for_cursor.md
+youngjae_ai_reco_pack_v2.0.0/mobile-prototype/

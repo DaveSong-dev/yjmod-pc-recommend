@@ -1,4 +1,5 @@
 {
+  "outputDirectory": ".",
   "cleanUrls": true,
   "trailingSlash": false,
   "functions": {
@@ -11,11 +12,32 @@
     "api/revive-product.js": {
       "maxDuration": 60
     },
+    "api/track-event.js": {
+      "maxDuration": 10
+    },
     "api/admin-auth.js": {
       "maxDuration": 10
     }
   },
   "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/index.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        }
+      ]
+    },
     {
       "source": "/(.*)",
       "headers": [

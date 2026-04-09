@@ -3,58 +3,35 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="게임, 예산, 용도를 선택하면 AI가 최적의 조립PC를 추천해 드립니다. 정기 재고 확인 · 6시간마다 가격 갱신" />
-  <title>내 게임에 완벽한 PC 찾아드립니다 | YJMOD 영재컴퓨터</title>
+  <meta name="description" content="게이밍, 사무용, 영상편집, AI·로컬 LLM 용도를 선택하면 실재고 기준으로 맞춤 조립PC를 추천합니다. 6시간마다 재고와 가격을 갱신하고 상담까지 바로 연결됩니다." />
+  <title>게이밍 · 사무용 · 영상편집 · AI 맞춤 PC 추천 | YJMOD 영재컴퓨터</title>
   <link rel="canonical" href="https://ai.youngjaecomputer.com/" />
-  <meta property="og:title" content="내 게임에 완벽한 PC 찾아드립니다 | YJMOD 영재컴퓨터" />
-  <meta property="og:description" content="게임, 예산, 용도를 선택하면 AI가 최적의 조립PC를 추천해 드립니다. 실시간 재고 확인 · 6시간마다 가격 갱신" />
+  <meta property="og:title" content="게이밍 · 사무용 · 영상편집 · AI 맞춤 PC 추천 | YJMOD 영재컴퓨터" />
+  <meta property="og:description" content="게이밍, 사무용, 영상편집, AI·로컬 LLM 용도를 선택하면 실재고 기준으로 맞춤 조립PC를 추천합니다. 실시간 재고 확인 · 6시간마다 가격 갱신" />
   <meta property="og:image" content="https://admin.youngjaecomputer.com/data/item/2767750720_m" />
   <meta property="og:url" content="https://ai.youngjaecomputer.com/" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="YJMOD 영재컴퓨터" />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="내 게임에 완벽한 PC 찾아드립니다 | YJMOD 영재컴퓨터" />
-  <meta name="twitter:description" content="게임, 예산, 용도를 선택하면 AI가 최적의 조립PC를 추천해 드립니다. 실시간 재고 확인 · 6시간마다 가격 갱신" />
+  <meta name="twitter:title" content="게이밍 · 사무용 · 영상편집 · AI 맞춤 PC 추천 | YJMOD 영재컴퓨터" />
+  <meta name="twitter:description" content="게이밍, 사무용, 영상편집, AI·로컬 LLM 용도를 선택하면 실재고 기준으로 맞춤 조립PC를 추천합니다. 실시간 재고 확인 · 6시간마다 가격 갱신" />
   <meta name="twitter:image" content="https://admin.youngjaecomputer.com/data/item/2767750720_m" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <link rel="shortcut icon" href="./favicon.svg" />
-
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            'bg': '#0a0a0f',
-            'surface': '#111120',
-            'card': '#13131f',
-            'accent': '#e94560',
-            'accent-2': '#0f3460',
-          },
-          fontFamily: {
-            'sans': ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-          },
-          animation: {
-            'float': 'float 6s ease-in-out infinite',
-            'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
-          },
-          keyframes: {
-            'float': {
-              '0%, 100%': { transform: 'translateY(0px)' },
-              '50%': { transform: 'translateY(-12px)' },
-            },
-            'pulse-glow': {
-              '0%, 100%': { opacity: '1' },
-              '50%': { opacity: '0.6' },
-            }
-          }
-        }
-      }
-    }
+    (function () {
+      if (window.location.protocol !== 'file:') return;
+      const pathname = (window.location.pathname || '').replace(/\\/g, '/');
+      if (/\/yjmod-single\.html$/i.test(pathname)) return;
+      const target = /\/build\/index\.html$/i.test(pathname)
+        ? './yjmod-single.html'
+        : './build/yjmod-single.html';
+      const suffix = `${window.location.search || ''}${window.location.hash || ''}`;
+      window.location.replace(`${target}${suffix}`);
+    })();
   </script>
 
-  <!-- 커스텀 CSS -->
+  <link rel="stylesheet" href="./css/tailwind.generated.css" />
   <link rel="stylesheet" href="./css/style.css" />
   <link rel="preconnect" href="https://cdn.jsdelivr.net" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" />
@@ -100,8 +77,8 @@
 
       <!-- 데스크톱 네비 -->
       <nav class="hidden md:flex items-center gap-8 ml-4">
-        <a href="#products" class="nav-link whitespace-nowrap">전체 제품</a>
-        <a href="#cafe-section" class="nav-link whitespace-nowrap">출고 현황</a>
+        <a href="#products-section" class="nav-link whitespace-nowrap">전체 제품</a>
+        <a href="#cafe-section" class="nav-link whitespace-nowrap">구매 전 확인</a>
         <a href="https://www.youngjaecomputer.com" target="_blank" rel="noopener" class="nav-link whitespace-nowrap">
           공식 홈페이지
           <svg class="w-3 h-3 inline ml-0.5 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -115,6 +92,7 @@
         <button
           type="button"
           data-open-wizard
+          data-source-section="header_primary"
           class="hidden sm:flex items-center gap-2 px-4 py-2 bg-accent hover:bg-red-500
                  text-white text-sm font-bold rounded-xl transition-all duration-200 glow-btn">
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -137,232 +115,155 @@
 
     <!-- 모바일 메뉴 -->
     <div id="mobile-menu" class="hidden md:hidden bg-surface border-t border-white/5 py-4 px-4 space-y-1">
-      <a href="#products" class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">전체 제품</a>
-      <a href="#cafe-section" class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">출고 현황</a>
+      <a href="#products-section" class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">전체 제품</a>
+      <a href="#cafe-section" class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">구매 전 확인</a>
       <a href="https://www.youngjaecomputer.com" target="_blank" rel="noopener"
          class="block py-2.5 px-3 text-sm text-gray-300 hover:text-white hover:bg-white/5 rounded-lg transition-colors">공식 홈페이지</a>
-      <button type="button" data-open-wizard
+      <button type="button" data-open-wizard data-source-section="mobile_menu"
               class="w-full mt-2 py-3 bg-accent text-white text-sm font-bold rounded-xl">
         AI 추천 받기
       </button>
     </div>
   </header>
 
+  <!-- 스크롤 후 고정: 필터 요약 바 (큰 필터는 #filter-expanded-block) -->
+  <div id="filter-compact-bar"
+       class="filter-compact-bar"
+       role="region"
+       aria-label="필터 요약 및 빠른 작업"
+       aria-hidden="true"
+       hidden>
+    <div class="filter-compact-bar__inner max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center gap-2 py-1.5">
+      <button type="button"
+              id="filter-compact-open"
+              class="filter-compact-open-btn flex-shrink-0"
+              aria-controls="filter-expanded-block"
+              aria-describedby="filter-compact-live">
+        필터 열기
+      </button>
+      <div class="filter-compact-chips-outer flex-1 min-w-0 cursor-pointer"
+           role="button"
+           tabindex="0"
+           aria-label="전체 필터 영역으로 이동. 적용된 필터는 음성 안내로 확인할 수 있습니다."
+           data-filter-compact-scroll-target>
+        <div id="filter-compact-chips"
+             class="filter-compact-chips flex items-center gap-1.5 overflow-x-auto hide-scrollbar min-w-0 py-0.5"></div>
+      </div>
+      <button type="button"
+              id="btn-reset-filter-compact"
+              class="filter-compact-reset flex-shrink-0">
+        초기화
+      </button>
+    </div>
+    <div id="filter-compact-live" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  </div>
+
 
   <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- 히어로 섹션                                             -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <section class="hero-section flex items-center pt-16">
+  <!-- 히어로 섹션 — 풀스크린 중앙 CTA                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <section class="hero-section hero-section--centered flex items-center pt-16">
     <div class="hero-grid-pattern"></div>
-
-    <!-- 배경 오브 -->
     <div class="hero-orb hero-orb-1" aria-hidden="true"></div>
     <div class="hero-orb hero-orb-2" aria-hidden="true"></div>
 
-    <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28 w-full">
-      <div class="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">
+    <div class="relative z-10 w-full max-w-3xl mx-auto px-4 sm:px-6 py-20 md:py-28 flex flex-col items-center text-center">
 
-        <!-- 히어로 텍스트 -->
-        <div class="flex-1 text-center lg:text-left">
-
-          <!-- LCP: 히어로 대표 이미지 -->
-          <div class="mb-6 flex justify-center lg:justify-start">
-            <img
-              src="https://admin.youngjaecomputer.com/data/item/2767750720_m"
-              alt="YJMOD 영재컴퓨터 추천 조립PC 예시"
-              width="640"
-              height="360"
-              class="max-h-52 w-auto max-w-full rounded-2xl border border-white/10 object-cover shadow-2xl"
-              loading="eager"
-              fetchpriority="high"
-              decoding="async"
-            />
-          </div>
-
-          <!-- 라이브 배지 -->
-          <div class="inline-flex items-center gap-2 bg-surface border border-white/10 rounded-full px-4 py-1.5 mb-6">
-            <span class="pulse-dot"></span>
-            <span class="text-xs font-semibold text-gray-300">
-              정기 재고 확인 ·
-              <span id="last-updated-time" class="text-accent">최근</span> 업데이트
-            </span>
-          </div>
-
-          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-6">
-            <span class="text-white">내 게임에</span>
-            <br class="hidden sm:block" />
-            <span class="gradient-text">완벽한 PC</span>
-            <br />
-            <span class="text-white text-3xl sm:text-4xl lg:text-5xl font-extrabold">찾아드립니다</span>
-          </h1>
-
-          <p class="text-gray-400 text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto lg:mx-0">
-            게임, 예산, 디자인만 선택하면 영재컴퓨터의
-            <strong class="text-white font-semibold">최적 조립PC 견적</strong>을 바로 추천해 드립니다.
-            <br class="hidden sm:block" />
-            6시간마다 자동으로 재고와 가격을 갱신합니다.
-          </p>
-
-          <!-- CTA 버튼 -->
-          <div class="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
-            <button
-              type="button"
-              data-open-wizard
-              class="shimmer-btn px-7 py-4 bg-accent hover:bg-red-500 text-white font-bold text-base
-                     rounded-2xl transition-all duration-200 glow-btn flex items-center justify-center gap-2">
-              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
-              </svg>
-              AI가 추천하는 내 PC 찾기
-            </button>
-            <a href="#products"
-               class="px-7 py-4 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20
-                      text-white font-semibold text-base rounded-2xl transition-all duration-200
-                      flex items-center justify-center gap-2">
-              전체 제품 보기
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-              </svg>
-            </a>
-          </div>
-
-          <!-- 통계 -->
-          <div class="flex items-center gap-8 mt-10 justify-center lg:justify-start">
-            <div class="text-center">
-              <p class="stat-number text-2xl sm:text-3xl" id="hero-stat-products">0</p>
-              <p class="text-xs text-gray-500 mt-0.5">재고 보유 제품</p>
-            </div>
-            <div class="w-px h-10 bg-white/10"></div>
-            <div class="text-center">
-              <p class="stat-number text-2xl sm:text-3xl">6H</p>
-              <p class="text-xs text-gray-500 mt-0.5">크롤링 주기</p>
-            </div>
-            <div class="w-px h-10 bg-white/10"></div>
-            <div class="text-center">
-              <p class="stat-number text-2xl sm:text-3xl">100%</p>
-              <p class="text-xs text-gray-500 mt-0.5">재고 있는 제품만</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- 히어로 비주얼 카드 (데스크톱) -->
-        <div class="hidden lg:flex flex-col gap-4 flex-shrink-0 w-72 animate-float">
-          <!-- 예시 추천 카드 -->
-          <div class="bg-card border border-white/8 rounded-2xl p-4 shadow-2xl">
-            <div class="flex items-center gap-2 mb-3">
-              <div class="w-7 h-7 rounded-lg bg-accent/20 flex items-center justify-center">
-                <svg class="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-              </div>
-              <span class="text-xs font-bold text-accent">배틀그라운드 최적화</span>
-            </div>
-            <p class="text-sm font-bold text-white mb-1">R7 7800X3D + RTX 5070</p>
-            <p class="text-xs text-gray-500 mb-3">QHD 165Hz · 예상 144+ FPS</p>
-            <div class="flex items-center justify-between">
-              <span class="text-xl font-black text-white">198만 원</span>
-              <span class="px-2.5 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-lg border border-emerald-500/30">
-                인기
-              </span>
-            </div>
-          </div>
-
-          <div class="bg-card border border-accent/20 rounded-2xl p-3 shadow-xl">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-              </div>
-              <div>
-                <p class="text-xs font-semibold text-white">최근 재고 확인 완료</p>
-                <p class="text-xs text-gray-500">품절 상품 자동 제외</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
+      <!-- LCP 이미지 — 작게, 중앙 상단 -->
+      <div class="mb-6">
+        <img
+          src="https://admin.youngjaecomputer.com/data/item/2767750720_m"
+          alt="YJMOD 영재컴퓨터 추천 조립PC 예시"
+          width="320" height="180"
+          class="hero-thumb"
+          loading="eager" fetchpriority="high" decoding="async"
+        />
       </div>
+
+      <!-- 라이브 배지 -->
+      <div class="inline-flex items-center gap-2 bg-surface border border-white/10 rounded-full px-4 py-1.5 mb-6">
+        <span class="pulse-dot"></span>
+        <span class="text-xs font-semibold text-gray-300">
+          정기 재고 확인 ·
+          <span id="last-updated-time" class="text-accent">최근</span> 업데이트
+        </span>
+      </div>
+
+      <!-- 타이틀 -->
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black leading-tight mb-5">
+        <span class="text-white">용도 · 예산 · 게임 입력하면</span><br/>
+        <span class="gradient-text">딱 맞는 PC를</span><br/>
+        <span class="text-white text-3xl sm:text-4xl lg:text-5xl font-extrabold">바로 찾아드립니다</span>
+      </h1>
+
+      <p class="text-gray-400 text-base sm:text-lg leading-relaxed mb-8 max-w-xl">
+        <span id="hero-stat-products" class="text-white font-bold">0</span>개 실재고 중 내 조건에 딱 맞는 조립PC만 골라서 바로 추천해 드립니다.<br class="hidden sm:block"/>
+        6시간마다 가격·재고 갱신 · 상담부터 A/S까지 한 번에.
+      </p>
+
+      <!-- 메인 CTA — 크고 강하게 -->
+      <button
+        type="button"
+        data-open-wizard
+        data-source-section="hero_primary"
+        class="hero-cta-main shimmer-btn glow-btn flex items-center justify-center gap-3 mb-3">
+        <svg class="w-5 h-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+        </svg>
+        용도별 맞춤 PC 추천 받기
+      </button>
+      <p class="text-xs text-gray-500 mb-8">평균 40초 · 용도·예산·디자인 3가지만 선택</p>
+
+      <!-- 빠른 진입 — 용도 -->
+      <div class="w-full mb-2">
+        <p class="text-xs font-bold text-gray-500 uppercase tracking-widest mb-3">또는 바로 시작하기</p>
+        <div class="flex gap-2 flex-wrap justify-center mb-2">
+          <button type="button" data-open-wizard data-purpose="office"   data-source-section="hero_quick_office"  class="hero-quick-chip">💼 사무용</button>
+          <button type="button" data-open-wizard data-purpose="editing"  data-source-section="hero_quick_editing" class="hero-quick-chip">🎬 영상편집</button>
+          <button type="button" data-open-wizard data-purpose="ai"       data-source-section="hero_quick_ai"      class="hero-quick-chip">🤖 AI · 로컬 LLM</button>
+          <button type="button" data-open-wizard data-purpose="gaming"   data-source-section="hero_quick_gaming"  class="hero-quick-chip">🎮 게이밍</button>
+        </div>
+        <div class="flex gap-2 flex-wrap justify-center">
+          <button type="button" data-open-wizard data-game="리그오브레전드"  data-source-section="quick_game_lol"      class="hero-quick-chip hero-quick-chip--game">⚡ 리그오브레전드</button>
+          <button type="button" data-open-wizard data-game="배틀그라운드"   data-source-section="quick_game_pubg"     class="hero-quick-chip hero-quick-chip--game">🔫 배틀그라운드</button>
+          <button type="button" data-open-wizard data-game="로스트아크"    data-source-section="quick_game_loa"      class="hero-quick-chip hero-quick-chip--game">⚔️ 로스트아크</button>
+          <button type="button" data-open-wizard data-game="발로란트"      data-source-section="quick_game_valorant" class="hero-quick-chip hero-quick-chip--game">🎯 발로란트</button>
+          <button type="button" data-open-wizard data-game="오버워치2"     data-source-section="quick_game_ow2"      class="hero-quick-chip hero-quick-chip--game">🦸 오버워치2</button>
+        </div>
+      </div>
+
+      <!-- 신뢰 지표 -->
+      <div class="hero-trust-row">
+        <div class="hero-trust-item">
+          <span class="stat-number text-xl sm:text-2xl" id="hero-stat-products-2">421</span>
+          <span class="text-xs text-gray-500 mt-0.5">재고 보유 제품</span>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <div class="hero-trust-item">
+          <span class="stat-number text-xl sm:text-2xl">6H</span>
+          <span class="text-xs text-gray-500 mt-0.5">자동 갱신</span>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <div class="hero-trust-item">
+          <span class="stat-number text-xl sm:text-2xl">100%</span>
+          <span class="text-xs text-gray-500 mt-0.5">재고 있는 제품만</span>
+        </div>
+        <div class="w-px h-8 bg-white/10"></div>
+        <div class="hero-trust-item">
+          <span class="stat-number text-xl sm:text-2xl">1년</span>
+          <span class="text-xs text-gray-500 mt-0.5">무상 A/S</span>
+        </div>
+      </div>
+
     </div>
 
-    <!-- 히어로 하단 스크롤 힌트 -->
+    <!-- 스크롤 힌트 -->
     <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
       <svg class="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
       </svg>
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- 게임 퀵 선택 배너                                       -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <section class="py-8 bg-surface border-y border-white/5">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center gap-3 mb-4">
-        <span class="text-xs font-bold text-gray-500 uppercase tracking-widest">게임별 추천</span>
-        <div class="flex-1 h-px bg-white/5"></div>
-      </div>
-      <div class="flex gap-3 overflow-x-auto hide-scrollbar pb-1">
-        <!-- 게임 퀵 선택 버튼 -->
-        <button type="button" data-open-wizard data-game="리그오브레전드"
-                class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
-                       border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
-          <span class="text-lg">🎮</span>
-          <div class="text-left">
-            <p class="text-sm font-bold text-white leading-none">리그오브레전드</p>
-            <p class="text-xs text-gray-500 mt-0.5">롤 최적 견적</p>
-          </div>
-        </button>
-        <button type="button" data-open-wizard data-game="배틀그라운드"
-                class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
-                       border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
-          <span class="text-lg">🔫</span>
-          <div class="text-left">
-            <p class="text-sm font-bold text-white leading-none">배틀그라운드</p>
-            <p class="text-xs text-gray-500 mt-0.5">배그 최적 견적</p>
-          </div>
-        </button>
-        <button type="button" data-open-wizard data-game="로스트아크"
-                class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
-                       border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
-          <span class="text-lg">⚔️</span>
-          <div class="text-left">
-            <p class="text-sm font-bold text-white leading-none">로스트아크</p>
-            <p class="text-xs text-gray-500 mt-0.5">로아 최적 견적</p>
-          </div>
-        </button>
-        <button type="button" data-open-wizard data-game="스팀 AAA급 게임"
-                class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
-                       border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
-          <span class="text-lg">🎲</span>
-          <div class="text-left">
-            <p class="text-sm font-bold text-white leading-none">스팀 AAA 게임</p>
-            <p class="text-xs text-gray-500 mt-0.5">고사양 최적 견적</p>
-          </div>
-        </button>
-        <button type="button" data-open-wizard data-game="발로란트"
-                class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
-                       border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
-          <span class="text-lg">🎯</span>
-          <div class="text-left">
-            <p class="text-sm font-bold text-white leading-none">발로란트</p>
-            <p class="text-xs text-gray-500 mt-0.5">발로 최적 견적</p>
-          </div>
-        </button>
-        <button type="button" data-open-wizard data-game="오버워치2"
-                class="flex-shrink-0 flex items-center gap-2.5 px-4 py-2.5 bg-card hover:bg-white/5
-                       border border-white/8 hover:border-accent/30 rounded-xl transition-all duration-200">
-          <span class="text-lg">🦸</span>
-          <div class="text-left">
-            <p class="text-sm font-bold text-white leading-none">오버워치2</p>
-            <p class="text-xs text-gray-500 mt-0.5">오버워치 최적 견적</p>
-          </div>
-        </button>
-      </div>
     </div>
   </section>
 
@@ -376,7 +277,7 @@
         <div class="marquee-item">🏆 20년+ 조립 노하우</div>
         <div class="marquee-item">⚡ 6시간마다 자동 재고 갱신</div>
         <div class="marquee-item">🔧 1년 무상 A/S 보증</div>
-        <div class="marquee-item">🎮 게이밍 PC 전문</div>
+        <div class="marquee-item">🧠 AI · 게이밍 · 작업용 맞춤 추천</div>
         <div class="marquee-item">💳 24/36개월 무이자 할부</div>
         <div class="marquee-item">🤖 AI · 딥러닝 워크스테이션</div>
         <div class="marquee-item">📺 방송 · 스트리밍 PC</div>
@@ -389,7 +290,7 @@
         <div class="marquee-item">🏆 20년+ 조립 노하우</div>
         <div class="marquee-item">⚡ 6시간마다 자동 재고 갱신</div>
         <div class="marquee-item">🔧 1년 무상 A/S 보증</div>
-        <div class="marquee-item">🎮 게이밍 PC 전문</div>
+        <div class="marquee-item">🧠 AI · 게이밍 · 작업용 맞춤 추천</div>
         <div class="marquee-item">💳 24/36개월 무이자 할부</div>
         <div class="marquee-item">🤖 AI · 딥러닝 워크스테이션</div>
         <div class="marquee-item">📺 방송 · 스트리밍 PC</div>
@@ -406,16 +307,17 @@
   <!-- ═══════════════════════════════════════════════════════ -->
   <!-- 제품 목록 섹션                                          -->
   <!-- ═══════════════════════════════════════════════════════ -->
-  <section id="products-section" class="py-12 bg-bg">
+  <section id="products-section" class="pt-12 pb-16 bg-bg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
+      <div id="filter-expanded-block" class="filter-expanded-block">
       <!-- 섹션 헤더 -->
       <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <h2 class="section-title">전체 추천 PC</h2>
           <p class="text-sm text-gray-500 mt-1">
             <span id="product-count" class="text-accent font-bold">0개 제품</span>
-            · 품절 상품 자동 제외 · 정기 갱신
+            · 실재고 기준 노출 · 품절 자동 제외 · 부품 변경 상담 가능
           </p>
         </div>
 
@@ -437,6 +339,34 @@
             </svg>
           </button>
         </div>
+      </div>
+
+      <!-- 모바일 모드 토글 (모바일 전용) -->
+      <div id="mobile-mode-toggle" class="md:hidden">
+        <div class="mobile-mode-toggle-inner">
+          <button id="mode-btn-wizard" class="mobile-mode-btn" data-mode="wizard" data-open-wizard data-source-section="mobile_mode_toggle">🧙 맞춤 견적</button>
+          <button id="mode-btn-filter" class="mobile-mode-btn mobile-mode-btn--active" data-mode="filter">🔍 직접 필터</button>
+        </div>
+      </div>
+
+      <div class="conversion-proof-grid mb-8">
+        <a href="#recent-shipping-section" class="conversion-proof-card">
+          <span class="conversion-proof-card__eyebrow">실제 출고</span>
+          <strong>최근 출고 실사 확인</strong>
+          <p>추천만 하는 페이지가 아니라 실제 출고 사진이 쌓이는 조립 매장인지 바로 확인할 수 있습니다.</p>
+        </a>
+        <a href="#cafe-section" class="conversion-proof-card">
+          <span class="conversion-proof-card__eyebrow">후기 · 운영 기준</span>
+          <strong>구매 전 핵심 근거 빠르게 확인</strong>
+          <p>실제 후기, 상담 가능 여부, A/S와 할부 안내를 구매 결정 직전에 한 번에 확인하세요.</p>
+        </a>
+        <a href="https://pf.kakao.com/_sxmjxgT/chat" target="_blank" rel="noopener noreferrer"
+           data-track-click="consult" data-source-section="conversion_support"
+           class="conversion-proof-card conversion-proof-card--accent">
+          <span class="conversion-proof-card__eyebrow">오늘 상담 가능</span>
+          <strong>부품 변경까지 바로 상담</strong>
+          <p>예산에 맞춰 CPU, GPU, SSD, 케이스를 바꾸고 싶은 경우 카카오 상담으로 바로 연결됩니다.</p>
+        </a>
       </div>
 
       <!-- 필터 바 -->
@@ -544,6 +474,10 @@
           </div>
         </div>
       </div>
+      </div>
+
+      <!-- 큰 필터 블록이 뷰포트 상단을 지나면 compact 바 표시 (IO 대신 getBoundingClientRect 기준) -->
+      <div id="filter-scroll-sentinel" class="filter-scroll-sentinel h-px w-full overflow-hidden pointer-events-none" aria-hidden="true"></div>
 
       <!-- 로딩 스피너 -->
       <div id="loading-spinner" class="flex justify-center py-20">
@@ -555,23 +489,6 @@
            class="opacity-0 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
       </div>
 
-    </div>
-  </section>
-
-
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <!-- 상담 유도 섹션 (consult 그룹 상품)                       -->
-  <!-- ═══════════════════════════════════════════════════════ -->
-  <section class="consult-section hidden py-12 bg-surface border-t border-white/5">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-6">
-        <div class="flex items-center gap-2">
-          <span class="text-lg">💬</span>
-          <h2 class="text-lg font-bold text-white">상담이 필요한 상품</h2>
-        </div>
-        <p class="text-xs text-gray-500 mt-1">반본체, 내장그래픽, 서버/워크스테이션 등 맞춤 상담을 통해 최적의 견적을 받아보세요</p>
-      </div>
-      <div id="consult-section-grid" class="grid grid-cols-1 gap-4"></div>
     </div>
   </section>
 
@@ -590,20 +507,44 @@
           <h2 class="section-title">맞춤 추천 PC</h2>
           <p class="text-sm text-gray-500 mt-1" id="wizard-result-summary">나의 선택 기반 추천</p>
         </div>
-        <button id="btn-wizard-retry"
-                class="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10
-                       border border-white/10 hover:border-white/20 text-white text-sm font-semibold
-                       rounded-xl transition-all duration-200">
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-          </svg>
-          다시 추천 받기
-        </button>
+        <div class="flex flex-wrap items-center gap-2">
+          <!-- 카카오 견적 문의 버튼 (wizard.js showResults()에서 href·표시 처리) -->
+          <a id="btn-wizard-kakao-consult"
+             href="https://pf.kakao.com/_sxmjxgT/chat"
+             target="_blank" rel="noopener noreferrer"
+             data-track-click="consult" data-source-section="wizard_result_kakao"
+             class="hidden items-center gap-2 px-4 py-2.5
+                    bg-[#FEE500] hover:bg-[#FFD700] text-[#3A1D00] text-sm font-bold
+                    rounded-xl transition-all duration-200 shadow-sm">
+            <svg class="w-4 h-4 flex-shrink-0" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 3C6.477 3 2 6.477 2 10.5c0 2.613 1.538 4.917 3.875 6.3L4.5 21l4.688-2.344A10.9 10.9 0 0012 19c5.523 0 10-3.477 10-7.5S17.523 3 12 3z"/>
+            </svg>
+            이 견적 카카오로 문의
+          </a>
+          <button id="btn-wizard-retry"
+                  data-source-section="wizard_result"
+                  class="flex items-center gap-2 px-4 py-2.5 bg-white/5 hover:bg-white/10
+                         border border-white/10 hover:border-white/20 text-white text-sm font-semibold
+                         rounded-xl transition-all duration-200">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            다시 추천 받기
+          </button>
+        </div>
       </div>
 
       <!-- 결과 카드 그리드 -->
       <div id="wizard-result-container"
            class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      </div>
+
+      <div class="conversion-assurance-bar mt-8">
+        <span>오늘 상담 가능</span>
+        <span>부품 변경 상담 가능</span>
+        <span>1년 무상 A/S</span>
+        <span>24/36개월 가능</span>
+        <span>평일 주문 기준 순차 출고 안내</span>
       </div>
 
     </div>
@@ -621,9 +562,9 @@
             <span class="w-1.5 h-1.5 rounded-full bg-emerald-400/90"></span>
             <span class="text-xs font-bold text-emerald-400/90 uppercase tracking-widest">출고 현장</span>
           </div>
-          <h2 class="section-title">최근 출고 사진</h2>
+          <h2 class="section-title">실제 출고 실사</h2>
           <p class="text-sm text-gray-500 mt-1 leading-relaxed">
-            네이버 카페에 올라온 실제 출고 사례 중 일부입니다. 매일 쌓이는 현장 사진으로 조립·출고 실체를 확인해 보세요.
+            추천 결과가 실제 조립과 출고로 이어지는지 확인할 수 있도록, 최근 출고 사례를 바로 보여드립니다.
           </p>
         </div>
         <a id="recent-shipping-gallery-btn"
@@ -635,7 +576,7 @@
           <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
             <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
           </svg>
-          전체 출고 사진 보기
+          전체 출고 실사 보기
         </a>
       </div>
 
@@ -660,8 +601,8 @@
             <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">LIVE</span>
             <span class="text-xs text-gray-500">실시간 업데이트</span>
           </div>
-          <h2 class="section-title">실시간 출고 현황</h2>
-          <p class="text-sm text-gray-500 mt-1">영재컴퓨터에서 실제 출고되는 조립PC를 확인하세요</p>
+          <h2 class="section-title">구매 전 확인</h2>
+          <p class="text-sm text-gray-500 mt-1">실제 후기, 출고 증거, 상담 가능 여부를 구매 전에 한 번에 확인하세요.</p>
         </div>
         <a href="https://cafe.naver.com/f-e/cafes/31248285/menus/1?viewType=I&page=1&size=20" target="_blank" rel="noopener"
            class="flex-shrink-0 flex items-center gap-2 px-4 py-2.5 bg-[#03C75A]/10 hover:bg-[#03C75A]/20
@@ -670,7 +611,7 @@
           <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
             <path d="M16.273 12.845L7.376 0H0v24h7.727V11.155L16.624 24H24V0h-7.727z"/>
           </svg>
-          전체 출고 현황 보기
+          전체 구매 근거 보기
         </a>
       </div>
 
@@ -688,11 +629,11 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-white font-bold text-sm group-hover:text-accent transition-colors">실시간 출고 사진</h3>
-              <p class="text-gray-500 text-xs">조립 완료된 PC 실제 사진</p>
+              <h3 class="text-white font-bold text-sm group-hover:text-accent transition-colors">실제 출고 사진</h3>
+              <p class="text-gray-500 text-xs">조립 완료된 PC 실사</p>
             </div>
           </div>
-          <p class="text-gray-400 text-sm leading-relaxed">매일 출고되는 조립PC의 실제 사진을 확인할 수 있습니다. 케이스, 내부 배선, 완성된 모습까지 꼼꼼하게 촬영합니다.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">추천 이후 실제로 어떤 품질로 조립되고 출고되는지, 케이스와 내부 마감까지 눈으로 확인할 수 있습니다.</p>
           <div class="flex items-center gap-1 mt-4 text-xs text-accent/60 group-hover:text-accent transition-colors">
             <span>바로가기</span>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -712,11 +653,11 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-white font-bold text-sm group-hover:text-blue-400 transition-colors">실사용 후기</h3>
-              <p class="text-gray-500 text-xs">실제 구매자 리뷰</p>
+              <h3 class="text-white font-bold text-sm group-hover:text-blue-400 transition-colors">구매 후기</h3>
+              <p class="text-gray-500 text-xs">실사용 기준 리뷰</p>
             </div>
           </div>
-          <p class="text-gray-400 text-sm leading-relaxed">실제 구매하신 분들의 생생한 사용 후기를 확인하세요. 게임 성능, 발열, 소음 등 실사용 경험을 공유합니다.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">실제 구매자가 남긴 후기에서 성능, 소음, 만족도, 상담 경험까지 확인할 수 있습니다.</p>
           <div class="flex items-center gap-1 mt-4 text-xs text-blue-400/60 group-hover:text-blue-400 transition-colors">
             <span>바로가기</span>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -726,7 +667,8 @@
         </a>
 
         <!-- 카드 3: 1:1 맞춤상담 -->
-        <a href="https://pf.kakao.com/_sxmjxgT/chat" target="_blank" rel="noopener"
+        <a href="https://pf.kakao.com/_sxmjxgT/chat" target="_blank" rel="noopener noreferrer"
+           data-track-click="consult" data-source-section="purchase_proof_consult"
            class="group bg-card border border-white/5 rounded-2xl p-6 hover:border-emerald-400/30 transition-all duration-200">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
@@ -736,11 +678,11 @@
               </svg>
             </div>
             <div>
-              <h3 class="text-white font-bold text-sm group-hover:text-emerald-400 transition-colors">1:1 24시간 맞춤 상담</h3>
-              <p class="text-gray-500 text-xs">전문 상담사 견적 문의</p>
+              <h3 class="text-white font-bold text-sm group-hover:text-emerald-400 transition-colors">오늘 바로 맞춤 상담</h3>
+              <p class="text-gray-500 text-xs">부품 변경 · 예산 조정 상담</p>
             </div>
           </div>
-          <p class="text-gray-400 text-sm leading-relaxed">원하는 사양과 예산을 말씀하시면 전문 상담사가 최적의 견적을 제안해 드립니다. 전화/카카오톡 상담 가능합니다.</p>
+          <p class="text-gray-400 text-sm leading-relaxed">원하는 사양과 예산을 말씀하시면 전문 상담사가 바로 견적을 조정해 드립니다. 오늘 상담, 부품 변경, 출고 일정 안내까지 이어집니다.</p>
           <div class="flex items-center gap-1 mt-4 text-xs text-emerald-400/60 group-hover:text-emerald-400 transition-colors">
             <span>바로가기</span>
             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -760,8 +702,8 @@
   <section class="py-16 bg-surface border-t border-white/5">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="section-title mb-3">왜 영재컴퓨터인가</h2>
-        <p class="text-gray-400 max-w-xl mx-auto">20년 이상의 조립 노하우와 실시간 데이터로 최적의 PC를 추천합니다</p>
+        <h2 class="section-title mb-3">추천 이후까지 책임지는 운영 기준</h2>
+        <p class="text-gray-400 max-w-xl mx-auto">실재고 연동, 상담 대응, 출고 품질, A/S 안내까지 서비스 운영 기준을 투명하게 보여드립니다.</p>
       </div>
 
       <!-- Bento Grid -->
@@ -898,6 +840,8 @@
   <!-- 플로팅 카카오 상담 (링크 단일 출처) -->
   <a
     id="floating-kakao-consult"
+    data-track-click="consult"
+    data-source-section="floating_consult"
     class="floating-kakao-cta"
     href="https://pf.kakao.com/_sxmjxgT/chat"
     target="_blank"
@@ -929,7 +873,7 @@
           <h2 class="text-lg font-extrabold text-white">AI PC 추천 위자드</h2>
           <p class="text-xs text-gray-500 mt-0.5">4단계로 나만의 PC를 찾아보세요</p>
         </div>
-        <button id="wizard-close"
+        <button id="wizard-close" data-close-wizard
                 class="w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center
                        text-gray-400 hover:text-white transition-all">
           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -947,8 +891,9 @@
         <div class="step-indicator step-pending" data-step="3">3</div>
         <div class="step-connector" id="step-connector-3"></div>
         <div class="step-indicator step-pending" data-step="4">4</div>
-        <div class="ml-3 text-xs text-gray-500 min-w-[4rem]">
+        <div class="ml-3 text-xs text-gray-500 min-w-[5rem]">
           <span class="text-white font-semibold step-label">용도</span>
+          <span class="step-counter text-gray-500 text-xs"></span>
         </div>
       </div>
 
@@ -1048,6 +993,118 @@
   </script>
 
   <!-- 메인 앱 (ES Module) -->
-  <script type="module" src="./js/app.js"></script>
+  <script id="yjmod-app-loader">
+  (function () {
+    if (window.location.protocol === 'file:') return;
+    var script = document.createElement('script');
+    script.type = 'module';
+    var buildId = encodeURIComponent(window.__YJMOD_BUILD_ID__ || document.lastModified || 'dev');
+    script.src = './js/app.js?v=' + buildId;
+    document.currentScript.after(script);
+  })();
+  </script>
+
+  <!-- 모바일 모드 토글: 맞춤 견적 / 직접 필터 -->
+  <script>
+  (function () {
+    document.addEventListener('DOMContentLoaded', function () {
+      var btnWizard = document.getElementById('mode-btn-wizard');
+      var btnFilter = document.getElementById('mode-btn-filter');
+      if (!btnWizard || !btnFilter) return;
+
+      function setActive(mode) {
+        if (mode === 'wizard') {
+          btnWizard.classList.add('mobile-mode-btn--active');
+          btnFilter.classList.remove('mobile-mode-btn--active');
+        } else {
+          btnFilter.classList.add('mobile-mode-btn--active');
+          btnWizard.classList.remove('mobile-mode-btn--active');
+        }
+      }
+
+      btnWizard.addEventListener('click', function () {
+        setActive('wizard');
+      });
+
+      btnFilter.addEventListener('click', function () {
+        setActive('filter');
+        // 위자드 모달이 열려있으면 닫기
+        var modal = document.getElementById('wizard-modal');
+        if (modal && !modal.classList.contains('hidden')) {
+          var closeBtn = modal.querySelector('[data-close-wizard], .wizard-close, [aria-label*="닫기"]');
+          if (closeBtn) closeBtn.click();
+          else modal.classList.add('hidden');
+        }
+        // 필터 영역으로 스크롤
+        var exp = document.getElementById('filter-expanded-block');
+        if (exp) exp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      // 위자드 모달이 닫힐 때 필터 탭으로 되돌리기
+      var modal = document.getElementById('wizard-modal');
+      if (modal) {
+        var observer = new MutationObserver(function () {
+          if (modal.classList.contains('hidden')) setActive('filter');
+        });
+        observer.observe(modal, { attributes: true, attributeFilter: ['class'] });
+      }
+    });
+  })();
+  </script>
+
+  <!-- 모바일 링크 target 처리: 카카오/네이버/인스타 외 링크는 현재 탭으로 이동 -->
+  <script>
+  (function () {
+    const EXTERNAL_KEEP = ['kakao.com', 'naver.com', 'instagram.com', 'facebook.com', 'youtube.com', 'twitter.com'];
+
+    function isMobile() {
+      return window.innerWidth <= 768;
+    }
+
+    function processLinks(root) {
+      if (!isMobile()) return;
+      (root.querySelectorAll ? root : document).querySelectorAll('a[target="_blank"]').forEach(function (a) {
+        var isExternal = EXTERNAL_KEEP.some(function (d) { return a.href.indexOf(d) !== -1; });
+        if (!isExternal) a.removeAttribute('target');
+      });
+    }
+
+    // 정적 링크 처리
+    document.addEventListener('DOMContentLoaded', function () {
+      processLinks(document);
+
+      // 동적으로 추가되는 제품 카드 링크 처리 (MutationObserver)
+      var container = document.getElementById('product-grid') || document.body;
+      var observer = new MutationObserver(function (mutations) {
+        mutations.forEach(function (m) {
+          m.addedNodes.forEach(function (node) {
+            if (node.nodeType === 1) processLinks(node);
+          });
+        });
+      });
+      observer.observe(container, { childList: true, subtree: true });
+    });
+
+    // 리사이즈 후 재처리 (가로/세로 전환 등)
+    window.addEventListener('resize', function () { processLinks(document); }, { passive: true });
+  })();
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 상품 상세 드로어                                         -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- 백드롭 -->
+  <div id="detail-drawer-backdrop"
+       class="detail-backdrop hidden"
+       aria-hidden="true"></div>
+
+  <!-- 드로어 패널 -->
+  <aside id="detail-drawer"
+         class="detail-drawer"
+         role="dialog"
+         aria-modal="true"
+         aria-label="상품 상세">
+    <!-- JS로 내용이 채워집니다 -->
+  </aside>
 </body>
 </html>

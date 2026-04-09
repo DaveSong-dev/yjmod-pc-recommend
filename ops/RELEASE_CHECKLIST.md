@@ -1,34 +1,32 @@
-# 반영 확인 체크리스트 (필수)
+# Release Checklist
 
-배포/반영 작업 시 아래 순서를 반드시 지킨다.
+## 1. 배포 전
 
-## A. 머지/실행 전
-- [ ] PR이 `MERGED` 상태인지 확인
-- [ ] 대상 브랜치가 `master`인지 확인
-- [ ] 로컬 dirty 상태(`data/*.json`, `build/`)가 반영 판단에 영향을 주지 않는지 확인
+- [ ] `npm run build`
+- [ ] `npm run qa:all`
+- [ ] `git status`에서 생성물(`build/`)과 로컬 툴 디렉터리가 섞여 보이지 않는지 확인
+- [ ] 이번 변경이 프론트엔드인지, 데이터 갱신인지 경로가 명확한지 확인
 
-## B. 자동 갱신 실행
-- [ ] `gh workflow run "데이터 자동 갱신 (6시간 주기)" --ref master` 실행
-- [ ] run ID 기록
-- [ ] `gh run list`로 상태 추적 (`queued -> in_progress -> completed`)
+## 2. 프론트엔드 배포
 
-## C. 완료 판정(3중 확인)
-- [ ] Actions가 `completed/success`
-- [ ] `origin/master` 최신 커밋에 기대 변경 반영 확인
-- [ ] 라이브 URL 기능 검증:
-  - [ ] 정적 문자열(예: 단계 수, 옵션 문구) 확인
-  - [ ] 실제 기능 시나리오 1개 이상 확인
+- [ ] `powershell -ExecutionPolicy Bypass -File ".\scripts\deploy_vercel.ps1"`
+- [ ] 운영 URL이 `200` 응답인지 확인
+- [ ] 운영 URL에서 위자드 열기, 단계 이동, 결과 렌더, 상담 링크를 실제 클릭으로 확인
 
-## D. 라이브 미반영 시
-- [ ] `?v=<timestamp>` 캐시 우회 재확인
-- [ ] `build/app.bundle.js` 기대 문자열 확인
-- [ ] 필요 시 `scripts/deploy_vercel.ps1` 수동 배포
-- [ ] 배포 후 C 단계 재검증
+## 3. 데이터 갱신 배포
 
-## E. 사용자 안내 규칙
-- [ ] `in_progress` 단계에서는 "진행 중"으로만 안내
-- [ ] 3중 확인 완료 전 "반영 완료" 표현 금지
+- [ ] `powershell -ExecutionPolicy Bypass -File ".\scripts\run-auto-update.ps1"`
+- [ ] 크롤링 결과 최소 수량, 품절 명칭, 스펙 누락 게이트 통과 확인
+- [ ] 라이브 FPS 검증 통과 확인
 
-## F. 운영 메모 (상시 유지)
-- [ ] `getExpectedFps` 문구와 `verify_live_fps.py` 규칙 정합성 — [`ops/OPERATIONAL_MEMO.md`](OPERATIONAL_MEMO.md) §1
-- [ ] `enrich_game_fps.py` → `pc_data.json` 갱신 정책 — 동 파일 §2
+## 4. 캐시 / 빌드 일치
+
+- [ ] 운영 `index.html`이 `js/app.js?v=<build-id>` 형식으로 로드되는지 확인
+- [ ] 배포 직후 운영 브라우저에서 새 세션으로 열어 최신 UI와 JS가 함께 반영되는지 확인
+
+## 5. 역할 분리
+
+- [ ] 로컬 개발은 `npm run dev`
+- [ ] 운영 배포는 `deploy_vercel.ps1`
+- [ ] 데이터 갱신은 `run-auto-update.ps1`
+- [ ] 오프라인 파일은 `build/yjmod-single.html`

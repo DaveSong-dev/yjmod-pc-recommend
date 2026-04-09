@@ -4,8 +4,11 @@
  * tags 기반 매칭, normalizeProduct 레이어, GAME_ALIASES 지원
  */
 
+import { createFlowLogger, isDebugMode } from './debug.js';
 import { PRICE_RANGES } from './utils.js';
 import { buildRecommendationReasons, userSelectionsFromWizard } from './recommendation_reasons.js';
+
+const filterLog = createFlowLogger('Filter');
 
 /** 게임 정규명 ↔ 별칭 매핑 (입력/상품 태그 양방향 정규화) */
 const GAME_ALIASES = {
@@ -169,12 +172,16 @@ export const SOLD_OUT_PRODUCT_IDS = ['2741770843'];
  */
 const MIN_PC_PRICE = 500000;
 
-export function isInStock(product) {
+export function isInStock(product, soldoutIds = null) {
   if (!product) return false;
   if (product.price_crawl_error === true) return false;
   // raw in_stock이 source of truth (크롤러가 품절 이미 제외)
   if (product.in_stock !== true) return false;
   if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
+  // soldout_log.json 기반 추가 차단
+  if (soldoutIds && soldoutIds.has(String(product.id))) return false;
+  // 썸네일 없는 상품 차단 (크롤러에서 null로 세팅된 경우)
+  if (!product.thumbnail) return false;
   if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
   // v2 enrichment가 있으면 recommendable도 교차 확인
   if (product.v2 && product.v2.recommendable === false) return false;
@@ -289,8 +296,36 @@ function filterProducts(products, filters = filterState) {
       }
     }
 
-    // 용도 필터: tags.usage 기반
-    if (filters.usage && !tags.usage.has(filters.usage)) return false;
+    // 용도 필터: supaCat(Supabase 카테고리) 우선, 없으면 tags.usage 기반
+    if (filters.usage) {
+      const supaCat = product.supaCat || null;
+
+      if (filters.usage === '영상편집') {
+        // VY = 영상편집 전용 → 포함
+        // GY/OY = 게이밍/오피스 전용 → 제외
+        // HY/DY/null = supaCat 없으면 기존 텍스트 기반 fallback
+        if (supaCat === 'VY') {
+          // pass (명시적 영상편집)
+        } else if (supaCat === 'GY' || supaCat === 'OY') {
+          return false;
+        } else {
+          if (!tags.usage.has(filters.usage)) return false;
+        }
+      } else if (filters.usage === '게이밍') {
+        // GY/HY = 게이밍/하이엔드 → 포함
+        // VY/OY = 영상편집/오피스 전용 → 제외
+        if (supaCat === 'GY' || supaCat === 'HY') {
+          // pass (명시적 게이밍)
+        } else if (supaCat === 'VY' || supaCat === 'OY') {
+          return false;
+        } else {
+          if (!tags.usage.has(filters.usage)) return false;
+        }
+      } else {
+        // 다른 용도(사무/디자인, 방송 등)는 기존 로직 그대로
+        if (!tags.usage.has(filters.usage)) return false;
+      }
+    }
 
     // 할부 필터: longNoInterest(24/36) tags
     if (filters.installment === 'nointerest') {
@@ -303,11 +338,10 @@ function filterProducts(products, filters = filterState) {
     // 케이스 색상 필터: tags.design만 사용 (title contains 금지)
     if (filters.caseColor && tags.design !== filters.caseColor) return false;
 
-    // bestFor 필터: v2 best_for_tags 기반
-    if (filters.bestFor && product.v2?.best_for_tags) {
-      if (!product.v2.best_for_tags.some(t => t === filters.bestFor)) return false;
-    } else if (filters.bestFor && !product.v2) {
-      return false;
+    // bestFor 필터: 루트 레벨 best_for_tags 우선, 없으면 v2.best_for_tags fallback
+    if (filters.bestFor) {
+      const productTags = product.best_for_tags || product.v2?.best_for_tags || [];
+      if (!productTags.some(t => t === filters.bestFor)) return false;
     }
 
     // 검색어: title/specs + v2 태그/사유 contains 최후 fallback
@@ -401,25 +435,13 @@ function selectWithDiversity(withScore, limit = 6) {
   return selected;
 }
 
-/** debug=1 여부 (URL ?debug=1 또는 options.debug) */
-function isDebugMode(options = {}) {
-  if (options.debug === true) return true;
-  try {
-    if (typeof window !== 'undefined' && window.location?.search) {
-      return new URLSearchParams(window.location.search).get('debug') === '1';
-    }
-  } catch (_) {}
-  return false;
-}
-
 /**
  * 위자드 선택값으로 필터를 생성하여 제품 목록 반환
  * @param {Array} products - 전체 제품 배열
  * @param {Object} wizardSelections - { purpose, game, budget, design }
- * @param {Object} [options] - { debug: boolean }
- * @returns {{ recommended: Array, noResultsReason?: string, matchReasons?: Array<{ productId: string, reasons: string[] }> }}
+ * @returns {{ recommended: Array, noResultsReason?: string, recommendationReasonsById: Map }}
  */
-function getWizardRecommendations(products, wizardSelections, options = {}) {
+function getWizardRecommendations(products, wizardSelections) {
   const { purpose, game, budget, installment, design } = wizardSelections;
 
   if (!purpose) {
@@ -498,8 +520,8 @@ function getWizardRecommendations(products, wizardSelections, options = {}) {
   }
 
   const withScore = filtered.map(p => {
-    const { score, reasons } = calcRelevanceScoreWithReasons(p, wizardSelections, filters);
-    return { product: p, score, reasons: reasons || [] };
+    const { score } = calcRelevanceScoreWithReasons(p, wizardSelections, filters);
+    return { product: p, score };
   });
 
   withScore.sort((a, b) => b.score - a.score);
@@ -520,13 +542,6 @@ function getWizardRecommendations(products, wizardSelections, options = {}) {
   const result = { recommended, recommendationReasonsById };
   if (fallbackNotice) {
     result.fallbackNotice = fallbackNotice;
-  }
-
-  if (isDebugMode(options)) {
-    result.matchReasons = top.map(s => ({
-      productId: s.product.id,
-      reasons: s.reasons
-    }));
   }
 
   return result;

@@ -7,7 +7,18 @@
 
 import { getWizardRecommendations } from './filter.js';
 import { renderWizardResultCard } from './render.js';
+import {
+  createFlowLogger,
+  debugDomUpdate,
+  debugEvent,
+  debugRender,
+  debugResultCount,
+  debugState,
+  debugStep,
+  isDebugMode
+} from './debug.js';
 import { observeScrollFade } from './utils.js';
+import { buildPriceBand, serializeWizardSelections, trackEvent } from './analytics.js';
 
 const TOTAL_STEPS = 4;
 
@@ -102,6 +113,7 @@ class Wizard {
     this.modal = document.getElementById(modalId);
     this.products = products;
     this.fpsData = fpsData;
+    this.flowLog = createFlowLogger('Wizard');
     this.currentStep = 1;
     this.selections = {
       purpose: null,
@@ -111,20 +123,40 @@ class Wizard {
     };
     this.resultContainer = document.getElementById('wizard-result-container');
     this.resultSection = document.getElementById('wizard-result-section');
+    this._resultScrollTimers = [];
+    this._resultScrollRunId = 0;
+    this._stepAdvanceTimer = null;
+    this._isAdvancing = false;
 
     if (!this.modal) return;
     this.init();
   }
 
+  setCatalog(products = [], fpsData = null) {
+    this.products = Array.isArray(products) ? products : [];
+    this.fpsData = fpsData;
+    this.flowLog('catalog:update', {
+      productCount: this.products.length,
+      hasFpsData: Boolean(this.fpsData)
+    });
+  }
+
   init() {
+    this.flowLog('init', { productCount: this.products?.length || 0 });
     this.renderStep(1);
     this.bindModalClose();
+    this.modal.querySelector('[data-close-wizard]')?.addEventListener('click', () => this.close());
   }
 
   /**
-   * @param {{ game?: string }} options - game: 게임별 추천 버튼에서 선택한 게임이면 3단계(예산)부터 열림
+   * @param {{ game?: string, purpose?: string, sourceSection?: string }} options
+   * game: 게임별 추천 버튼에서 선택한 게임이면 3단계(예산)부터 열림
+   * purpose: 용도 프리셋이면 게이밍은 2단계부터, 비게이밍은 3단계부터 진입
    */
   open(options = {}) {
+    this.clearPendingResultScroll();
+    window.clearTimeout(this._stepAdvanceTimer);
+    this._isAdvancing = false;
     this.currentStep = 1;
     this.selections = {
       purpose: null,
@@ -132,18 +164,41 @@ class Wizard {
       budget: null,
       design: null
     };
+    this.entrySourceSection = options?.sourceSection || 'wizard_entry';
 
     const presetGame = options?.game && String(options.game).trim();
+    const presetPurpose = options?.purpose && String(options.purpose).trim();
     if (presetGame) {
       this.selections.purpose = 'gaming';
       this.selections.game = presetGame;
       this.currentStep = 3; // 예산 단계부터
+    } else if (presetPurpose) {
+      this.selections.purpose = presetPurpose;
+      this.currentStep = presetPurpose === 'gaming' ? 2 : 3;
     }
 
+    this.flowLog('open', {
+      sourceSection: this.entrySourceSection,
+      currentStep: this.currentStep,
+      selections: this.selections,
+      productCount: this.products?.length || 0
+    });
+    debugEvent('wizard_open', {
+      sourceSection: this.entrySourceSection,
+      currentStep: this.currentStep,
+      presetPurpose: this.selections.purpose,
+      presetGame: this.selections.game
+    });
+
+    this._savedScrollY = window.pageYOffset;
     this.renderStep(this.currentStep);
     this.modal.classList.remove('hidden');
     this.modal.classList.add('flex');
     document.body.style.overflow = 'hidden';
+    debugDomUpdate({
+      modal_visible: !this.modal.classList.contains('hidden'),
+      currentStep: this.currentStep
+    });
 
     requestAnimationFrame(() => {
       const panel = this.modal.querySelector('.wizard-panel');
@@ -155,6 +210,8 @@ class Wizard {
   }
 
   close() {
+    window.clearTimeout(this._stepAdvanceTimer);
+    this._isAdvancing = false;
     const panel = this.modal.querySelector('.wizard-panel');
     if (panel) {
       panel.classList.add('scale-95', 'opacity-0');
@@ -164,7 +221,12 @@ class Wizard {
       this.modal.classList.add('hidden');
       this.modal.classList.remove('flex');
       document.body.style.overflow = '';
+      debugDomUpdate({
+        modal_visible: !this.modal.classList.contains('hidden'),
+        currentStep: this.currentStep
+      });
     }, 200);
+    this.flowLog('close');
   }
 
   bindModalClose() {
@@ -181,6 +243,17 @@ class Wizard {
   renderStep(step) {
     const config = getStepConfig(step, this.selections);
     if (!config) return;
+    this.currentStep = step;
+    this.flowLog('step:render', {
+      step,
+      stepKey: config.stepKey,
+      selections: this.selections
+    });
+    debugRender(`renderStep(${step})`, {
+      stepKey: config.stepKey
+    });
+    debugStep(step);
+    debugState(this.selections);
 
     const panel = this.modal.querySelector('.wizard-panel') || this.modal;
     let content = panel.querySelector('.wizard-content');
@@ -205,6 +278,10 @@ class Wizard {
     const labelEl = panel.querySelector('.step-label');
     if (labelEl) labelEl.textContent = getStepLabel(step);
 
+    // 모바일 단계 카운터 "N/4 단계" 업데이트
+    const counterEl = panel.querySelector('.step-counter');
+    if (counterEl) counterEl.textContent = ` · ${step}/${TOTAL_STEPS} 단계`;
+
     const connectors = panel.querySelectorAll('.step-connector');
     connectors.forEach((conn, i) => {
       conn.classList.toggle('done', i + 1 < step);
@@ -215,12 +292,26 @@ class Wizard {
 
     // 용도/예산 필수, 나머지(게임·디자인) 건너뛰기 허용
     const showSkip = !config.required;
+    const selectedValue = this.selections[config.stepKey];
     const skipBtn = showSkip
       ? '<button id="wizard-skip" class="px-4 py-2 text-sm text-gray-500 hover:text-gray-300 transition-colors">건너뛰기</button>'
       : '<span></span>';
 
+    // 이전 단계 선택 내역 태그 생성
+    const _pL = { gaming: '🎮 게이밍', office: '💼 사무용', editing: '🎬 영상편집', '3d': '🎨 3D 모델링', ai: '🔬 생성형 AI', ai_study: '🧠 AI 공부용', local_llm: '🤖 로컬 LLM', streaming: '📺 방송·스트리밍' };
+    const _bL = { budget_under100: '💰 100만원 이하', budget_100_200: '💵 100~200만원', budget_200_300: '💎 200~300만원', budget_over300: '👑 300만원+' };
+    const _dL = { black: '🖤 블랙', white: '🤍 화이트', rgb: '🌈 RGB' };
+    const _prevTags = [];
+    if (step > 1 && this.selections.purpose) _prevTags.push(_pL[this.selections.purpose] || this.selections.purpose);
+    if (step > 2 && this.selections.game) _prevTags.push(`🎮 ${this.selections.game}`);
+    if (step > 3 && this.selections.budget) _prevTags.push(_bL[this.selections.budget] || this.selections.budget);
+    const prevTagsHtml = _prevTags.length
+      ? `<div class="flex flex-wrap gap-1.5 mb-3">${_prevTags.map(t => `<span class="wizard-prev-tag">${t}</span>`).join('')}</div>`
+      : '';
+
     content.innerHTML = `
-      <div class="mb-6">
+      <div class="mb-4">
+        ${prevTagsHtml}
         <h3 class="text-xl font-bold text-white">${config.title}</h3>
         <p class="text-sm text-gray-400 mt-1">${config.subtitle}</p>
       </div>
@@ -229,7 +320,7 @@ class Wizard {
         ${config.options.map(opt => `
           <button
             class="wizard-option group relative flex flex-col items-center gap-2 p-4 rounded-xl
-                   border border-white/10 bg-surface hover:border-accent/50 hover:bg-accent/5
+                   border ${selectedValue === opt.value ? 'border-accent bg-accent/10' : 'border-white/10 bg-surface'} hover:border-accent/50 hover:bg-accent/5
                    transition-all duration-200 text-center cursor-pointer"
             data-value="${opt.value}"
             data-step="${step}"
@@ -238,7 +329,7 @@ class Wizard {
             <span class="text-sm font-semibold text-white">${opt.label}</span>
             <span class="text-xs text-gray-500">${opt.desc}</span>
             <div class="wizard-check absolute top-2 right-2 w-5 h-5 rounded-full bg-accent
-                        flex items-center justify-center opacity-0 scale-0 transition-all duration-200">
+                        flex items-center justify-center ${selectedValue === opt.value ? 'opacity-100 scale-100' : 'opacity-0 scale-0'} transition-all duration-200">
               <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
               </svg>
@@ -260,17 +351,25 @@ class Wizard {
       content.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
       content.style.opacity = '1';
       content.style.transform = 'translateX(0)';
+      debugDomUpdate({
+        step,
+        stepKey: config.stepKey,
+        optionCount: config.options.length
+      });
     });
 
-    this.bindStepEvents(step, config);
+    this.bindStepEventsDelegated(step, config);
   }
 
   bindStepEvents(step, config) {
     const content = this.modal.querySelector('.wizard-content');
+    if (!content) return;
     const stepKey = config.stepKey;
 
     content.querySelectorAll('.wizard-option').forEach(btn => {
       btn.addEventListener('click', () => {
+        if (this._isAdvancing) return;
+
         content.querySelectorAll('.wizard-option').forEach(b => {
           b.classList.remove('border-accent', 'bg-accent/10');
           b.querySelector('.wizard-check')?.classList.add('opacity-0', 'scale-0');
@@ -281,14 +380,23 @@ class Wizard {
 
         const value = btn.dataset.value;
         this.selections[stepKey] = value;
+        this._isAdvancing = true;
+        window.clearTimeout(this._stepAdvanceTimer);
+        this.flowLog('step:select', {
+          step,
+          stepKey,
+          value,
+          selections: this.selections
+        });
 
-        setTimeout(() => {
+        this._stepAdvanceTimer = window.setTimeout(() => {
+          this._isAdvancing = false;
           if (step < TOTAL_STEPS) {
             let nextStep = step + 1;
             // 비게이밍: 1단계 후 2단계(게임) 생략 → 3단계(예산)로
             if (nextStep === 2 && this.selections.purpose !== 'gaming') nextStep = 3;
-            this.currentStep = nextStep;
-            this.renderStep(this.currentStep);
+            this.flowLog('step:advance', { from: step, to: nextStep });
+            this.renderStep(nextStep);
           } else {
             this.showResults();
           }
@@ -297,21 +405,23 @@ class Wizard {
     });
 
     document.getElementById('wizard-prev')?.addEventListener('click', () => {
+      if (this._isAdvancing) return;
       let prevStep = step - 1;
       // 3단계에서 이전: 게이밍이면 2단계, 비게이밍이면 1단계
       if (prevStep === 2 && this.selections.purpose !== 'gaming') prevStep = 1;
-      this.currentStep = prevStep;
-      this.renderStep(this.currentStep);
+      this.flowLog('step:back', { from: step, to: prevStep });
+      this.renderStep(prevStep);
     });
 
     const skipBtn = document.getElementById('wizard-skip');
     if (skipBtn) {
       skipBtn.addEventListener('click', () => {
+        if (this._isAdvancing) return;
         if (step < TOTAL_STEPS) {
           let nextStep = step + 1;
           if (nextStep === 2 && this.selections.purpose !== 'gaming') nextStep = 3;
-          this.currentStep = nextStep;
-          this.renderStep(this.currentStep);
+          this.flowLog('step:skip', { from: step, to: nextStep });
+          this.renderStep(nextStep);
         } else {
           this.showResults();
         }
@@ -319,11 +429,198 @@ class Wizard {
     }
   }
 
+  bindStepEventsDelegated(step, config) {
+    const content = this.modal.querySelector('.wizard-content');
+    if (!content) return;
+
+    const stepKey = config.stepKey;
+    const allowedValues = new Set(config.options.map(option => String(option.value)));
+
+    content.onclick = (event) => {
+      const prevBtn = event.target.closest('#wizard-prev');
+      if (prevBtn) {
+        debugEvent('wizard_prev_click', { step });
+        if (this._isAdvancing) {
+          debugEvent('wizard_prev_blocked', {
+            step,
+            reason: 'is_advancing'
+          });
+          return;
+        }
+        let prevStep = step - 1;
+        if (prevStep === 2 && this.selections.purpose !== 'gaming') prevStep = 1;
+        this.flowLog('step:back', { from: step, to: prevStep });
+        this.renderStep(prevStep);
+        return;
+      }
+
+      const skipBtn = event.target.closest('#wizard-skip');
+      if (skipBtn) {
+        debugEvent('wizard_skip_click', { step });
+        if (this._isAdvancing) {
+          debugEvent('wizard_skip_blocked', {
+            step,
+            reason: 'is_advancing'
+          });
+          return;
+        }
+        if (step < TOTAL_STEPS) {
+          let nextStep = step + 1;
+          if (nextStep === 2 && this.selections.purpose !== 'gaming') nextStep = 3;
+          this.flowLog('step:skip', { from: step, to: nextStep });
+          this.renderStep(nextStep);
+        } else {
+          this.showResults();
+        }
+        return;
+      }
+
+      const btn = event.target.closest('.wizard-option');
+      if (!btn || !content.contains(btn)) return;
+
+      const value = String(btn.dataset.value || '');
+      debugEvent('wizard_option_click', {
+        step,
+        stepKey,
+        value
+      });
+
+      if (this._isAdvancing) {
+        debugEvent('wizard_option_blocked', {
+          step,
+          stepKey,
+          value,
+          reason: 'is_advancing'
+        });
+        return;
+      }
+
+      if (!allowedValues.has(value)) {
+        debugEvent('wizard_option_invalid', {
+          step,
+          stepKey,
+          value,
+          allowedValues: Array.from(allowedValues)
+        });
+        return;
+      }
+
+      content.querySelectorAll('.wizard-option').forEach(optionBtn => {
+        optionBtn.classList.remove('border-accent', 'bg-accent/10');
+        optionBtn.querySelector('.wizard-check')?.classList.add('opacity-0', 'scale-0');
+      });
+      btn.classList.add('border-accent', 'bg-accent/10');
+      btn.querySelector('.wizard-check')?.classList.remove('opacity-0', 'scale-0');
+
+      this.selections[stepKey] = value;
+      this._isAdvancing = true;
+      window.clearTimeout(this._stepAdvanceTimer);
+      this.flowLog('step:select', {
+        step,
+        stepKey,
+        value,
+        selections: this.selections
+      });
+      debugStep(step);
+      debugState(this.selections);
+
+      this._stepAdvanceTimer = window.setTimeout(() => {
+        this._isAdvancing = false;
+        if (step < TOTAL_STEPS) {
+          let nextStep = step + 1;
+          if (nextStep === 2 && this.selections.purpose !== 'gaming') nextStep = 3;
+          this.flowLog('step:advance', { from: step, to: nextStep });
+          this.renderStep(nextStep);
+        } else {
+          this.showResults();
+        }
+      }, 350);
+    };
+  }
+
+  clearPendingResultScroll() {
+    this._resultScrollRunId += 1;
+    this._resultScrollTimers.forEach(timerId => window.clearTimeout(timerId));
+    this._resultScrollTimers = [];
+  }
+
+  runAfterLayout(callback) {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(callback);
+    });
+  }
+
+  getResultScrollTop() {
+    if (!this.resultSection) return 0;
+    const fallbackScrollY = this._savedScrollY || 0;
+    const scrollY = window.pageYOffset || window.scrollY || fallbackScrollY;
+    return Math.max(0, this.resultSection.getBoundingClientRect().top + scrollY - 8);
+  }
+
+  scrollResultsIntoView() {
+    if (!this.resultSection) return;
+
+    this.clearPendingResultScroll();
+    const runId = this._resultScrollRunId;
+    const isMobile = window.matchMedia('(max-width: 640px)').matches;
+    const settleThreshold = 24;
+    const maxAttempts = 6;
+    const firstDelay = 400;
+    const retryDelay = isMobile ? 450 : 500;
+
+    const attemptScroll = (attemptIndex) => {
+      if (runId !== this._resultScrollRunId || !this.resultSection) return;
+
+      this.runAfterLayout(() => {
+        if (runId !== this._resultScrollRunId || !this.resultSection) return;
+
+        const currentTop = this.resultSection.getBoundingClientRect().top;
+        if (Math.abs(currentTop - 8) > settleThreshold) {
+          const targetTop = this.getResultScrollTop();
+          const behavior = !isMobile && attemptIndex === 0 ? 'smooth' : 'auto';
+          const previousInlineBehavior = document.documentElement.style.scrollBehavior;
+
+          if (behavior === 'auto') {
+            document.documentElement.style.scrollBehavior = 'auto';
+          }
+
+          window.scrollTo({ top: targetTop, behavior });
+
+          if (behavior === 'auto') {
+            requestAnimationFrame(() => {
+              if (runId === this._resultScrollRunId) {
+                document.documentElement.style.scrollBehavior = previousInlineBehavior;
+              }
+            });
+          }
+        }
+
+        observeScrollFade('.wizard-result-card');
+
+        if (attemptIndex + 1 < maxAttempts) {
+          const timerId = window.setTimeout(() => attemptScroll(attemptIndex + 1), retryDelay);
+          this._resultScrollTimers.push(timerId);
+        }
+      });
+    };
+
+    const timerId = window.setTimeout(() => attemptScroll(0), firstDelay);
+    this._resultScrollTimers.push(timerId);
+  }
+
   showResults() {
     this.close();
+    debugRender('showResults()');
 
-    const { recommended, noResultsReason, matchReasons, recommendationReasonsById } =
+    const { recommended, noResultsReason, recommendationReasonsById } =
       getWizardRecommendations(this.products, this.selections);
+
+    this.flowLog('results:computed', {
+      selections: this.selections,
+      productCount: this.products?.length || 0,
+      recommendedCount: recommended.length,
+      noResultsReason: noResultsReason || null
+    });
 
     if (!this.resultSection || !this.resultContainer) return;
 
@@ -364,6 +661,34 @@ class Wizard {
       summaryEl.textContent = parts.filter(Boolean).join('  ·  ') || '전체 추천';
     }
 
+    // 카카오 문의 버튼에 선택 요약 주입
+    const kakaoBtn = document.getElementById('btn-wizard-kakao-consult');
+    if (kakaoBtn) {
+      const purposeLabels = {
+        gaming: '게이밍', office: '사무용', editing: '영상편집',
+        '3d': '3D 모델링', ai: '생성형 AI', ai_study: 'AI 공부용',
+        local_llm: '로컬 LLM', streaming: '방송·스트리밍'
+      };
+      const budgetLabels = {
+        budget_under100: '100만 원 이하', budget_100_200: '100~200만 원',
+        budget_200_300: '200~300만 원', budget_over300: '300만 원 이상'
+      };
+      const msgParts = ['[YJMOD AI 추천 결과 문의]'];
+      if (this.selections.purpose) msgParts.push(`용도: ${purposeLabels[this.selections.purpose] || this.selections.purpose}`);
+      if (selectedGame) msgParts.push(`게임: ${selectedGame}`);
+      if (this.selections.budget) msgParts.push(`예산: ${budgetLabels[this.selections.budget] || this.selections.budget}`);
+      if (this.selections.design) {
+        const dl = { black: '블랙', white: '화이트', rgb: 'RGB' };
+        msgParts.push(`케이스: ${dl[this.selections.design] || this.selections.design}`);
+      }
+      msgParts.push('');
+      msgParts.push('위 조건으로 추천 받았는데 상담 부탁드립니다.');
+      const encodedMsg = encodeURIComponent(msgParts.join('\n'));
+      kakaoBtn.href = `https://pf.kakao.com/_sxmjxgT/chat?text=${encodedMsg}`;
+      kakaoBtn.classList.remove('hidden');
+      kakaoBtn.classList.add('flex');
+    }
+
     if (recommended.length === 0) {
       let emptyMessage = '조건에 맞는 제품을 찾지 못했습니다. 필터를 조정해 보세요.';
       if (noResultsReason === 'impossible_budget') {
@@ -380,24 +705,48 @@ class Wizard {
         </div>
       `;
     } else {
-      const reasonMap = new Map((matchReasons || []).map(m => [String(m.productId), m.reasons || []]));
       this.resultContainer.innerHTML = recommended
         .map(p =>
           renderWizardResultCard(
             p,
             selectedGame,
             this.fpsData,
-            reasonMap.get(String(p.id)) || [],
+            [],
             recommendationReasonsById?.get(String(p.id)) || null
           )
         )
         .join('');
     }
 
-    setTimeout(() => {
-      this.resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      observeScrollFade('.wizard-result-card');
-    }, 100);
+    // 모달 닫힘(200ms) + body overflow 해제 이후 스크롤(400ms) — 경합 방지
+    // double rAF: 레이아웃 확정 후 getBoundingClientRect
+    // scrollY: iOS에서 overflow:hidden 시 pageYOffset 오염 → open 시 저장값 보조
+    // 모바일: html scroll-behavior 임시 auto로 CSS smooth와 충돌 방지 후 원복
+    const renderedCardCount = this.resultContainer.querySelectorAll('.wizard-result-card').length;
+    debugResultCount(renderedCardCount, {
+      recommendedCount: recommended.length,
+      noResultsReason: noResultsReason || null
+    });
+    debugDomUpdate({
+      result_section_visible: !this.resultSection.classList.contains('hidden'),
+      renderedCardCount
+    });
+
+    trackEvent('wizard_complete', {
+      source_section: this.entrySourceSection || 'wizard_entry',
+      selected_filters: serializeWizardSelections(this.selections),
+      price_band: buildPriceBand(
+        this.selections?.budget ? ({
+          budget_under100: '100만 원 이하',
+          budget_100_200: '100~200만 원',
+          budget_200_300: '200~300만 원',
+          budget_over300: '300만 원 이상'
+        })[this.selections.budget] : null
+      ),
+      result_count: recommended.length,
+      result_product_ids: recommended.slice(0, 6).map(product => String(product.id))
+    });
+    this.scrollResultsIntoView();
   }
 }
 

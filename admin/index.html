@@ -103,6 +103,37 @@
     }
     .toolbar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: space-between; margin-bottom: 0.75rem; }
     .price { font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .code-cell { display: flex; align-items: center; gap: 0.4rem; }
+    .code-badge {
+      display: inline-block;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      font-family: 'Consolas', 'Menlo', monospace;
+      background: rgba(108, 158, 255, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(108, 158, 255, 0.35);
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .code-none {
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    .btn-copy {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 0.72rem;
+      padding: 0.2rem 0.45rem;
+      font-family: inherit;
+      transition: background 0.15s;
+    }
+    .btn-copy:hover { background: rgba(255,255,255,0.12); color: var(--text); }
+    .btn-copy.copied { color: var(--ok); border-color: rgba(74,222,128,0.4); }
     .product-link {
       color: var(--accent);
       text-decoration: none;
@@ -158,6 +189,7 @@
               <tr>
                 <th>상품 링크</th>
                 <th>상품명 / 썸네일</th>
+                <th>상품코드</th>
                 <th>가격</th>
                 <th>티어</th>
                 <th>기록일시</th>
@@ -243,6 +275,24 @@
       var SHOP_BASE = 'https://www.youngjaecomputer.com/shop';
       var THUMB_BASE = 'https://admin.youngjaecomputer.com/data/item';
 
+      // GY111, VY113, HY263, GY182_W 등 영문2~3자 + 숫자3~4자리 패턴
+      var CODE_PATTERN = /\b([A-Z]{2,3}\d{3,4}(?:_[A-Z0-9]+)?)\b/g;
+      // 제외할 일반 약어 (CPU 스펙 표기 등)
+      var CODE_EXCLUDE = /^(RTX|GTX|RX|CPU|GPU|RAM|SSD|HDD|DDR|USB|LCD|LED|PSU|NVMe|ATX|ITX|OC|TDP|FPS|QHD|FHD|UHD|B2B|RGB|PC|AI|VGA|SIO|DIY)$/i;
+
+      function extractProductCode(name) {
+        if (!name) return '';
+        var matches = [];
+        var m;
+        CODE_PATTERN.lastIndex = 0;
+        while ((m = CODE_PATTERN.exec(name)) !== null) {
+          if (!CODE_EXCLUDE.test(m[1])) {
+            matches.push(m[1]);
+          }
+        }
+        return matches.length ? matches[0] : '';
+      }
+
       function productUrl(id) {
         return SHOP_BASE + '/item.php?it_id=' + encodeURIComponent(id);
       }
@@ -253,6 +303,32 @@
 
       function isStubName(name, id) {
         return !name || name === '상품 ' + id || name.trim() === '';
+      }
+
+      function copyToClipboard(text, btn) {
+        navigator.clipboard.writeText(text).then(function () {
+          btn.textContent = '복사됨!';
+          btn.classList.add('copied');
+          setTimeout(function () {
+            btn.textContent = '복사';
+            btn.classList.remove('copied');
+          }, 1500);
+        }).catch(function () {
+          var ta = document.createElement('textarea');
+          ta.value = text;
+          ta.style.position = 'fixed';
+          ta.style.opacity = '0';
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          document.body.removeChild(ta);
+          btn.textContent = '복사됨!';
+          btn.classList.add('copied');
+          setTimeout(function () {
+            btn.textContent = '복사';
+            btn.classList.remove('copied');
+          }, 1500);
+        });
       }
 
       function renderRows(log) {
@@ -296,14 +372,27 @@
               '</div>' +
             '</div>';
 
+          var productCode = extractProductCode(stub ? '' : (p.name || ''));
+          var codeCell = productCode
+            ? '<div class="code-cell"><span class="code-badge">' + esc(productCode) + '</span><button type="button" class="btn-copy" data-code="' + esc(productCode) + '">복사</button></div>'
+            : '<span class="code-none">-</span>';
+
           tr.innerHTML =
             '<td>' + linkCell + '</td>' +
             '<td>' + nameCell + '</td>' +
+            '<td>' + codeCell + '</td>' +
             '<td class="price">' + esc(formatPrice(p.price)) + '</td>' +
             '<td>' + esc(p.tier) + '</td>' +
             '<td>' + esc(p.soldout_at || '') + '</td>' +
             '<td>' + statusHtml + '</td>' +
             '<td></td>';
+
+          var copyBtn = tr.querySelector('.btn-copy');
+          if (copyBtn) {
+            copyBtn.addEventListener('click', function () {
+              copyToClipboard(this.dataset.code, this);
+            });
+          }
           var tdBtn = tr.querySelector('td:last-child');
           var btn = document.createElement('button');
           btn.type = 'button';

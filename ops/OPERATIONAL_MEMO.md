@@ -1,37 +1,36 @@
-# 운영 메모 (유지 항목)
+# Operational Memo
 
-배포·검증 담당자가 변경 시 반드시 함께 점검할 사항입니다.
+## 프론트엔드 배포와 데이터 갱신 경로
 
-## 1. `getExpectedFps` 추정 문구 ↔ `verify_live_fps.py` 정합성
+- `scripts/deploy_vercel.ps1`
+  - 프론트엔드 빌드
+  - 루트 프로젝트를 Vercel 프로덕션으로 배포
+  - 운영 위자드/전환 QA 검증
+  - 데이터 파일을 갱신하지 않음
 
-- 필터로 선택한 게임이 상품 `game_fps`에 없을 때, 프론트는 `js/utils.js`의 `getExpectedFps`로 **참조 데이터 기반 추정**을 노출합니다. 이때 문구에 **`약`** 이 포함되는 패턴이 사용됩니다.
-- `scripts/verify_live_fps.py`는 상세 페이지에 해당 게임 FPS가 없을 때, 카드의 동일 게임 줄이 **추정치인지(`약` 포함)** 로 구분해 검증합니다.
-- **프론트에서 추정 문구 형식을 바꿀 경우**(예: `약` 제거, 영문화), 검증 규칙을 **같은 PR/배포 주기**에서 맞추지 않으면 `deploy_vercel.ps1` 5단계가 실패할 수 있습니다.
+- `scripts/run-auto-update.ps1`
+  - 상품/카페 크롤링
+  - `data/pc_data.json` 갱신
+  - `enrich_game_fps.py` 실행
+  - 프론트엔드 빌드 + 프로덕션 배포
+  - `verify_live_fps.py` 실행
 
-관련 코드:
+## 캐시 불일치 방지
 
-- `js/utils.js` — `getExpectedFps`
-- `scripts/verify_live_fps.py` — `compare_card_and_detail` 내 배틀그라운드 분기
+- 루트 `index.html`은 `app.js?v=<build-id>` 형식으로 모듈을 로드합니다.
+- build id는 하드코딩하지 않고 문서의 `lastModified` 기반으로 계산합니다.
+- 운영 HTML은 반드시 재검증하고, 새 세션에서 열어 HTML/JS 조합이 최신인지 확인합니다.
 
-## 2. `enrich_game_fps.py`와 `pc_data.json` 갱신 정책
+## 오프라인 실행
 
-- `scripts/deploy_vercel.ps1` **1단계**에서 `enrich_game_fps.py`가 실행되며, 상품 상세 URL을 크롤링해 `game_fps` / `game_fps_highlights`를 채운 뒤 **`data/pc_data.json`을 덮어씁니다.**
-- 이는 **의도된 동작**입니다(배포 직전 카드 FPS와 쇼핑몰 본문 정합).
-- 팀 기준으로 다음을 명확히 관리하는 것을 권장합니다.
-  - 배포 전 `pc_data.json` diff 검토·커밋 여부
-  - 크롤 실패/부분 실패 시 롤백·재실행 절차
-  - 로컬만 수정한 JSON과 enrich 결과 충돌 시 우선순위
+- 루트 `index.html`은 HTTP/HTTPS 전용입니다.
+- `file://` 오프라인 데모는 `build/yjmod-single.html`만 사용합니다.
 
-관련 스크립트:
+## 디버그 로그 기준
 
-- `scripts/enrich_game_fps.py`
-- `scripts/deploy_vercel.ps1` (1단계 주석)
-
-## 3. 데스크톱 필터 바 · 카드 CTA 클릭 간섭 (대응함)
-
-- **원인**: `.filter-bar`가 `sticky` + `z-index: 50`으로 카드 위에 쌓여, 스크롤 시 겹치는 좌표에서 필터 박스가 클릭을 선점함.
-- **조치**: `css/style.css`에서 **768px 이상**만 `.filter-bar { pointer-events: none; }`, `.filter-bar button { pointer-events: auto; }` 로 실제 버튼만 hit target 유지.
-
-## 4. 배포 파이프라인 전체 green
-
-- `scripts/deploy_vercel.ps1` 전 단계(특히 `enrich_game_fps`·`verify_live_fps`) 완료 여부는 **개별 기능 마감과 분리**해, 배포·운영 담당자의 **별도 주기 점검 항목**으로 관리하는 것을 권장합니다.
+- 기본 상태에서는 콘솔을 조용하게 유지합니다.
+- `?debug=1` 또는 `localStorage.yjmodDebug=1`에서만 위자드 상세 추적 로그를 사용합니다.
+- 프로덕션 장애 대응 시 필요한 최소 포인트:
+  - `[BUILD]`
+  - `[CATALOG READY]`
+  - 위자드 event / step / render / result 로그

@@ -21,15 +21,56 @@ import {
   groupToSectionKey,
   filterToSectionKey
 } from './card-text-generator.js';
+import { buildProductAnalyticsMeta } from './analytics.js';
 
-function renderCardConsultRow(size = 'default') {
+function escapeAttr(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function renderPurchaseConfidenceStrip(product, { compact = false } = {}) {
+  const shippingText = compact ? '순차 출고 안내' : '평일 주문 기준 순차 출고 안내';
+  const installmentText =
+    (product.installment_months || 0) === 24 || (product.installment_months || 0) === 36
+      ? `${product.installment_months}개월 무이자`
+      : '24/36개월 가능';
+  const items = [
+    '오늘 상담 가능',
+    '부품 변경 상담 가능',
+    '1년 무상 A/S',
+    installmentText,
+    shippingText
+  ];
+
+  return `
+        <div class="purchase-confidence ${compact ? 'purchase-confidence--compact' : ''}">
+          ${items.map(item => `<span class="purchase-confidence__item">${item}</span>`).join('')}
+        </div>`;
+}
+
+function renderCardConsultRow(size = 'default', product = null, sourceSection = 'default') {
   const linkCls =
     size === 'wizard'
       ? 'text-xs font-semibold text-[#FEE500]/90 hover:text-[#FEE500] underline decoration-[#FEE500]/35 underline-offset-2'
       : 'text-[11px] sm:text-xs font-semibold text-[#FEE500]/90 hover:text-[#FEE500] underline decoration-[#FEE500]/35 underline-offset-2';
+  const meta = buildProductAnalyticsMeta(product);
+  const analyticsAttrs = [
+    'data-track-click="consult"',
+    `data-source-section="${escapeAttr(sourceSection)}"`,
+    meta.product_id ? `data-product-id="${escapeAttr(meta.product_id)}"` : '',
+    meta.product_name ? `data-product-name="${escapeAttr(meta.product_name)}"` : '',
+    meta.category ? `data-category="${escapeAttr(meta.category)}"` : '',
+    meta.price_band ? `data-price-band="${escapeAttr(meta.price_band)}"` : ''
+  ]
+    .filter(Boolean)
+    .join(' ');
   return `
         <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 pt-1">
           <a href="${KAKAO_CONSULT_CHAT_URL}" target="_blank" rel="noopener noreferrer"
+             ${analyticsAttrs}
              class="inline-flex items-center ${linkCls} focus:outline-none focus-visible:ring-2 focus-visible:ring-[#FEE500]/45 rounded px-0.5 -mx-0.5"
              aria-label="카카오톡 24시간 상담, 새 창">
             24시간 카톡 상담
@@ -157,6 +198,7 @@ function renderProductCard(
   const imgLoading = thumbAttrs?.loading || 'lazy';
   const imgFetchPriority = thumbAttrs?.fetchPriority || 'low';
   const badgeClass = getBadgeClass(product.badge_color);
+  const analyticsMeta = buildProductAnalyticsMeta(product);
   const gameSummary = getSelectedGameSummary(product, selectedGame, fpsData);
   const fpsText = gameSummary?.fpsText || null;
   const gameHighlights = getProductGameFpsHighlights(product, selectedGame ? 3 : 4, selectedGame ? [selectedGame] : []);
@@ -176,8 +218,12 @@ function renderProductCard(
   return `
     <article class="product-card fade-in-up group relative bg-card border border-white/5 rounded-2xl overflow-hidden
                     hover:border-accent/40 hover:shadow-[0_0_30px_rgba(233,69,96,0.15)] transition-all duration-300
-                    flex flex-col" data-id="${product.id}">
-      <!-- 썸네일 -->
+                    flex flex-col"
+             data-id="${product.id}"
+             data-source-section="${escapeAttr(sectionKey)}"
+             data-category="${escapeAttr(analyticsMeta.category || '')}"
+             data-price-band="${escapeAttr(analyticsMeta.price_band || '')}">
+      <!-- 썸네일 (클릭 → 상세 드로어) -->
       <div class="relative overflow-hidden h-52 bg-[#0d1117] flex-shrink-0 flex items-center justify-center">
         <img
           src="${product.thumbnail}"
@@ -195,6 +241,8 @@ function renderProductCard(
         <!-- 케이스 색상 -->
         <span class="absolute top-3 right-3 w-5 h-5 rounded-full border-2 border-white/20 ${product.case_color === '화이트' ? 'bg-white' : 'bg-gray-800'}"
               title="${product.case_color || ''} 케이스"></span>
+        <!-- 썸네일 클릭 트리거 -->
+        <button class="product-card__thumb-btn" data-open-detail="${escapeAttr(product.id)}" aria-label="${escapeAttr(product.name)} 상세 보기" tabindex="-1"></button>
       </div>
 
       <!-- 콘텐츠 -->
@@ -210,7 +258,7 @@ function renderProductCard(
           </span>` : '')}
           ${gameSummary ? `
           <p class="text-[11px] font-semibold text-accent mb-1">${gameSummary.summaryText}</p>` : ''}
-          <h3 class="text-sm font-bold text-white leading-snug line-clamp-2">${product.name}</h3>
+          <button class="product-card__name-btn text-sm font-bold leading-snug line-clamp-2" data-open-detail="${escapeAttr(product.id)}">${product.name}</button>
           <p class="text-xs text-gray-400 mt-1">${product.subtitle || ''}</p>
           ${summaryReason ? `<p class="text-[11px] text-emerald-400/80 mt-1.5 leading-snug line-clamp-2">${summaryReason}</p>` : ''}
           ${renderRecReasonsBlock(recommendationReasons, { wizard: false })}
@@ -253,13 +301,20 @@ function renderProductCard(
             <div class="min-w-0 flex-1">
               ${renderProductPriceStack(product)}
             </div>
-            <a href="${product.url}" target="_blank" rel="noopener noreferrer"
+            <a href="${product.url}"
+               data-track-click="product"
+               data-source-section="${escapeAttr(sectionKey)}"
+               data-product-id="${escapeAttr(analyticsMeta.product_id || '')}"
+               data-product-name="${escapeAttr(analyticsMeta.product_name || '')}"
+               data-category="${escapeAttr(analyticsMeta.category || '')}"
+               data-price-band="${escapeAttr(analyticsMeta.price_band || '')}"
                class="flex-shrink-0 self-center px-4 py-2 bg-accent hover:bg-accent/80 text-white text-sm font-semibold
                       rounded-xl transition-colors duration-200 whitespace-nowrap">
               구매하기
             </a>
           </div>
-          ${renderCardConsultRow('default')}
+          ${renderPurchaseConfidenceStrip(product, { compact: true })}
+          ${renderCardConsultRow('default', product, sectionKey)}
         </div>
       </div>
     </article>
@@ -344,6 +399,7 @@ function renderProductGrid(container, products, selectedGame = null, fpsData = n
             필터 초기화
           </button>
           <a href="${KAKAO_CONSULT_CHAT_URL}" target="_blank" rel="noopener noreferrer"
+             data-track-click="consult" data-source-section="empty_state_consult"
              class="px-4 py-2 bg-[#FEE500]/20 hover:bg-[#FEE500]/30 text-[#FEE500] text-sm rounded-lg transition-colors">
             맞춤 견적 상담
           </a>
@@ -410,6 +466,7 @@ function renderWizardResultCard(
   recommendationReasons = null
 ) {
   let wizardInstallmentBadge = '';
+  const analyticsMeta = buildProductAnalyticsMeta(product);
   const instM = product.installment_months | 0;
   const instMo = product.price_monthly | 0;
   if (instM > 0 && instMo > 0) {
@@ -439,8 +496,12 @@ function renderWizardResultCard(
   return `
     <article class="wizard-result-card group relative bg-card border border-white/5 rounded-2xl overflow-hidden
                     hover:border-accent/40 hover:shadow-[0_0_40px_rgba(233,69,96,0.2)] transition-all duration-300
-                    flex flex-col" data-id="${product.id}">
-      <!-- 상단 이미지 -->
+                    flex flex-col"
+             data-id="${product.id}"
+             data-source-section="wizard_result"
+             data-category="${escapeAttr(analyticsMeta.category || '')}"
+             data-price-band="${escapeAttr(analyticsMeta.price_band || '')}">
+      <!-- 상단 이미지 (클릭 → 상세 드로어) -->
       <div class="relative overflow-hidden h-56 bg-[#0d1117] flex-shrink-0 flex items-center justify-center">
         <img
           src="${product.thumbnail}"
@@ -449,6 +510,7 @@ function renderWizardResultCard(
           loading="lazy"
           onerror="this.src='https://via.placeholder.com/400x300/16213e/e94560?text=YJMOD'"
         />
+        <button class="product-card__thumb-btn" data-open-detail="${escapeAttr(product.id)}" aria-label="${escapeAttr(product.name)} 상세 보기" tabindex="-1"></button>
         <div class="absolute inset-0 bg-gradient-to-t from-card/80 to-transparent"></div>
 
         ${
@@ -476,7 +538,7 @@ function renderWizardResultCard(
           </span>` : '')}
           ${gameSummary ? `
           <p class="text-xs font-semibold text-accent mb-1">${gameSummary.summaryText}</p>` : ''}
-          <h3 class="text-base font-bold text-white leading-snug">${product.name}</h3>
+          <button class="product-card__name-btn text-base font-bold leading-snug" data-open-detail="${escapeAttr(product.id)}">${product.name}</button>
           <p class="text-sm text-gray-400 mt-1">${product.subtitle || ''}</p>
           ${v2wSummary ? `<p class="text-xs text-emerald-400/80 mt-1.5 leading-snug line-clamp-2">${v2wSummary}</p>` : ''}
           ${gameHighlights.length ? `
@@ -516,25 +578,26 @@ function renderWizardResultCard(
           </div>
         </div>` : ''}
 
-        ${matchReasons.length > 0 ? `
-        <div class="rounded-lg border border-cyan-400/30 bg-cyan-400/10 px-3 py-2">
-          <p class="text-[11px] text-cyan-200 font-semibold mb-1">debug 매칭 근거</p>
-          <p class="text-[11px] text-cyan-100/90">${matchReasons.join(' · ')}</p>
-        </div>` : ''}
-
         <!-- 가격 + CTA + 상담 -->
         <div class="mt-auto pt-4 border-t border-white/5 flex flex-col gap-2">
           <div class="flex items-start justify-between gap-3">
             <div class="min-w-0 flex-1">
               ${renderWizardPriceStack(product)}
             </div>
-            <a href="${product.url}" target="_blank" rel="noopener noreferrer"
+            <a href="${product.url}"
+               data-track-click="product"
+               data-source-section="wizard_result"
+               data-product-id="${escapeAttr(analyticsMeta.product_id || '')}"
+               data-product-name="${escapeAttr(analyticsMeta.product_name || '')}"
+               data-category="${escapeAttr(analyticsMeta.category || '')}"
+               data-price-band="${escapeAttr(analyticsMeta.price_band || '')}"
                class="flex-shrink-0 self-center px-5 py-3 bg-accent hover:bg-red-500 text-white font-bold
                       rounded-xl transition-colors duration-200 text-sm">
               견적 확인
             </a>
           </div>
-          ${renderCardConsultRow('wizard')}
+          ${renderPurchaseConfidenceStrip(product)}
+          ${renderCardConsultRow('wizard', product, 'wizard_result')}
         </div>
         ${renderRecReasonsBlock(recommendationReasons, { wizard: true })}
       </div>
@@ -576,8 +639,8 @@ function collectGroupProducts(group, allProducts) {
 }
 
 /**
- * 그룹별 섹션 렌더링 (기본 화면)
- * 메인에서 위쪽 섹션 미리보기에 쓰인 상품 ID는 아래 섹션 상단 3칸에서 제외(더보기 필터 뷰는 전체)
+ * 그룹별 탭+가로스크롤 렌더링 (기본 화면)
+ * 카테고리 탭을 클릭하면 해당 그룹의 제품을 가로 스크롤로 표시
  */
 function renderGroupedView(container, allProducts, fpsData, onMoreClick) {
   if (!container) return;
@@ -589,57 +652,91 @@ function renderGroupedView(container, allProducts, fpsData, onMoreClick) {
     return { ...group, products };
   }).filter(g => g.products.length > 0);
 
-  const usedInMainPreview = new Set();
+  if (groupedMeta.length === 0) return;
 
-  container.innerHTML = groupedMeta.map(group => {
-    const fresh = group.products.filter(p => !usedInMainPreview.has(String(p.id)));
-    const preview = fresh.slice(0, CARDS_PER_GROUP);
-    preview.forEach(p => usedInMainPreview.add(String(p.id)));
+  // 탭 바 + 패널 영역 HTML
+  container.innerHTML = `
+    <div class="col-span-full">
+      <div class="catalog-tab-bar" id="catalog-tab-bar">
+        ${groupedMeta.map((g, i) => `
+          <button class="catalog-tab${i === 0 ? ' active' : ''}" data-tab-idx="${i}">
+            ${g.label}
+          </button>
+        `).join('')}
+      </div>
+      <div id="catalog-tab-panel"></div>
+    </div>
+  `;
 
-    const remaining = group.products.length - CARDS_PER_GROUP;
+  // 패널 렌더 함수
+  function renderPanel(idx) {
+    const group = groupedMeta[idx];
+    const panel = container.querySelector('#catalog-tab-panel');
+    if (!panel) return;
 
-    return `
-      <div class="col-span-full group-section mb-2">
-        <div class="flex items-center justify-between mb-4">
-          <div>
-            <h3 class="text-lg font-bold text-white">${group.label}</h3>
-            <p class="text-xs text-gray-500 mt-0.5">${group.desc} · ${group.products.length}개</p>
-          </div>
+    const preview = group.products.slice(0, CARDS_PER_GROUP * 2); // 가로스크롤이므로 최대 6개
+    const remaining = group.products.length - preview.length;
+
+    panel.innerHTML = `
+      <div class="group-section">
+        <div class="flex items-center justify-between mb-3">
+          <p class="text-xs text-gray-500">${group.desc} · ${group.products.length}개</p>
           ${remaining > 0 ? `
           <button
             data-group-key="${group.key}"
             data-group-value="${encodeURIComponent(JSON.stringify(group.value))}"
-            class="js-group-more flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-gray-400
+            class="js-group-more flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-gray-400
                    hover:text-accent border border-white/10 hover:border-accent/40
                    rounded-lg transition-all duration-200 whitespace-nowrap"
           >
-            ${remaining}개 더보기
+            전체 ${group.products.length}개 보기
             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
           </button>` : ''}
         </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-2">
-          ${preview
-            .map(p =>
-              renderProductCard(
-                p,
-                null,
-                fpsData,
-                buildRecommendationReasons(p, userSelectionsFromGroup(group)),
-                groupToSectionKey(group.key, group.value)
-              )
+        <div class="catalog-hscroll">
+          ${preview.map(p =>
+            renderProductCard(
+              p,
+              null,
+              fpsData,
+              buildRecommendationReasons(p, userSelectionsFromGroup(group)),
+              groupToSectionKey(group.key, group.value)
             )
-            .join('')}
+          ).join('')}
+          ${remaining > 0 ? `
+          <button
+            data-group-key="${group.key}"
+            data-group-value="${encodeURIComponent(JSON.stringify(group.value))}"
+            class="catalog-more-card js-group-more"
+          >
+            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+            </svg>
+            +${remaining}개<br/>더 보기
+          </button>` : ''}
         </div>
-
-        <div class="border-b border-white/5 mt-6 mb-6"></div>
       </div>
     `;
-  }).join('');
+    forceShowCards(panel);
+  }
 
-  forceShowCards(container);
+  // 첫 탭 렌더
+  renderPanel(0);
+
+  // 탭 클릭 이벤트
+  const tabBar = container.querySelector('#catalog-tab-bar');
+  if (tabBar) {
+    tabBar.addEventListener('click', e => {
+      const btn = e.target.closest('[data-tab-idx]');
+      if (!btn) return;
+      const idx = parseInt(btn.dataset.tabIdx, 10);
+      tabBar.querySelectorAll('.catalog-tab').forEach(t => t.classList.remove('active'));
+      btn.classList.add('active');
+      renderPanel(idx);
+    });
+  }
 }
 
 export { renderProductCard, renderProductGrid, renderGroupedView, renderWizardResultCard, buildLoadMoreSkeleton };
