@@ -624,14 +624,22 @@ const GROUPS = [
 
 const CARDS_PER_GROUP = 3;
 
-function collectGroupProducts(group, allProducts) {
+function collectGroupProducts(group, allProducts, excludeIds = null) {
+  let pool = excludeIds
+    ? allProducts.filter(p => !excludeIds.has(String(p.id)))
+    : allProducts;
+
   if (group.key === 'installment') {
-    return allProducts.filter(p => (p.installment_months || 0) === group.value);
+    return pool.filter(p => (p.installment_months || 0) === group.value);
   }
   if (group.key === 'bestFor') {
-    return allProducts.filter(p => p.v2?.best_for_tags?.includes(group.value));
+    // 루트 레벨 best_for_tags(enrich_pc_data) 우선, 없으면 v2.best_for_tags fallback
+    return pool.filter(p => {
+      const tags = p.best_for_tags || p.v2?.best_for_tags || [];
+      return tags.includes(group.value);
+    });
   }
-  return allProducts.filter(
+  return pool.filter(
     p =>
       (p.categories?.usage || []).includes(group.value) &&
       !(p.installment_months > 0 && group.value === '게이밍')
@@ -647,8 +655,15 @@ function renderGroupedView(container, allProducts, fpsData, onMoreClick) {
 
   container._groupMoreHandler = onMoreClick;
 
+  // 그룹 간 중복 제거: 앞 그룹에 이미 등장한 상품은 뒤 그룹에서 제외
+  // 단, installment 그룹(할부)은 독립 — 다른 그룹에서 이미 나온 상품도 표시
+  const usedIds = new Set();
   const groupedMeta = GROUPS.map(group => {
-    const products = collectGroupProducts(group, allProducts);
+    const isInstallment = group.key === 'installment';
+    const products = collectGroupProducts(group, allProducts, isInstallment ? null : usedIds);
+    if (!isInstallment) {
+      products.forEach(p => usedIds.add(String(p.id)));
+    }
     return { ...group, products };
   }).filter(g => g.products.length > 0);
 
@@ -714,29 +729,4 @@ function renderGroupedView(container, allProducts, fpsData, onMoreClick) {
             <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
             </svg>
-            +${remaining}개<br/>더 보기
-          </button>` : ''}
-        </div>
-      </div>
-    `;
-    forceShowCards(panel);
-  }
-
-  // 첫 탭 렌더
-  renderPanel(0);
-
-  // 탭 클릭 이벤트
-  const tabBar = container.querySelector('#catalog-tab-bar');
-  if (tabBar) {
-    tabBar.addEventListener('click', e => {
-      const btn = e.target.closest('[data-tab-idx]');
-      if (!btn) return;
-      const idx = parseInt(btn.dataset.tabIdx, 10);
-      tabBar.querySelectorAll('.catalog-tab').forEach(t => t.classList.remove('active'));
-      btn.classList.add('active');
-      renderPanel(idx);
-    });
-  }
-}
-
-export { renderProductCard, renderProductGrid, renderGroupedView, renderWizardResultCard, buildLoadMoreSkeleton };
+            +${rem

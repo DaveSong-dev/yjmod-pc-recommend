@@ -80,7 +80,8 @@ function resolveGameToCanonical(input) {
 const filterState = {
   game: null,        // "리그오브레전드" | "배틀그라운드" | ...
   tier: null,        // "가성비(FHD)" | "퍼포먼스(QHD)" | "하이엔드(4K)"
-  priceRange: null,  // "100만 원 이하" | "100~200만 원" | ...
+  priceRange: null,  // "~100만 원" | "100~150만 원" | ... (필터 바 버튼용)
+  priceMax: null,    // 숫자(만원 단위) — 위자드 "최대 예산" 직접 입력용. 10% 허용 오차 포함.
   usage: null,       // "게이밍" | "영상편집" | "AI/딥러닝" | "사무/디자인" | "방송/스트리밍"
   installment: null, // 24 | 36 (개월)
   caseColor: null,   // "블랙" | "화이트"
@@ -296,6 +297,13 @@ function filterProducts(products, filters = filterState) {
       }
     }
 
+    // 위자드 "최대 예산" 직접 입력 필터 (만원 단위, 10% 허용 오차)
+    if (filters.priceMax != null && filters.priceMax > 0) {
+      const eff = effectivePriceForBudgetRange(product);
+      if (eff === null) return false;
+      if (eff > filters.priceMax * 10000 * 1.1) return false;
+    }
+
     // 용도 필터: supaCat(Supabase 카테고리) 우선, 없으면 tags.usage 기반
     if (filters.usage) {
       const supaCat = product.supaCat || null;
@@ -448,7 +456,8 @@ function getWizardRecommendations(products, wizardSelections) {
     return { recommended: [] };
   }
 
-  const budgetToRange = {
+  // 레거시 문자열 키 → priceRange 매핑
+  const legacyBudgetToRange = {
     'budget_under100': '100만 원 이하',
     'budget_100_200': '100~200만 원',
     'budget_200_300': '200~300만 원',
@@ -461,20 +470,26 @@ function getWizardRecommendations(products, wizardSelections) {
     'rgb': null
   };
 
+  // 예산 타입 분기: 숫자(만원) = 새 UI / 문자열 = 레거시
+  const isNumericBudget = typeof budget === 'number' && budget > 0;
+
   const usage = PURPOSE_TO_USAGE[purpose] || null;
   const gameCanon = purpose === 'gaming' && game ? resolveGameToCanonical(game) : null;
 
   const filters = {
     game: purpose === 'gaming' ? gameCanon : null,
     tier: null,
-    priceRange: budgetToRange[budget] || null,
+    priceRange: isNumericBudget ? null : (legacyBudgetToRange[budget] || null),
+    priceMax: isNumericBudget ? budget : null,
     usage,
     installment: installment ?? null,
     caseColor: design ? (designToColor[design] ?? null) : null,
     search: ''
   };
 
-  const isImpossibleBudget = purpose === 'gaming' && game && HIGH_END_GAMES.includes(resolveGameToCanonical(game)) && budget === 'budget_under100';
+  // 100만원 이하 + 고사양 게임 조합 불가 판정
+  const budgetIsUnder100 = budget === 'budget_under100' || (isNumericBudget && budget <= 100);
+  const isImpossibleBudget = purpose === 'gaming' && game && HIGH_END_GAMES.includes(resolveGameToCanonical(game)) && budgetIsUnder100;
 
   let filtered = filterProducts(products, filters);
   let fallbackNotice = null;
@@ -499,7 +514,7 @@ function getWizardRecommendations(products, wizardSelections) {
     return { recommended: [], noResultsReason: 'impossible_budget' };
   }
 
-  if (filtered.length === 0 && budget === 'budget_under100') {
+  if (filtered.length === 0 && budgetIsUnder100) {
     return { recommended: [], noResultsReason: 'no_products_under_budget' };
   }
 

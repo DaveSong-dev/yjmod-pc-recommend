@@ -44,13 +44,19 @@ const GAME_OPTIONS = [
   { id: 'ow2', label: '오버워치2', value: '오버워치2', icon: '🦸', desc: '오버워치 / 팀 FPS' }
 ];
 
-/** 예산 선택지 (3단계) */
-const BUDGET_OPTIONS = [
-  { id: 'budget_under100', label: '100만 원 이하', value: 'budget_under100', icon: '💰', desc: '가성비 최강 입문용' },
-  { id: 'budget_100_200', label: '100 ~ 200만 원', value: 'budget_100_200', icon: '💵', desc: 'FHD·QHD 퍼포먼스' },
-  { id: 'budget_200_300', label: '200 ~ 300만 원', value: 'budget_200_300', icon: '💎', desc: 'QHD·4K 하이엔드' },
-  { id: 'budget_over300', label: '300만 원 이상', value: 'budget_over300', icon: '👑', desc: '최고 사양 무제한' }
+/** 예산 프리셋 (3단계 — 새 UI) */
+const BUDGET_PRESETS = [
+  { value: 100,    label: '~100만원',  icon: '💰', desc: '가성비 입문·사무용' },
+  { value: 150,    label: '150만원',   icon: '💵', desc: 'FHD 게이밍 중급' },
+  { value: 200,    label: '200만원',   icon: '💵', desc: 'QHD 게이밍·편집' },
+  { value: 300,    label: '300만원',   icon: '💎', desc: '고성능·4K 게이밍' },
+  { value: 500,    label: '500만원',   icon: '👑', desc: '하이엔드·딥러닝' },
+  { value: 1000,   label: '1000만원',  icon: '🏅', desc: '워크스테이션급' },
+  { value: 'custom', label: '직접 입력', icon: '✏️', desc: '원하는 금액 직접' }
 ];
+
+/** 레거시 호환용 (export 유지) */
+const BUDGET_OPTIONS = BUDGET_PRESETS;
 
 /** 디자인 선택지 (4단계) */
 const DESIGN_OPTIONS = [
@@ -304,10 +310,41 @@ class Wizard {
     const _prevTags = [];
     if (step > 1 && this.selections.purpose) _prevTags.push(_pL[this.selections.purpose] || this.selections.purpose);
     if (step > 2 && this.selections.game) _prevTags.push(`🎮 ${this.selections.game}`);
-    if (step > 3 && this.selections.budget) _prevTags.push(_bL[this.selections.budget] || this.selections.budget);
+    if (step > 3 && this.selections.budget && this.selections.budget !== 'custom') {
+      const budgetLabel = typeof this.selections.budget === 'number'
+        ? `💰 ~${this.selections.budget}만원`
+        : (_bL[this.selections.budget] || this.selections.budget);
+      _prevTags.push(budgetLabel);
+    }
     const prevTagsHtml = _prevTags.length
       ? `<div class="flex flex-wrap gap-1.5 mb-3">${_prevTags.map(t => `<span class="wizard-prev-tag">${t}</span>`).join('')}</div>`
       : '';
+
+    const isBudgetStep = config.stepKey === 'budget';
+    const mainContent = isBudgetStep
+      ? this.renderBudgetContent(selectedValue)
+      : `
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+          ${config.options.map(opt => `
+            <button
+              class="wizard-option group relative flex flex-col items-center gap-2 p-4 rounded-xl
+                     border ${selectedValue === opt.value ? 'border-accent bg-accent/10' : 'border-white/10 bg-surface'} hover:border-accent/50 hover:bg-accent/5
+                     transition-all duration-200 text-center cursor-pointer"
+              data-value="${opt.value}"
+              data-step="${step}"
+            >
+              <span class="text-2xl">${opt.icon}</span>
+              <span class="text-sm font-semibold text-white">${opt.label}</span>
+              <span class="text-xs text-gray-500">${opt.desc}</span>
+              <div class="wizard-check absolute top-2 right-2 w-5 h-5 rounded-full bg-accent
+                          flex items-center justify-center ${selectedValue === opt.value ? 'opacity-100 scale-100' : 'opacity-0 scale-0'} transition-all duration-200">
+                <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+            </button>
+          `).join('')}
+        </div>`;
 
     content.innerHTML = `
       <div class="mb-4">
@@ -316,27 +353,7 @@ class Wizard {
         <p class="text-sm text-gray-400 mt-1">${config.subtitle}</p>
       </div>
 
-      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-        ${config.options.map(opt => `
-          <button
-            class="wizard-option group relative flex flex-col items-center gap-2 p-4 rounded-xl
-                   border ${selectedValue === opt.value ? 'border-accent bg-accent/10' : 'border-white/10 bg-surface'} hover:border-accent/50 hover:bg-accent/5
-                   transition-all duration-200 text-center cursor-pointer"
-            data-value="${opt.value}"
-            data-step="${step}"
-          >
-            <span class="text-2xl">${opt.icon}</span>
-            <span class="text-sm font-semibold text-white">${opt.label}</span>
-            <span class="text-xs text-gray-500">${opt.desc}</span>
-            <div class="wizard-check absolute top-2 right-2 w-5 h-5 rounded-full bg-accent
-                        flex items-center justify-center ${selectedValue === opt.value ? 'opacity-100 scale-100' : 'opacity-0 scale-0'} transition-all duration-200">
-              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
-              </svg>
-            </div>
-          </button>
-        `).join('')}
-      </div>
+      ${mainContent}
 
       <div class="flex justify-between mt-6">
         ${step > 1 ? `
@@ -359,6 +376,140 @@ class Wizard {
     });
 
     this.bindStepEventsDelegated(step, config);
+  }
+
+  /** 예산 스텝 전용 콘텐츠 HTML 생성 */
+  renderBudgetContent(selectedValue) {
+    const isCustom = selectedValue === 'custom';
+    const isNumeric = typeof selectedValue === 'number';
+
+    const checkSvg = `<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/>
+    </svg>`;
+
+    const chips = BUDGET_PRESETS.map((p, i) => {
+      const isSelected = p.value === 'custom' ? isCustom : selectedValue === p.value;
+      const isLast = i === BUDGET_PRESETS.length - 1;
+      return `
+        <button
+          class="wizard-option group relative flex flex-col items-center gap-2 p-4 rounded-xl
+                 border ${isSelected ? 'border-accent bg-accent/10' : 'border-white/10 bg-surface'}
+                 hover:border-accent/50 hover:bg-accent/5 transition-all duration-200 text-center cursor-pointer
+                 ${isLast ? 'col-span-2 sm:col-span-1' : ''}"
+          data-budget-preset="${p.value}"
+        >
+          <span class="text-2xl">${p.icon}</span>
+          <span class="text-sm font-semibold text-white">${p.label}</span>
+          <span class="text-xs text-gray-500">${p.desc}</span>
+          <div class="wizard-check absolute top-2 right-2 w-5 h-5 rounded-full bg-accent
+                      flex items-center justify-center ${isSelected ? 'opacity-100 scale-100' : 'opacity-0 scale-0'} transition-all duration-200">
+            ${checkSvg}
+          </div>
+        </button>`;
+    }).join('');
+
+    return `
+      <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-3" id="budget-preset-grid">
+        ${chips}
+      </div>
+      <div id="budget-custom-area" class="${isCustom ? '' : 'hidden'} mt-1 p-4 bg-white/5 rounded-xl border border-white/10">
+        <label class="block text-xs text-gray-500 font-semibold uppercase tracking-wide mb-2">최대 예산 입력</label>
+        <div class="flex items-center gap-3">
+          <div class="relative flex-1">
+            <input
+              id="budget-custom-input"
+              type="number" min="50" max="10000" step="10"
+              placeholder="예: 170"
+              value="${isNumeric ? selectedValue : ''}"
+              class="budget-custom-input w-full bg-bg border border-white/15 rounded-xl px-4 py-3
+                     text-white text-lg font-semibold focus:outline-none focus:border-accent
+                     transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+            <span class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 text-sm pointer-events-none">만원</span>
+          </div>
+          <button
+            id="budget-custom-confirm"
+            class="px-5 py-3 bg-accent hover:bg-red-500 text-white text-sm font-bold rounded-xl
+                   transition-all duration-200 whitespace-nowrap flex-shrink-0"
+          >다음 →</button>
+        </div>
+        <p class="text-xs text-gray-600 mt-2">50 ~ 10,000 만원 사이 숫자만 입력</p>
+      </div>`;
+  }
+
+  /** 예산 스텝 이벤트 핸들러 */
+  bindBudgetStepEvents(step, content) {
+    content.onclick = (event) => {
+      // 이전 버튼
+      if (event.target.closest('#wizard-prev')) {
+        if (this._isAdvancing) return;
+        let prev = step - 1;
+        if (prev === 2 && this.selections.purpose !== 'gaming') prev = 1;
+        this.renderStep(prev);
+        return;
+      }
+      // 건너뛰기
+      if (event.target.closest('#wizard-skip')) {
+        if (this._isAdvancing) return;
+        if (this.selections.budget === 'custom') this.selections.budget = null;
+        this.renderStep(step + 1);
+        return;
+      }
+      // 직접 입력 확인 버튼
+      if (event.target.closest('#budget-custom-confirm')) {
+        const input = content.querySelector('#budget-custom-input');
+        const val = parseInt(input?.value || '0', 10);
+        if (!val || val < 50 || val > 10000) {
+          input?.classList.add('!border-red-500');
+          setTimeout(() => input?.classList.remove('!border-red-500'), 900);
+          input?.focus();
+          return;
+        }
+        this.selections.budget = val;
+        this._isAdvancing = false;
+        this.renderStep(step + 1);
+        return;
+      }
+      // 프리셋 칩
+      const presetBtn = event.target.closest('[data-budget-preset]');
+      if (!presetBtn || !content.contains(presetBtn)) return;
+
+      const raw = presetBtn.dataset.budgetPreset;
+
+      // 시각적 선택 상태 갱신
+      content.querySelectorAll('[data-budget-preset]').forEach(b => {
+        b.classList.remove('border-accent', 'bg-accent/10');
+        b.querySelector('.wizard-check')?.classList.add('opacity-0', 'scale-0');
+      });
+      presetBtn.classList.add('border-accent', 'bg-accent/10');
+      presetBtn.querySelector('.wizard-check')?.classList.remove('opacity-0', 'scale-0');
+
+      if (raw === 'custom') {
+        // 직접 입력 영역 표시
+        this.selections.budget = 'custom';
+        const area = content.querySelector('#budget-custom-area');
+        area?.classList.remove('hidden');
+        setTimeout(() => content.querySelector('#budget-custom-input')?.focus(), 80);
+        return;
+      }
+
+      // 숫자 프리셋 → 자동 다음 단계
+      const numVal = parseInt(raw, 10);
+      this.selections.budget = numVal;
+      this._isAdvancing = true;
+      window.clearTimeout(this._stepAdvanceTimer);
+      this.flowLog('budget:select', { value: numVal });
+
+      this._stepAdvanceTimer = window.setTimeout(() => {
+        this._isAdvancing = false;
+        this.renderStep(step + 1);
+      }, 350);
+    };
+
+    // Enter 키로 직접 입력 확인
+    content.querySelector('#budget-custom-input')?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') content.querySelector('#budget-custom-confirm')?.click();
+    });
   }
 
   bindStepEvents(step, config) {
@@ -432,6 +583,12 @@ class Wizard {
   bindStepEventsDelegated(step, config) {
     const content = this.modal.querySelector('.wizard-content');
     if (!content) return;
+
+    // 예산 스텝은 전용 핸들러로 위임
+    if (config.stepKey === 'budget') {
+      this.bindBudgetStepEvents(step, content);
+      return;
+    }
 
     const stepKey = config.stepKey;
     const allowedValues = new Set(config.options.map(option => String(option.value)));
@@ -645,14 +802,18 @@ class Wizard {
         parts.push(purposeLabels[this.selections.purpose] || '');
       }
       if (selectedGame) parts.push(`🎮 ${selectedGame}`);
-      if (this.selections.budget) {
-        const labels = {
-          budget_under100: '💰 100만 원 이하',
-          budget_100_200: '💵 100~200만 원',
-          budget_200_300: '💎 200~300만 원',
-          budget_over300: '👑 300만 원+'
-        };
-        parts.push(labels[this.selections.budget] || '');
+      if (this.selections.budget && this.selections.budget !== 'custom') {
+        if (typeof this.selections.budget === 'number') {
+          parts.push(`💰 ~${this.selections.budget}만원`);
+        } else {
+          const labels = {
+            budget_under100: '💰 100만 원 이하',
+            budget_100_200: '💵 100~200만 원',
+            budget_200_300: '💎 200~300만 원',
+            budget_over300: '👑 300만 원+'
+          };
+          parts.push(labels[this.selections.budget] || '');
+        }
       }
       if (this.selections.design) {
         const labels = { black: '🖤 블랙', white: '🤍 화이트', rgb: '🌈 RGB' };
@@ -676,7 +837,12 @@ class Wizard {
       const msgParts = ['[YJMOD AI 추천 결과 문의]'];
       if (this.selections.purpose) msgParts.push(`용도: ${purposeLabels[this.selections.purpose] || this.selections.purpose}`);
       if (selectedGame) msgParts.push(`게임: ${selectedGame}`);
-      if (this.selections.budget) msgParts.push(`예산: ${budgetLabels[this.selections.budget] || this.selections.budget}`);
+      if (this.selections.budget && this.selections.budget !== 'custom') {
+        const budgetStr = typeof this.selections.budget === 'number'
+          ? `${this.selections.budget}만원 이하`
+          : (budgetLabels[this.selections.budget] || String(this.selections.budget));
+        msgParts.push(`예산: ${budgetStr}`);
+      }
       if (this.selections.design) {
         const dl = { black: '블랙', white: '화이트', rgb: 'RGB' };
         msgParts.push(`케이스: ${dl[this.selections.design] || this.selections.design}`);
@@ -736,12 +902,12 @@ class Wizard {
       source_section: this.entrySourceSection || 'wizard_entry',
       selected_filters: serializeWizardSelections(this.selections),
       price_band: buildPriceBand(
-        this.selections?.budget ? ({
-          budget_under100: '100만 원 이하',
-          budget_100_200: '100~200만 원',
-          budget_200_300: '200~300만 원',
-          budget_over300: '300만 원 이상'
-        })[this.selections.budget] : null
+        typeof this.selections.budget === 'number'
+          ? `~${this.selections.budget}만원`
+          : (this.selections.budget && this.selections.budget !== 'custom'
+              ? ({ budget_under100: '100만 원 이하', budget_100_200: '100~200만 원',
+                   budget_200_300: '200~300만 원', budget_over300: '300만 원 이상' })[this.selections.budget]
+              : null)
       ),
       result_count: recommended.length,
       result_product_ids: recommended.slice(0, 6).map(product => String(product.id))

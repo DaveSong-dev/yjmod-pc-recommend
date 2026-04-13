@@ -373,12 +373,25 @@
       <div class="filter-bar rounded-2xl mb-8">
         <div class="p-4">
 
+          <!-- 예산 퀵필터 (항상 노출 — 새 세분화 구간) -->
+          <div id="price-quick-row" class="price-quick-row">
+            <span class="price-quick-label">예산</span>
+            <div class="price-quick-btns">
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="~100만 원">~100만</button>
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="100~150만 원">100~150</button>
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="150~200만 원">150~200</button>
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="200~300만 원">200~300</button>
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="300~500만 원">300~500</button>
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="500~1000만 원">500~1000</button>
+              <button class="filter-btn price-quick-btn" data-filter-key="priceRange" data-filter-value="1000만 원 이상">1000만~</button>
+            </div>
+          </div>
+
           <!-- 필터 탭 헤더 -->
           <div class="flex items-center gap-1 border-b border-white/5 mb-4 overflow-x-auto hide-scrollbar">
             <button class="filter-tab active" data-target="filter-game">게임별</button>
             <button class="filter-tab" data-target="filter-usage">용도별</button>
             <button class="filter-tab" data-target="filter-tier">사양별</button>
-            <button class="filter-tab" data-target="filter-price">금액별</button>
             <div class="ml-auto flex-shrink-0 flex items-center gap-2">
               <span id="active-filter-count"
                     class="hidden w-5 h-5 rounded-full bg-accent text-white text-xs font-bold
@@ -406,7 +419,7 @@
           <!-- 용도 필터 패널 -->
           <div id="filter-usage" class="filter-panel hidden flex-col gap-3">
             <!-- 작업/전문 용도 -->
-            <div class="flex flex-wrap gap-2">
+            <div class="filter-group flex flex-wrap gap-2">
               <button class="filter-btn" data-filter-key="usage" data-filter-value="게이밍">🎮 게이밍</button>
               <button class="filter-btn" data-filter-key="usage" data-filter-value="사무/디자인">💼 사무용</button>
               <button class="filter-btn" data-filter-key="usage" data-filter-value="영상편집">🎬 영상편집</button>
@@ -415,35 +428,35 @@
               <button class="filter-btn" data-filter-key="usage" data-filter-value="방송/스트리밍">📺 방송·스트리밍</button>
             </div>
             <!-- AI 추천 필터 -->
-            <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-gray-500 self-center font-medium">AI 추천</span>
+            <div class="filter-group filter-group--sep flex flex-wrap gap-2">
+              <span class="filter-group-label text-xs text-gray-500 self-center font-medium">AI 추천</span>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="AI 공부용">🧠 AI 공부용</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="로컬 LLM 입문">🤖 로컬 LLM</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="로컬 AI 입문">🔬 로컬 AI 입문</button>
             </div>
             <!-- 게이밍 세부 -->
-            <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-gray-500 self-center font-medium">게이밍</span>
+            <div class="filter-group filter-group--sep flex flex-wrap gap-2">
+              <span class="filter-group-label text-xs text-gray-500 self-center font-medium">게이밍</span>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="FHD 게이밍">🖥️ FHD 게이밍</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="QHD 게이밍">🖥️ QHD 게이밍</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="4K 게이밍">🏆 4K 게이밍</button>
             </div>
             <!-- 영상편집 세부 -->
-            <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-gray-500 self-center font-medium">영상편집</span>
+            <div class="filter-group filter-group--sep flex flex-wrap gap-2">
+              <span class="filter-group-label text-xs text-gray-500 self-center font-medium">영상편집</span>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="영상편집 입문">🎬 영상편집 입문</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="영상편집 표준">🎬 영상편집 표준</button>
             </div>
             <!-- 감성 필터 -->
-            <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-gray-500 self-center font-medium">감성</span>
+            <div class="filter-group filter-group--sep flex flex-wrap gap-2">
+              <span class="filter-group-label text-xs text-gray-500 self-center font-medium">감성</span>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="화이트 감성">🤍 화이트 감성</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="블랙 감성">🖤 블랙 감성</button>
               <button class="filter-btn" data-filter-key="bestFor" data-filter-value="사무/멀티태스킹">💼 사무/멀티태스킹</button>
             </div>
             <!-- 할부 -->
-            <div class="flex flex-wrap gap-2">
-              <span class="text-xs text-gray-500 self-center font-medium">무이자 할부</span>
+            <div class="filter-group filter-group--sep flex flex-wrap gap-2">
+              <span class="filter-group-label text-xs text-gray-500 self-center font-medium">할부</span>
               <button class="filter-btn" data-filter-key="installment" data-filter-value="24">💳 24개월 무이자</button>
               <button class="filter-btn" data-filter-key="installment" data-filter-value="36">💳 36개월 무이자</button>
             </div>
@@ -465,12 +478,15 @@
             </button>
           </div>
 
-          <!-- 금액 필터 패널 -->
+          <!-- 금액 필터 패널 (탭 제거됨 — 퀵필터 행으로 대체, 패널은 레거시 호환 유지) -->
           <div id="filter-price" class="filter-panel hidden flex-wrap gap-2">
-            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="100만 원 이하">💰 100만 원 이하</button>
-            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="100~200만 원">💵 100~200만 원</button>
-            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="200~300만 원">💎 200~300만 원</button>
-            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="300만 원 이상">👑 300만 원 이상</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="~100만 원">💰 ~100만원</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="100~150만 원">💵 100~150만</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="150~200만 원">💵 150~200만</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="200~300만 원">💎 200~300만</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="300~500만 원">👑 300~500만</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="500~1000만 원">🏅 500~1000만</button>
+            <button class="filter-btn" data-filter-key="priceRange" data-filter-value="1000만 원 이상">🔱 1000만~</button>
           </div>
         </div>
       </div>

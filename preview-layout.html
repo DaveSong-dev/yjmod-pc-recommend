@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>YJMOD 레이아웃 시안</title>
+<style>
+  @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0f;
+    --bg-2: #0f0f1a;
+    --surface: #111120;
+    --card: #13131f;
+    --border: rgba(255,255,255,0.06);
+    --accent: #e94560;
+    --accent-hover: #c73652;
+    --text-primary: #f0f0f0;
+    --text-secondary: #8b8b9e;
+    --text-muted: #4a4a5e;
+  }
+
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Pretendard', -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
+
+  /* ── 비교 레이블 ── */
+  .compare-banner {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 999;
+    display: flex; align-items: stretch; height: 36px;
+    font-size: 12px; font-weight: 700; text-align: center;
+  }
+  .compare-banner .before {
+    flex: 1; background: #1a1a2e; color: #8b8b9e;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .compare-banner .after {
+    flex: 1; background: #e94560; color: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .compare-banner .divider {
+    width: 2px; background: #0a0a0f;
+  }
+
+  /* ── 공통 헤더 ── */
+  nav {
+    position: sticky; top: 36px; z-index: 100;
+    background: rgba(10,10,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    height: 64px;
+    display: flex; align-items: center; padding: 0 2rem;
+    justify-content: space-between;
+  }
+  .logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1rem; }
+  .logo-icon {
+    width: 28px; height: 28px; background: var(--accent);
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+  }
+  .nav-links { display: flex; gap: 1.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+  .nav-cta {
+    background: var(--accent); color: #fff; border: none;
+    padding: 0.5rem 1.2rem; border-radius: 8px; font-weight: 700;
+    font-size: 0.875rem; cursor: pointer; white-space: nowrap;
+  }
+
+  /* ══════════════════════════
+     BEFORE (왼쪽) — 현재 구조
+  ══════════════════════════ */
+  .layout-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: calc(100vh - 100px);
+    border-top: 3px solid transparent;
+  }
+
+  .panel-before {
+    border-right: 2px solid rgba(255,255,255,0.08);
+    overflow: hidden;
+  }
+  .panel-after {
+    overflow: hidden;
+  }
+
+  /* ── BEFORE: 히어로 ── */
+  .before-hero {
+    padding: 3rem 2rem 2rem;
+    min-height: 520px;
+    background: linear-gradient(135deg, #0a0a0f 0%, #0f0f1a 60%);
+    position: relative;
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+  .before-hero-img {
+    width: 160px; height: 180px; flex-shrink: 0;
+    background: var(--surface);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-muted); font-size: 11px;
+    border: 1px solid var(--border);
+  }
+  .before-hero-content { flex: 1; }
+  .before-hero h1 { font-size: 1.6rem; font-weight: 900; line-height: 1.3; margin-bottom: 0.75rem; }
+  .before-hero h1 span { color: var(--accent); }
+  .before-hero p { font-size: 0.8rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 1.2rem; }
+  .before-cta-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .btn-primary { background: var(--accent); color: #fff; border: none; padding: 0.65rem 1.2rem; border-radius: 10px; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+  .btn-secondary { background: rgba(255,255,255,0.06); color: var(--text-primary); border: 1px solid var(--border); padding: 0.65rem 1.2rem; border-radius: 10px; font-weight: 600; font-size: 0.8rem; cursor: pointer; }
+  .before-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .before-tags span { font-size: 0.7rem; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 4px 10px; border-radius: 20px; color: var(--text-secondary); }
+
+  /* BEFORE 통계 */
+  .before-stats { display: flex; gap: 1.5rem; padding: 1.2rem 2rem; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--bg-2); }
+  .stat-item { text-align: center; }
+  .stat-num { font-size: 1.4rem; font-weight: 900; }
+  .stat-label { font-size: 0.65rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* BEFORE 빠른진입 */
+  .before-quick { padding: 1.2rem 2rem; background: var(--bg-2); }
+  .before-quick h3 { font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.6rem; }
+  .quick-grid { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.8rem; }
+  .quick-chip { font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text-secondary); }
+  .game-chip { font-size: 0.7rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 6px 12px; color: var(--text-secondary); }
+
+  /* BEFORE 카탈로그 구분선 */
+  .before-catalog-divider { height: 4px; background: var(--surface); }
+  .before-catalog-section { padding: 1rem 2rem; }
+  .catalog-section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+  .catalog-section-header h3 { font-size: 0.85rem; font-weight: 800; }
+  .catalog-section-header span { font-size: 0.7rem; color: var(--accent); }
+  .card-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.6rem; margin-bottom: 0.8rem; }
+  .mini-card {
+    background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+    overflow: hidden;
+  }
+  .mini-card-img { height: 70px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-muted); }
+  .mini-card-body { padding: 6px 8px; }
+  .mini-card-body p { font-size: 0.6rem; color: var(--text-secondary); line-height: 1.4; }
+  .mini-card-price { font-size: 0.72rem; font-weight: 800; color: var(--text-primary); margin-top: 4px; }
+
+  .more-categories { padding: 0.5rem 2rem 1.5rem; }
+  .more-cat-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .more-cat-item {
+    display: flex; justify-content: space-between; align-items: center;
+    background: var(--surface); border-radius: 8px; padding: 8px 12px;
+    font-size: 0.72rem; color: var(--text-secondary); border: 1px solid var(--border);
+  }
+
+  /* ══════════════════════════
+     AFTER (오른쪽) — 새 구조
+  ══════════════════════════ */
+
+  /* AFTER 히어로 — 거의 풀스크린 */
+  .after-hero {
+    min-height: 580px;
+    padding: 3.5rem 2rem 3rem;
+    background: linear-gradient(160deg, #0a0a0f 0%, #0d0d1f 40%, #0f1020 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  /* 배경 글로우 */
+  .after-hero::before {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px; height: 300px;
+    background: radial-gradient(ellipse, rgba(233,69,96,0.08) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .after-hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: rgba(233,69,96,0.12); border: 1px solid rgba(233,69,96,0.3);
+    color: var(--accent); font-size: 0.7rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 20px; margin-bottom: 1.2rem;
+  }
+  .after-hero-badge::before { content: '●'; font-size: 7px; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+  .after-hero h1 {
+    font-size: 2rem; font-weight: 900; line-height: 1.25;
+    margin-bottom: 0.8rem; max-width: 420px;
+  }
+  .after-hero h1 .highlight { color: var(--accent); }
+  .after-hero .sub {
+    font-size: 0.82rem; color: var(--text-secondary); line-height: 1.7;
+    margin-bottom: 2rem; max-width: 380px;
+  }
+
+  /* 위자드 CTA — 크고 강하게 */
+  .wizard-cta-big {
+    background: var(--accent);
+    color: #fff; border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 14px;
+    font-size: 1rem; font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 8px 32px rgba(233,69,96,0.35);
+    margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%; max-width: 320px; justify-content: center;
+  }
+  .wizard-cta-sub {
+    font-size: 0.72rem; color: var(--text-muted); margin-bottom: 2rem;
+  }
+
+  /* 빠른 진입 칩들 */
+  .after-quick-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 0.6rem; font-weight: 600; letter-spacing: 0.05em; }
+  .after-quick-row { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 0.75rem; }
+  .after-quick-chip {
+    font-size: 0.72rem; font-weight: 600;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+    color: var(--text-secondary); padding: 6px 14px; border-radius: 8px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .after-quick-chip:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 신뢰 지표 — 작게, 간결하게 */
+  .after-trust {
+    display: flex; gap: 1.5rem; justify-content: center;
+    padding: 1.2rem 2rem;
+    border-top: 1px solid var(--border);
+    background: var(--bg-2);
+  }
+  .trust-item { text-align: center; }
+  .trust-num { font-size: 1.3rem; font-weight: 900; }
+  .trust-label { font-size: 0.6rem; color: var(--text-muted); margin-top: 2px; }
+
+  /* 전체 제품 섹션 — 접혀있고 링크로만 */
+  .after-catalog-teaser {
+    padding: 1.2rem 2rem;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+  }
+  .catalog-teaser-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 1rem;
+  }
+  .catalog-teaser-header h3 { font-size: 0.85rem; font-weight: 800; }
+  .catalog-link {
+    font-size: 0.75rem; color: var(--accent); font-weight: 600;
+    text-decoration: none; display: flex; align-items: center; gap: 4px;
+  }
+  /* 카테고리 탭 수평 스크롤 */
+  .category-tabs {
+    display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem;
+    scrollbar-width: none; margin-bottom: 1rem;
+  }
+  .category-tabs::-webkit-scrollbar { display: none; }
+  .cat-tab {
+    flex-shrink: 0; font-size: 0.72rem; font-weight: 600;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-secondary); padding: 7px 14px; border-radius: 8px;
+    cursor: pointer; white-space: nowrap;
+  }
+  .cat-tab.active { background: rgba(233,69,96,0.12); border-color: rgba(233,69,96,0.4); color: var(--accent); }
+
+  /* 미리보기 카드 가로 스크롤 */
+  .preview-cards {
+    display: flex; gap: 0.75rem; overflow-x: auto;
+    padding-bottom: 0.5rem;
+    scrollbar-width: none;
+  }
+  .preview-cards::-webkit-scrollbar { display: none; }
+  .preview-card {
+    flex-shrink: 0; width: 140px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .preview-card-img { height: 80px; background: var(--surface); display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text-muted); }
+  .preview-card-body { padding: 7px 8px; }
+  .preview-card-body p { font-size: 0.58rem; color: var(--text-secondary); line-height: 1.4; }
+  .preview-card-price { font-size: 0.72rem; font-weight: 800; margin-top: 4px; }
+
+  /* 전체보기 버튼 */
+  .view-all-btn {
+    display: block; text-align: center; margin-top: 1rem;
+    background: var(--surface); border: 1px solid var(--border);
+    color: var(--text-secondary); border-radius: 10px; padding: 0.7rem;
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; text-decoration: none;
+  }
+
+  /* ── 라벨 오버레이 ── */
+  .panel-label {
+    position: sticky; top: 100px; z-index: 50;
+    display: flex; align-items: center; justify-content: center;
+    padding: 0.4rem 1rem;
+    font-size: 0.72rem; font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .panel-label.before-label { background: rgba(26,26,46,0.9); color: #8b8b9e; }
+  .panel-label.after-label { background: rgba(233,69,96,0.15); color: var(--accent); border-bottom: 2px solid var(--accent); }
+
+  .change-note {
+    background: rgba(233,69,96,0.08);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 0.5rem 0.75rem;
+    margin: 0.5rem 2rem;
+    font-size: 0.68rem;
+    color: #e9a0ac;
+    line-height: 1.5;
+  }
+
+  /* 페이지 높이 시각화 */
+  .height-viz {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 2rem;
+    background: var(--bg-2);
+    border-top: 1px solid var(--border);
+  }
+  .height-bar-wrap { text-align: center; }
+  .height-bar {
+    width: 60px;
+    border-radius: 4px 4px 0 0;
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 8px;
+    font-size: 0.65rem; font-weight: 700; color: #fff;
+  }
+  .height-bar.current { height: 200px; background: rgba(139,139,158,0.3); border: 1px solid rgba(139,139,158,0.3); }
+  .height-bar.new { height: 80px; background: rgba(233,69,96,0.4); border: 1px solid rgba(233,69,96,0.5); }
+  .height-bar-label { font-size: 0.62rem; color: var(--text-muted); margin-top: 6px; }
+  .height-bar-val { font-size: 0.8rem; font-weight: 800; color: var(--text-primary); }
+
+  .section-divider {
+    height: 1px; background: var(--border); margin: 0;
+  }
+</style>
+</head>
+<body>
+
+<!-- 비교 상단 배너 -->
+<div class="compare-banner">
+  <div class="before">⬅ 현재 구조 (AS-IS)</div>
+  <div class="divider"></div>
+  <div class="after">새 구조 (TO-BE) ➡</div>
+</div>
+
+<!-- 공통 네비 -->
+<nav style="margin-top:36px">
+  <div class="logo">
+    <div class="logo-icon">Y</div>
+    YJMOD 영재컴퓨터
+  </div>
+  <div class="nav-links">
+    <span>전체 제품</span>
+    <span>구매 전 확인</span>
+    <span>공식 홈페이지 ↗</span>
+  </div>
+  <button class="nav-cta">✦ PC 추천 받기</button>
+</nav>
+
+<!-- 좌우 분할 레이아웃 -->
+<div class="layout-split">
+
+  <!-- ══ BEFORE (왼쪽) ══ -->
+  <div class="panel-before">
+
+    <div class="panel-label before-label">현재 구조 — 페이지 높이 약 12,800px</div>
+
+    <!-- 히어로: 좌측 이미지 + 우측 텍스트 -->
+    <div class="before-hero">
+      <div class="before-hero-img">🖥️<br>PC 이미지</div>
+      <div class="before-hero-content">
+        <div style="font-size:0.65rem;color:#8b8b9e;margin-bottom:0.5rem">● 정기 재고 확인 · 5분 전 업데이트</div>
+        <h1>게이밍·사무용·영상편집·AI<br><span>딱 맞는 PC를</span><br>빠르게 추천합니다</h1>
+        <p>용도, 예산, 디자인만 고르면 영재컴퓨터의 실재고 기준 맞춤 조립PC를 바로 추천해 드립니다.</p>
+        <div class="before-cta-row">
+          <button class="btn-primary">🔥 용도별 맞춤 PC 추천 받기</button>
+          <button class="btn-secondary">전체 제품 보기 ∨</button>
+        </div>
+        <div class="before-tags">
+          <span>🎮 게이밍</span><span>💼 사무용</span><span>🎬 영상편집</span><span>🤖 AI·로컬 LLM</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 신뢰 통계 -->
+    <div class="before-stats">
+      <div class="stat-item"><div class="stat-num">421</div><div class="stat-label">재고 보유 제품</div></div>
+      <div class="stat-item"><div class="stat-num">6H</div><div class="stat-label">크롤링 주기</div></div>
+      <div class="stat-item"><div class="stat-num">100%</div><div class="stat-label">재고 있는 제품만</div></div>
+    </div>
+
+    <!-- 빠른 진입 -->
+    <div class="before-quick">
+      <h3>빠른 추천 진입</h3>
+      <div class="quick-grid">
+        <span class="quick-chip">💼 사무용</span>
+        <span class="quick-chip">🎬 영상편집</span>
+        <span class="quick-chip">🔬 생성형 AI</span>
+        <span class="quick-chip">🤖 로컬 LLM</span>
+      </div>
+      <h3>인기 게임 바로 시작</h3>
+      <div class="quick-grid" style="margin-top:0.4rem">
+        <span class="game-chip">리그오브레전드</span>
+        <span class="game-chip">배틀그라운드</span>
+        <span class="game-chip">로스트아크</span>
+        <span class="game-chip">스팀 AAA 게임</span>
+        <span class="game-chip">발로란트</span>
+        <span class="game-chip">오버워치2</span>
+      </div>
+    </div>
+
+    <div class="before-catalog-divider"></div>
+
+    <!-- 카탈로그 섹션 1: 게이밍 -->
+    <div class="before-catalog-section">
+      <div class="catalog-section-header">
+        <h3>🎮 게이밍 PC <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400">게임 특화 · 326개</span></h3>
+        <span>323개 더보기 ›</span>
+      </div>
+      <div class="card-row">
+        <div class="mini-card"><div class="mini-card-img">🖥️</div><div class="mini-card-body"><p>R5 7500 + RTX 5060<br>네이버페이 2만원 증정</p><div class="mini-card-price">221만 원</div></div></div>
+        <div class="mini-card"><div class="mini-card-img">🖥️</div><div class="mini-card-body"><p>R9 9950X3D + RTX 5090<br>4K 쾌적 게이밍 · 64GB</p><div class="mini-card-price">661만 원</div></div></div>
+        <div class="mini-card"><div class="mini-card-img">🖥️</div><div class="mini-card-body"><p>R9 9600 + RTX 5060<br>FHD 고프레임 게이밍</p><div class="mini-card-price">232만 원</div></div></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 카탈로그 섹션 2: AI -->
+    <div class="before-catalog-section">
+      <div class="catalog-section-header">
+        <h3>🤖 AI 공부용 PC <span style="font-size:0.65rem;color:var(--text-muted);font-weight:400">203개</span></h3>
+        <span>200개 더보기 ›</span>
+      </div>
+      <div class="card-row">
+        <div class="mini-card"><div class="mini-card-img">🖥️</div><div class="mini-card-body"><p>R7 7800X3D + RTX 5060Ti<br>CUDA 코어 · PyTorch</p><div class="mini-card-price">249만 원</div></div></div>
+        <div class="mini-card"><div class="mini-card-img">🖥️</div><div class="mini-card-body"><p>R7 7800X3D + RTX 5060Ti<br>발로란트 450FPS · AI</p><div class="mini-card-price">270만 원</div></div></div>
+        <div class="mini-card"><div class="mini-card-img">🖥️</div><div class="mini-card-body"><p>i5-14400F + RTX 5060<br>FHD 162프레임 · AI</p><div class="mini-card-price">187만 원</div></div></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 더 많은 카테고리들 -->
+    <div class="more-categories">
+      <div style="font-size:0.72rem;color:var(--text-muted);margin-bottom:0.5rem;font-weight:600">+ 아래로 계속 이어지는 카테고리들...</div>
+      <div class="more-cat-list">
+        <div class="more-cat-item"><span>🧠 로컬 LLM 입문 PC</span><span style="color:var(--accent);font-size:0.65rem">↓ 약 900px</span></div>
+        <div class="more-cat-item"><span>🎬 영상편집 PC</span><span style="color:var(--accent);font-size:0.65rem">↓ 약 900px</span></div>
+        <div class="more-cat-item"><span>🖥️ QHD 게이밍 PC</span><span style="color:var(--accent);font-size:0.65rem">↓ 약 530px</span></div>
+        <div class="more-cat-item"><span>🏆 4K 게이밍 PC</span><span style="color:var(--accent);font-size:0.65rem">↓ 약 530px</span></div>
+        <div class="more-cat-item"><span>💼 사무·디자인 PC</span><span style="color:var(--accent);font-size:0.65rem">↓ 약 530px</span></div>
+        <div class="more-cat-item"><span>🎨 3D 모델링 PC</span><span style="color:var(--accent);font-size:0.65rem">↓ 약 530px</span></div>
+        <div class="more-cat-item" style="color:var(--text-muted)"><span>... 계속</span><span style="font-size:0.65rem">총 12,800px</span></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ══ AFTER (오른쪽) ══ -->
+  <div class="panel-after">
+
+    <div class="panel-label after-label">새 구조 — 페이지 높이 약 3,200px 예상</div>
+
+    <!-- 히어로: 풀스크린, 중앙 정렬, 위자드 CTA 강조 -->
+    <div class="after-hero">
+      <div class="after-hero-badge">실재고 기반 · 6시간 갱신</div>
+      <h1>용도·예산·게임 입력하면<br><span class="highlight">딱 맞는 PC</span>를<br>바로 찾아드립니다</h1>
+      <p class="sub">421개 실재고 중 내 조건에 딱 맞는 조립PC만<br>골라서 바로 추천해 드립니다.</p>
+
+      <button class="wizard-cta-big">
+        🔥 용도별 맞춤 PC 추천 받기
+      </button>
+      <div class="wizard-cta-sub">평균 40초 · 용도·예산·디자인 3가지만 선택</div>
+
+      <!-- 빠른 진입 -->
+      <div class="after-quick-label">또는 바로 시작하기</div>
+      <div class="after-quick-row">
+        <span class="after-quick-chip">💼 사무용</span>
+        <span class="after-quick-chip">🎬 영상편집</span>
+        <span class="after-quick-chip">🤖 AI·LLM</span>
+        <span class="after-quick-chip">🎮 게이밍</span>
+      </div>
+      <div class="after-quick-row">
+        <span class="after-quick-chip">⚡ 리그오브레전드</span>
+        <span class="after-quick-chip">🔫 배틀그라운드</span>
+        <span class="after-quick-chip">⚔️ 로스트아크</span>
+        <span class="after-quick-chip">🎯 발로란트</span>
+      </div>
+    </div>
+
+    <!-- 신뢰 지표 — 한 줄로 간결하게 -->
+    <div class="after-trust">
+      <div class="trust-item"><div class="trust-num">421</div><div class="trust-label">재고 보유 제품</div></div>
+      <div class="trust-item"><div class="trust-num">6H</div><div class="trust-label">실시간 갱신</div></div>
+      <div class="trust-item"><div class="trust-num">100%</div><div class="trust-label">재고 있는 제품만</div></div>
+      <div class="trust-item"><div class="trust-num">1년</div><div class="trust-label">무상 A/S</div></div>
+    </div>
+
+    <!-- 전체 제품 — 탭 + 가로 스크롤 미리보기 (접힌 느낌) -->
+    <div class="after-catalog-teaser">
+      <div class="change-note">💡 변경 포인트: 카탈로그 세로 나열 → 탭 선택 후 가로 스크롤로 전환. 더 보고 싶으면 "전체 보기"로 이동.</div>
+
+      <div class="catalog-teaser-header">
+        <h3>전체 추천 PC</h3>
+        <a class="catalog-link" href="#">전체 보기 →</a>
+      </div>
+
+      <!-- 카테고리 탭 -->
+      <div class="category-tabs">
+        <div class="cat-tab active">🎮 게이밍</div>
+        <div class="cat-tab">💼 사무용</div>
+        <div class="cat-tab">🎬 영상편집</div>
+        <div class="cat-tab">🤖 AI·LLM</div>
+        <div class="cat-tab">🖥️ QHD</div>
+        <div class="cat-tab">🏆 4K</div>
+        <div class="cat-tab">🎨 3D</div>
+        <div class="cat-tab">📺 방송</div>
+        <div class="cat-tab">🤍 화이트</div>
+      </div>
+
+      <!-- 선택된 탭의 제품 — 가로 스크롤 -->
+      <div class="preview-cards">
+        <div class="preview-card"><div class="preview-card-img">🖥️</div><div class="preview-card-body"><p>R5 7500 + RTX 5060</p><div class="preview-card-price">221만 원</div></div></div>
+        <div class="preview-card"><div class="preview-card-img">🖥️</div><div class="preview-card-body"><p>i5-14400F + RTX 5060</p><div class="preview-card-price">189만 원</div></div></div>
+        <div class="preview-card"><div class="preview-card-img">🖥️</div><div class="preview-card-body"><p>R7 7700X + RTX 5070</p><div class="preview-card-price">298만 원</div></div></div>
+        <div class="preview-card"><div class="preview-card-img">🖥️</div><div class="preview-card-body"><p>R9 9950X3D + RTX 5090</p><div class="preview-card-price">661만 원</div></div></div>
+        <div class="preview-card"><div class="preview-card-img">🖥️</div><div class="preview-card-body"><p>R9 9600 + RTX 5060</p><div class="preview-card-price">232만 원</div></div></div>
+      </div>
+
+      <a class="view-all-btn" href="#">게이밍 PC 전체 323개 보기 →</a>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- 높이 비교 시각화 -->
+<div class="height-viz">
+  <div style="font-size:0.78rem;font-weight:800;color:var(--text-secondary);margin-right:0.5rem;align-self:center">페이지 높이 비교</div>
+  <div class="height-bar-wrap">
+    <div class="height-bar current">현재</div>
+    <div class="height-bar-label">현재</div>
+    <div class="height-bar-val">~12,800px</div>
+  </div>
+  <div class="height-bar-wrap">
+    <div class="height-bar new">새 구조</div>
+    <div class="height-bar-label">새 구조</div>
+    <div class="height-bar-val">~3,200px</div>
+  </div>
+  <div style="font-size:0.72rem;color:var(--accent);font-weight:700;align-self:center;margin-left:0.5rem">75% 감소 예상</div>
+</div>
+
+</body>
+</html>

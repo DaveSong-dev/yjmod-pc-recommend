@@ -542,13 +542,19 @@ function initFilters() {
       if (key === 'installment') value = parseInt(value, 10);
 
       const isActive = btn.classList.contains('filter-active');
+      // 같은 key의 모든 버튼(퀵필터 행 + 탭 패널 내 중복) 해제
       document.querySelectorAll(`.filter-btn[data-filter-key="${key}"]`).forEach(b => {
         b.classList.remove('filter-active');
       });
 
       if (!isActive) {
-        btn.classList.add('filter-active');
+        // 동일 key+value를 가진 버튼 모두 활성화 (퀵필터 ↔ 탭 동기화)
+        document.querySelectorAll(`.filter-btn[data-filter-key="${key}"][data-filter-value="${String(value)}"]`).forEach(b => {
+          b.classList.add('filter-active');
+        });
         filterState[key] = value;
+        // priceRange 변경 시 priceMax 초기화 (위자드 예산과 충돌 방지)
+        if (key === 'priceRange') filterState.priceMax = null;
       } else {
         filterState[key] = null;
       }

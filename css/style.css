@@ -1929,3 +1929,72 @@ footer::before {
     .detail-drawer { height: 92vh; }
   }
 }
+
+/* ─── 예산 퀵필터 행 ─────────────────────────────────── */
+.price-quick-row {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0 0.625rem;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 0.875rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.price-quick-row::-webkit-scrollbar { display: none; }
+
+.price-quick-label {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.price-quick-btns {
+  display: flex;
+  gap: 0.375rem;
+  flex-shrink: 0;
+}
+
+.price-quick-btn {
+  font-size: 0.72rem !important;
+  padding: 0.3rem 0.6rem !important;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* 모바일: 퀵필터 버튼 터치 영역 보장 */
+@media (max-width: 768px) {
+  .price-quick-btn {
+    min-height: 36px !important;
+    font-size: 0.7rem !important;
+    padding: 0.25rem 0.55rem !important;
+  }
+}
+
+/* ─── 위자드 예산 직접 입력 스타일 ──────────────────── */
+.budget-custom-input {
+  /* 스피너 제거 (크로스 브라우저) */
+  -moz-appearance: textfield;
+}
+.budget-custom-input::-webkit-outer-spin-button,
+.budget-custom-input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* 용도별 탭 모바일 구분선 */
+@media (max-width: 768px) {
+  .filter-group--sep {
+    border-left: 1px solid rgba(255,255,255,0.1);
+    padding-left: 0.375rem;
+    margin-left: 0.125rem;
+  }
+  .filter-group-label {
+    display: none; /* 모바일에서 라벨 숨김, 구분선으로 대체 */
+  }
+}
