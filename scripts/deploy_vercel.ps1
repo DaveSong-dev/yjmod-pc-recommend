@@ -29,7 +29,10 @@ if (-not (Get-Command vercel -ErrorAction SilentlyContinue)) {
 }
 
 Invoke-Step "[2/4] Deploy root project to Vercel production" {
+  # VERCEL_NO_UPDATE=1 suppresses the "upgrade CLI?" interactive prompt
+  $env:VERCEL_NO_UPDATE = "1"
   vercel --prod --yes --scope $scope
+  $env:VERCEL_NO_UPDATE = ""
 }
 
 Start-Sleep -Seconds 8
