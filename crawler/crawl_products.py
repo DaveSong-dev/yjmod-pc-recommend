@@ -44,7 +44,7 @@ from config import (
 )
 
 # 상세 페이지 파싱 병렬 워커 수 (Session은 워커 스레드당 1개, thread-local)
-MAX_WORKERS = 4
+MAX_WORKERS = 8
 BATCH_SIZE = 50
 
 _detail_progress_lock = threading.Lock()

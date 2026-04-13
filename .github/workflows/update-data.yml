@@ -28,7 +28,7 @@ jobs:
   crawl-and-update:
     name: 크롤링 및 데이터 갱신
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 90
 
     permissions:
       contents: write   # 커밋 + 푸시 권한
@@ -118,9 +118,10 @@ jobs:
             git diff --stat data/
           fi
 
-      # ─── 10. 데이터·빌드 커밋 & 푸시 (Vercel 자동 배포 유발) ───
+      # ─── 10. 데이터·빌드 커밋 & 푸시 ───────────────────────────
       - name: 데이터·빌드 커밋 및 푸시
         if: steps.check_changes.outputs.changed == 'true'
+        id: push_data
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -130,15 +131,26 @@ jobs:
           git commit -m "data: 자동 갱신 - ${TIMESTAMP}"
 
           git push origin HEAD
-          echo "✅ 데이터·빌드 푸시 완료 (Vercel 자동 배포): ${TIMESTAMP}"
+          echo "pushed=true" >> $GITHUB_OUTPUT
+          echo "✅ 데이터·빌드 푸시 완료: ${TIMESTAMP}"
 
-      # ─── 11. 변경 없을 때 알림 ──────────────────────────────
+      # ─── 11. Vercel 프로덕션 배포 (VERCEL_TOKEN 시크릿 설정 시 자동 실행) ───
+      - name: Vercel 프로덕션 배포
+        if: steps.push_data.outputs.pushed == 'true' && secrets.VERCEL_TOKEN != ''
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npm install -g vercel
+          vercel --prod --yes --token "$VERCEL_TOKEN" --scope davesong-devs-projects
+          echo "✅ Vercel 배포 완료"
+
+      # ─── 12. 변경 없을 때 알림 ──────────────────────────────
       - name: 변경사항 없음 알림
         if: steps.check_changes.outputs.changed == 'false'
         run: |
           echo "ℹ️ 데이터 변경사항이 없습니다. 커밋 생략."
 
-      # ─── 12. 실행 요약 ──────────────────────────────────────
+      # ─── 13. 실행 요약 ──────────────────────────────────────
       - name: 실행 결과 요약
         if: always()
         run: |
