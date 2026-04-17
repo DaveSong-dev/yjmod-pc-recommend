@@ -1497,9 +1497,20 @@ def main(category_phase_limit=None):
     }
     out_path = Path(OUTPUT_PRODUCTS)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    with open(out_path, "w", encoding="utf-8") as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f"[저장 완료] {out_path} ({len(products_list)}개)")
+    # Atomic write: 임시 파일에 먼저 쓰고 성공 시 교체 (중간 크래시로 인한 파일 손상 방지)
+    tmp_path = out_path.with_suffix(".tmp")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(output, f, ensure_ascii=False, indent=2)
+        # 쓰기 완료 후 유효성 검사
+        with open(tmp_path, "r", encoding="utf-8") as f:
+            json.load(f)
+        tmp_path.replace(out_path)
+        print(f"[저장 완료] {out_path} ({len(products_list)}개)")
+    except Exception as e:
+        if tmp_path.exists():
+            tmp_path.unlink()
+        raise RuntimeError(f"[ERROR] pc_data.json 저장 실패: {e}") from e
 
 
 if __name__ == "__main__":

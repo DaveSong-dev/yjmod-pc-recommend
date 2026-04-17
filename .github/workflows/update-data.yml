@@ -63,6 +63,7 @@ jobs:
 
       # ─── 5. 제품 크롤러 실행 ────────────────────────────────
       - name: 영재컴퓨터 제품 데이터 크롤링
+        id: crawl_products
         if: ${{ github.event.inputs.skip_products != 'true' }}
         working-directory: crawler
         env:
@@ -74,8 +75,16 @@ jobs:
           echo "===== 제품 크롤러 완료 ====="
         continue-on-error: true  # 실패해도 이전 데이터 유지
 
+      # ─── 5-1. 제품 크롤러 실패 기록 ───────────────────────────
+      - name: 제품 크롤러 실패 감지
+        if: steps.crawl_products.outcome == 'failure'
+        run: |
+          echo "crawl_failed=true" >> $GITHUB_ENV
+          echo "⚠️ 제품 크롤러가 실패했습니다. 이전 데이터를 유지합니다."
+
       # ─── 6. 카페 출고사진 크롤러 실행 ───────────────────────
       - name: 네이버 카페 출고사진 크롤링
+        id: crawl_cafe
         if: ${{ github.event.inputs.skip_cafe != 'true' }}
         working-directory: crawler
         env:
@@ -162,10 +171,30 @@ jobs:
 
           if [ -f data/pc_data.json ]; then
             PRODUCT_COUNT=$(python3 -c "import json; d=json.load(open('data/pc_data.json')); print(len(d.get('products', [])))" 2>/dev/null || echo "?")
-            echo "- **제품 수**: ${PRODUCT_COUNT}개" >> $GITHUB_STEP_SUMMARY
+            VALID=$(python3 -c "import json; json.load(open('data/pc_data.json')); print('✅ 정상')" 2>/dev/null || echo "❌ 손상")
+            echo "- **제품 수**: ${PRODUCT_COUNT}개 (${VALID})" >> $GITHUB_STEP_SUMMARY
           fi
 
           if [ -f data/cafe_posts.json ]; then
             POST_COUNT=$(python3 -c "import json; d=json.load(open('data/cafe_posts.json')); print(len(d.get('posts', [])))" 2>/dev/null || echo "?")
             echo "- **카페 게시글**: ${POST_COUNT}개" >> $GITHUB_STEP_SUMMARY
           fi
+
+          if [ "${{ steps.crawl_products.outcome }}" = "failure" ]; then
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "⚠️ **제품 크롤러 실패** — 이전 데이터 유지됨" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          if [ "${{ steps.crawl_cafe.outcome }}" = "failure" ]; then
+            echo "⚠️ **카페 크롤러 실패** — 이전 데이터 유지됨" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # ─── 14. 워크플로우 실패 알림 ──────────────────────────────
+      - name: 워크플로우 실패 알림
+        if: failure()
+        run: |
+          echo "❌ 워크플로우 실패"
+          echo "실패 시간: $(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')"
+          echo "실패 단계는 위 로그를 확인하세요."
+          echo "GitHub Actions URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          exit 1

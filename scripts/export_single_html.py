@@ -17,6 +17,24 @@ APP_LOADER_RE = re.compile(
 )
 
 
+def validate_data_files(root: Path, data_files: list[str]) -> None:
+    """빌드 전 필수 데이터 파일 JSON 유효성 검사. 손상된 파일 발견 시 즉시 종료."""
+    critical_files = ["pc_data.json"]  # 이 파일이 손상되면 빌드 의미 없음
+    for filename in critical_files:
+        path = root / "data" / filename
+        if not path.exists():
+            print(f"[WARN] {filename} 없음 — 건너뜀", file=sys.stderr)
+            continue
+        try:
+            data = json.loads(path.read_text(encoding="utf-8"))
+            product_count = len(data.get("products", []))
+            print(f"[OK] {filename} 유효 ({product_count}개 상품)")
+        except json.JSONDecodeError as e:
+            print(f"[FATAL] {filename} JSON 손상: {e}", file=sys.stderr)
+            print(f"[FATAL] 빌드를 중단합니다. 손상된 파일로 배포하지 않도록 합니다.", file=sys.stderr)
+            sys.exit(1)
+
+
 def build_embedded_map(root: Path, data_files: list[str], reco_files: list[str] | None) -> dict:
     embedded: dict = {}
     for filename in data_files:
@@ -154,6 +172,9 @@ def main() -> None:
         "reco/v2.0.0/feed.json",
         "reco/v2.0.0/consult.json",
     ]
+
+    # 빌드 전 필수 데이터 파일 유효성 검사
+    validate_data_files(root, data_files)
 
     entry = root / "js" / "app.js"
     shell = sys.platform == "win32"
