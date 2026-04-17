@@ -44,8 +44,8 @@ from config import (
 )
 
 # 상세 페이지 파싱 병렬 워커 수 (Session은 워커 스레드당 1개, thread-local)
-MAX_WORKERS = 8
-BATCH_SIZE = 50
+MAX_WORKERS = 3   # 서버 부하 방지: 동시 요청 수 제한 (8→3)
+BATCH_SIZE = 30   # 배치 크기 축소 (50→30)
 
 _detail_progress_lock = threading.Lock()
 _thread_local = threading.local()
@@ -278,6 +278,11 @@ def run_parallel_detail_fetch(pairs, all_products, label=""):
                     d = done[0]
                     if d % 25 == 0 or d >= total:
                         safe_print(f"[진행]{tag} {d}/{total}")
+
+            # 배치 간 딜레이: 서버 부하 분산 (배치 완료 후 5초 대기)
+            if start + BATCH_SIZE < total:
+                safe_print(f"[INFO] 배치 간 대기 5초 (서버 부하 방지)")
+                time.sleep(5.0)
 
 
 def parse_list_targets_from_html(html):

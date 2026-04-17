@@ -1,9 +1,10 @@
 name: 데이터 자동 갱신 (6시간 주기)
 
 on:
-  # 6시간마다 자동 실행 (UTC 기준 0, 6, 12, 18시 → KST 9, 15, 21, 3시)
+  # 12시간마다 자동 실행 (UTC 기준 0, 12시 → KST 9시, 21시)
+  # 서버 트래픽 절감을 위해 6시간→12시간으로 조정
   schedule:
-    - cron: '0 0,6,12,18 * * *'
+    - cron: '0 0,12 * * *'
 
   # 수동 실행 (GitHub Actions 탭에서 "Run workflow" 클릭)
   workflow_dispatch:
