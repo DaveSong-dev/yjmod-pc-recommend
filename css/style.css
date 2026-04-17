@@ -48,7 +48,7 @@ body {
   background-color: var(--bg);
   color: var(--text-primary);
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip; /* hidden → clip: body 밖 넘침은 막되 자식 가로스크롤(탭바 등)은 허용 */
   margin: 0;
   padding: 0;
 }
@@ -847,9 +847,9 @@ body.filter-compact-mode {
     height: 3.5rem; /* 56px */
   }
 
-  /* ── 전체 레이아웃: 가로 스크롤 완전 제거 ── */
+  /* ── 전체 레이아웃: 가로 스크롤 완전 제거 (clip: 자식 스크롤은 유지) ── */
   body {
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   /* ── 히어로 ── */

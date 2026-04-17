@@ -624,18 +624,95 @@ const GROUPS = [
 
 const CARDS_PER_GROUP = 3;
 
+/**
+ * 스펙 기반 best_for_tags 추론 (DB에 태그가 없을 때 폴백)
+ * GPU 모델명 + 가격 + usage로 카테고리를 자동 판별
+ */
+function inferBestForTags(product) {
+  const gpu   = (product.specs?.gpu || product.specs?.gpu_short || '').toLowerCase();
+  const price = product.price || 0;
+  const usage = product.categories?.usage || [];
+  const isWhite = product.tags?.design === 'white' ||
+                  (product.specs?.case || '').includes('화이트');
+
+  const tags = [];
+
+  // 4K 게이밍: 최상위 GPU (RTX 5090, 5080, 4090, 4080)
+  if (/rtx\s*5090|rtx\s*5080|rtx\s*4090|rtx\s*4080/.test(gpu)) {
+    tags.push('4K 게이밍');
+  }
+
+  // QHD 게이밍: 상위 GPU (RTX 5070 Ti, 5070, 4070 Ti, RX 9070 XT)
+  if (/rtx\s*5070|rtx\s*4070|rx\s*9070/.test(gpu) && !tags.includes('4K 게이밍')) {
+    tags.push('QHD 게이밍');
+  }
+
+  // AI 공부용: AI 용도이고 비교적 저렴한 구성 (< 300만)
+  if (usage.includes('AI/딥러닝') && price < 3000000) {
+    tags.push('AI 공부용');
+  }
+
+  // 로컬 LLM 입문: AI 용도이고 RTX 5070 이상 또는 가격 300만 이상
+  if (usage.includes('AI/딥러닝') && (price >= 3000000 || /rtx\s*5070|rtx\s*5080|rtx\s*5090/.test(gpu))) {
+    tags.push('로컬 LLM 입문');
+  }
+
+  // 화이트 감성: 화이트 케이스
+  if (isWhite) {
+    tags.push('화이트 감성');
+  }
+
+  return tags;
+}
+
+/**
+ * 각 제품의 primary 그룹 우선순위 결정
+ * 여러 usage 태그를 가진 제품은 가장 특화된 그룹에 우선 배치
+ * 우선순위(낮을수록 높음): 영상편집 > 3D 모델링 > 방송/스트리밍 > AI/딥러닝 > 사무/디자인 > 게이밍
+ */
+const USAGE_PRIORITY = {
+  '영상편집':    1,
+  '3D 모델링':   2,
+  '방송/스트리밍': 3,
+  'AI/딥러닝':   4,
+  '사무/디자인':  5,
+  '게이밍':      6,
+};
+
+function getPrimaryUsage(product) {
+  const usages = product.categories?.usage || [];
+  if (usages.length === 0) return null;
+  return usages.slice().sort((a, b) =>
+    (USAGE_PRIORITY[a] || 99) - (USAGE_PRIORITY[b] || 99)
+  )[0];
+}
+
 function collectGroupProducts(group, allProducts) {
   if (group.key === 'installment') {
     return allProducts.filter(p => (p.installment_months || 0) === group.value);
   }
+
   if (group.key === 'bestFor') {
-    return allProducts.filter(p => p.v2?.best_for_tags?.includes(group.value));
+    // DB 태그 우선, 없으면 스펙 기반 추론 태그로 폴백
+    const matched = allProducts.filter(p => {
+      const dbTags   = p.v2?.best_for_tags || p.best_for_tags || [];
+      const inferred = inferBestForTags(p);
+      return dbTags.includes(group.value) || inferred.includes(group.value);
+    });
+    // 4K/QHD 게이밍은 가격 내림차순 정렬 (고사양 먼저)
+    if (group.value === '4K 게이밍' || group.value === 'QHD 게이밍') {
+      matched.sort((a, b) => (b.price || 0) - (a.price || 0));
+    }
+    return matched;
   }
-  return allProducts.filter(
-    p =>
-      (p.categories?.usage || []).includes(group.value) &&
-      !(p.installment_months > 0 && group.value === '게이밍')
-  );
+
+  // usage 기반 그룹: primary usage가 이 그룹인 제품을 앞에 배치 (중복 최소화)
+  const primary   = allProducts.filter(p => getPrimaryUsage(p) === group.value &&
+                                            !(p.installment_months > 0 && group.value === '게이밍'));
+  const secondary = allProducts.filter(p => getPrimaryUsage(p) !== group.value &&
+                                            (p.categories?.usage || []).includes(group.value) &&
+                                            !(p.installment_months > 0 && group.value === '게이밍'));
+  return [...primary, ...secondary];
 }
 
 /**
