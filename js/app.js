@@ -913,7 +913,7 @@ function updateLastUpdatedTime(isoString) {
 }
 
 /**
- * 6시간 주기 데이터 폴링 — raw 재로드 후 reco re-merge
+ * 12시간 주기 데이터 폴링 — raw 재로드 후 reco re-merge
  */
 function initUpdateTickers() {
   if (state.updateTickersBound) return;
