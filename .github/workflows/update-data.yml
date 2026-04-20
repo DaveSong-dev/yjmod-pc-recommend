@@ -101,20 +101,28 @@ jobs:
           echo "===== 카페 크롤러 완료 ====="
         continue-on-error: true  # 실패해도 이전 데이터 유지
 
-      # ─── 7. Node 설치 (esbuild용) ─────────────────────────────
+      # ─── 7. 제품 분류 엔진 실행 (게임 태그 + best_for_tags) ──────
+      - name: 제품 분류 엔진 실행
+        run: |
+          echo "===== 분류 엔진 시작 ====="
+          python3 scripts/classify_products.py
+          echo "===== 분류 엔진 완료 ====="
+        continue-on-error: true  # 분류 실패해도 기존 데이터 유지
+
+      # ─── 8. Node 설치 (esbuild용) ─────────────────────────────
       - name: Node.js 설치
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # ─── 8. 단일 HTML 빌드 (배포용) ──────────────────────────
+      # ─── 9. 단일 HTML 빌드 (배포용) ──────────────────────────
       - name: 단일 HTML 빌드
         run: |
           npm install -g esbuild
           python3 scripts/export_single_html.py
           cp vercel.json build/
 
-      # ─── 9. 변경사항 확인 ───────────────────────────────────
+      # ─── 10. 변경사항 확인 ──────────────────────────────────
       - name: 변경사항 확인
         id: check_changes
         run: |
