@@ -844,21 +844,22 @@ def extract_game_fps_map(name, page_text):
 
 # ─── 게임 태그 추출 ────────────────────────────────────────────
 def extract_game_tags(name, detail_text, category_games, full_page_text=None):
+    """
+    게임 태그 추출.
+    카테고리 기반 태그를 1순위로 사용하고, 제품명에서 게임 고유 키워드만 보강.
+    - FPS 섹션 기반 확장 제거: 상세페이지에 여러 게임 FPS가 나열되면 모든 게임이 태그됨
+    - "고사양", "스팀" 같은 일반 단어 기반 확장 제거: GAME_KEYWORD_MAP에서 이미 제외
+    - 기본 게임 목록 일괄 부여 제거: 전 게임이 동일하게 붙어 필터 무의미해짐
+    """
     tags = set(category_games)
-    combined = (name + " " + detail_text).upper()
+
+    # 제품명에서만 키워드 검색 (상세 설명 제외 — 오탐 최소화)
+    name_upper = name.upper()
     for game, keywords in GAME_KEYWORD_MAP.items():
         for kw in keywords:
-            if kw.upper() in combined:
+            if kw.upper() in name_upper:
                 tags.add(game)
-    # 상세페이지 전체에서 FPS/프레임 문맥이 있는 게임 추가 (필터에서 중복 노출)
-    fps_text = full_page_text if full_page_text is not None else detail_text
-    tags |= extract_games_from_fps_section(fps_text)
-    # 게이밍 PC면 기본 게임 목록 부여
-    if not tags and any(
-        kw in combined
-        for kw in ["게임", "GAMING", "GAME", "RTX", "RX 7", "RX 9"]
-    ):
-        tags = {"리그오브레전드", "배틀그라운드", "로스트아크", "발로란트", "오버워치2"}
+
     return sorted(tags)
 
 

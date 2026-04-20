@@ -243,8 +243,7 @@ function normalizeProduct(product) {
   (product.categories?.games || []).forEach(g => {
     tags.games.add(resolveGameToCanonical(g));
   });
-  // categories.games에 누락이 있을 수 있어, 제목 기반은 "최후 fallback"으로만 보강
-  // (안전 별칭만 적용해 오검출을 최소화)
+  // 제목 기반 fallback (안전 별칭만 적용해 오검출을 최소화)
   const fallbackText = `${product.name || ''} ${product.subtitle || ''}`.toLowerCase();
   for (const [canonical, aliases] of Object.entries(SAFE_GAME_FALLBACK_ALIASES)) {
     if (aliases.some(a => fallbackText.includes(String(a).toLowerCase()))) {
@@ -280,10 +279,27 @@ function filterProducts(products, filters = filterState) {
 
     if ((filters.game || filters.usage === '게이밍') && isIntegratedGpu(product)) return false;
 
-    // 게임 필터: tags.games 기반 (alias 정규화)
+    // 게임 필터: 게임별 권장 GPU 티어로 필터링
+    // (크롤러 게임 태그가 오탐이 많아 티어 기반으로 대체)
     if (filters.game) {
       const canon = resolveGameToCanonical(filters.game);
-      if (!tags.games.has(canon)) return false;
+      const tier = product.categories?.tier || '';
+
+      // 게임별 권장 티어 (낮은 사양 게임은 가성비, 고사양 게임은 퍼포먼스/하이엔드만)
+      const GAME_TIER_FILTER = {
+        '리그오브레전드': ['가성비(FHD)'],
+        '발로란트':       ['가성비(FHD)'],
+        '오버워치2':      ['가성비(FHD)'],
+        '아이온2':        ['가성비(FHD)', '퍼포먼스(QHD)'],
+        '배틀그라운드':   ['가성비(FHD)', '퍼포먼스(QHD)'],
+        '로스트아크':     ['가성비(FHD)', '퍼포먼스(QHD)'],
+        '스팀 AAA급 게임': ['퍼포먼스(QHD)', '하이엔드(4K)'],
+      };
+
+      const allowedTiers = GAME_TIER_FILTER[canon];
+      if (allowedTiers && !allowedTiers.includes(tier)) return false;
+      // 매핑 없는 게임은 기존 tags.games 방식 fallback
+      if (!allowedTiers && !tags.games.has(canon)) return false;
     }
 
     if (filters.tier && product.categories.tier !== filters.tier) return false;
