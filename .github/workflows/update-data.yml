@@ -146,10 +146,14 @@ jobs:
 
       # ─── 11. Vercel 프로덕션 배포 (VERCEL_TOKEN 시크릿 설정 시 자동 실행) ───
       - name: Vercel 프로덕션 배포
-        if: steps.push_data.outputs.pushed == 'true' && secrets.VERCEL_TOKEN != ''
+        if: steps.push_data.outputs.pushed == 'true'
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
+          if [ -z "$VERCEL_TOKEN" ]; then
+            echo "VERCEL_TOKEN 미설정 — Vercel 배포 건너뜀"
+            exit 0
+          fi
           npm install -g vercel
           vercel --prod --yes --token "$VERCEL_TOKEN" --scope davesong-devs-projects
           echo "✅ Vercel 배포 완료"
