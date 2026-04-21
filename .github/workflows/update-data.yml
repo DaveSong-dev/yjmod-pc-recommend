@@ -154,7 +154,7 @@ jobs:
 
       # ─── 11. Vercel 프로덕션 배포 (VERCEL_TOKEN 시크릿 설정 시 자동 실행) ───
       - name: Vercel 프로덕션 배포
-        if: steps.push_data.outputs.pushed == 'true'
+        if: "!cancelled()"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: |
