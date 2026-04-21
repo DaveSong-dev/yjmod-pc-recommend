@@ -693,11 +693,14 @@ function collectGroupProducts(group, allProducts) {
   }
 
   if (group.key === 'bestFor') {
-    // DB 태그 우선, 없으면 스펙 기반 추론 태그로 폴백
+    // best_for_tags가 배열로 설정된 경우(빈 배열 포함) → DB 태그만 사용
+    // best_for_tags가 null/undefined → 아직 미분류 → 스펙 기반 추론 폴백
     const matched = allProducts.filter(p => {
-      const dbTags   = p.v2?.best_for_tags || p.best_for_tags || [];
-      const inferred = inferBestForTags(p);
-      return dbTags.includes(group.value) || inferred.includes(group.value);
+      const dbTags = p.best_for_tags ?? p.v2?.best_for_tags ?? null;
+      if (Array.isArray(dbTags)) {
+        return dbTags.includes(group.value);   // DB 태그 단독 사용 (오염 방지)
+      }
+      return inferBestForTags(p).includes(group.value);  // 미분류 제품만 추론
     });
     // 4K/QHD 게이밍은 가격 내림차순 정렬 (고사양 먼저)
     if (group.value === '4K 게이밍' || group.value === 'QHD 게이밍') {

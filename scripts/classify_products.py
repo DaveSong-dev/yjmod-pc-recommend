@@ -1,17 +1,21 @@
 """
-classify_products.py - 제품 분류 엔진 v2
+classify_products.py - 제품 분류 엔진 v3
 fps_reference.json + GPU 스펙으로 game_tags, best_for_tags를 재생성합니다.
+
+핵심 원칙:
+  - 티어는 GPU 모델에서 직접 도출 (크롤러의 잘못된 티어 수정)
+  - best_for_tags는 항상 설정 (빈 배열 포함) → render.js 추론 로직 비활성화
+  - AI+게이밍 중복 usage 제품은 primaryUsage 기반으로 태그 결정
 
 게임 태그 전략:
   - QHD를 기준 해상도로 사용 (전 등급 공통)
   - 게임별 차별화된 FPS 임계값으로 실제 추천 가능한 게임만 태깅
-  - 결과: 가성비 PC는 가벼운 게임만, 고사양 PC는 무거운 게임까지
 
 best_for_tags 전략:
-  - 4K 게이밍: 하이엔드 티어 + 모든 게임 4K 60fps 이상
-  - QHD 게이밍: 퍼포먼스 티어 + 모든 게임 QHD 60fps 이상
-  - AI 공부용: AI/딥러닝 용도 + 가격 350만 이하
-  - 로컬 LLM 입문: VRAM 24GB+ 또는 AI 용도 고사양
+  - 4K 게이밍: GPU 파생 하이엔드 + 게이밍 용도 + 모든 게임 4K 60fps
+  - QHD 게이밍: GPU 파생 퍼포먼스 + 게이밍 용도 + 모든 게임 QHD 60fps
+  - AI 공부용: AI 용도이고 비게이밍 primary + 가격 350만 이하
+  - 로컬 LLM 입문: VRAM 24GB+
   - 화이트 감성: 화이트 케이스
 """
 
@@ -36,6 +40,8 @@ GPU_KEY_NORMALIZE = {
     "RTX 3060 TI":          "RTX 3060 Ti",
     "RTX5060":              "RTX 5060",
     "RTX5070":              "RTX 5070",
+    "RTX 3090 TI":          "RTX 3090 Ti",
+    "RTX 2060 SUPER":       "RTX 2060 Super",
     "RX 9070XT":            "RX 9070 XT",
     "RX9070XT":             "RX 9070 XT",
     "RX 7900 XTX":          "RX 7900 XT",          # XTX → XT 근사
@@ -53,6 +59,8 @@ GPU_FALLBACK = {
     "RX 9060":            "RX 7600",
     "RX 9070":            "RX 7800 XT",        # 9070 ≈ 7800 XT~9070 XT 사이
     "RTX 6000":           "RTX 4080",          # RTX 6000 Ada ≈ 4080 급
+    "RTX 2060 Super":     "RX 7600",           # 구형 가성비
+    "RTX 3090 Ti":        "RTX 4090",          # 구형 하이엔드
     # 내장 그래픽 / 전문가 카드 → None (게임 태그 없음)
     "내장 그래픽":        None,
     "AMD 라데온 AI PRO":  None,
@@ -95,6 +103,37 @@ GPU_VRAM = {
     "RTX A100":             80,
     "AMD 라데온 AI PRO":    32,
 }
+
+# ─── GPU 기반 티어 직접 도출 ─────────────────────────────────────────
+# crawler의 잘못된 티어 할당(ex: RTX 5070 Ti → 퍼포먼스) 수정용
+GPU_TIER_MAP = {
+    "가성비(FHD)": {
+        "RTX 4060", "RTX 4060 Ti", "RTX 5060", "RTX 5050",
+        "RX 7600", "RX 7700 XT", "GTX 1660", "GTX 1660 SUPER",
+        "RX 6600", "RX 6700 XT", "RTX 3050",
+        "RTX 2060 SUPER",   # 구형 mid-range (fallback: RX 7600급)
+    },
+    "퍼포먼스(QHD)": {
+        "RTX 4070", "RTX 4070 Super", "RTX 5060 Ti", "RTX 5070",
+        "RX 7800 XT", "RX 9070", "RX 9070 XT",
+        "RTX 3060", "RTX 3060 Ti",   # 구형 퍼포먼스급
+    },
+    "하이엔드(4K)": {
+        "RTX 4070 Ti", "RTX 4070 Ti Super",
+        "RTX 4080", "RTX 4080 Super", "RTX 4090",
+        "RTX 5070 Ti", "RTX 5080", "RTX 5090",
+        "RX 7900 XT", "RX 7900 XTX",
+        "RTX 6000", "RTX 3090 Ti",   # 전문가/구형 하이엔드
+    },
+}
+
+def get_tier_from_gpu(gpu_key: str) -> str | None:
+    """GPU 모델에서 직접 티어를 도출 (crawler 분류 무시)"""
+    normalized = normalize_gpu_key(gpu_key)
+    for tier, gpu_set in GPU_TIER_MAP.items():
+        if normalized in gpu_set:
+            return tier
+    return None
 
 # ─── 게임 태그 임계값 (QHD 기준 FPS) ────────────────────────────────
 # 가벼운 경쟁 게임: 100fps → 거의 모든 GPU
@@ -180,38 +219,49 @@ def classify_game_tags(product: dict, fps_data: dict) -> list[str]:
 
 def classify_best_for_tags(product: dict, fps_data: dict) -> list[str]:
     """
-    GPU 티어 + VRAM + 용도 + 케이스 색상으로 best_for_tags 생성.
+    GPU 기반 티어 + VRAM + 용도 + 케이스 색상으로 best_for_tags 생성.
+
+    핵심: GPU에서 직접 티어를 도출 → crawler 잘못 분류(RTX 5070 Ti → 퍼포먼스) 수정
+    AI+게이밍 중복 제품: primaryUsage가 AI이면 게이밍 태그 불부여
     """
     tags = []
     gpu_key  = product.get("specs", {}).get("gpu_key", "")
     price    = product.get("price", 0)
     usage    = product.get("categories", {}).get("usage", [])
-    tier     = product.get("categories", {}).get("tier", "")
     case_col = (product.get("case_color") or "").strip()
     fps_key  = resolve_fps_key(gpu_key, fps_data)
     vram     = get_vram(gpu_key)
 
-    is_gaming = "게이밍" in usage
+    # GPU 기반 티어 도출 (crawler 티어보다 우선)
+    gpu_tier = get_tier_from_gpu(gpu_key)
 
-    # ── 4K 게이밍: 하이엔드 티어 + 모든 게임 4K 60fps+ ──────────
-    if is_gaming and tier == "하이엔드(4K)" and fps_key:
+    # primaryUsage: 영상편집 > 3D > 방송 > AI > 사무/디자인 > 게이밍
+    PRIORITY = {"영상편집": 1, "3D 모델링": 2, "방송/스트리밍": 3,
+                "AI/딥러닝": 4, "사무/디자인": 5, "게이밍": 6}
+    primary_usage = min(usage, key=lambda u: PRIORITY.get(u, 99), default="")
+
+    # 게이밍 태그는 primary usage가 게이밍일 때만 부여
+    # (AI 워크스테이션이 게이밍 카테고리에도 있어 usage=['AI/딥러닝','게이밍']인 경우 방지)
+    is_primary_gaming = (primary_usage == "게이밍")
+
+    # ── 4K 게이밍: GPU 파생 하이엔드 + 게이밍 primary + 4K 60fps ──
+    if is_primary_gaming and gpu_tier == "하이엔드(4K)" and fps_key:
         gpu_fps = fps_data[fps_key]
         if all(fps_dict.get("4K", 0) >= FPS_4K_MIN for fps_dict in gpu_fps.values()):
             tags.append("4K 게이밍")
 
-    # ── QHD 게이밍: 퍼포먼스 티어 + 모든 게임 QHD 60fps+ ────────
-    if is_gaming and tier == "퍼포먼스(QHD)" and fps_key and "4K 게이밍" not in tags:
+    # ── QHD 게이밍: GPU 파생 퍼포먼스 + 게이밍 primary + QHD 60fps ─
+    if is_primary_gaming and gpu_tier == "퍼포먼스(QHD)" and fps_key and "4K 게이밍" not in tags:
         gpu_fps = fps_data[fps_key]
         if all(fps_dict.get("QHD", 0) >= FPS_QHD_MIN for fps_dict in gpu_fps.values()):
             tags.append("QHD 게이밍")
 
-    # ── AI 공부용: AI 용도 + 350만 이하 ──────────────────────────
-    if "AI/딥러닝" in usage and price <= AI_STUDY_MAX_PRICE:
+    # ── AI 공부용: AI primary + 350만 이하 ───────────────────────
+    if "AI/딥러닝" in usage and primary_usage == "AI/딥러닝" and price <= AI_STUDY_MAX_PRICE:
         tags.append("AI 공부용")
 
-    # ── 로컬 LLM 입문: VRAM 24GB 이상 (AI/게이밍 무관) ──────────
-    # OR AI 범주이고 고가 (전문가급 AI 워크스테이션)
-    if vram >= LOCAL_LLM_MIN_VRAM or ("AI/딥러닝" in usage and price > AI_STUDY_MAX_PRICE):
+    # ── 로컬 LLM 입문: VRAM 24GB+ ────────────────────────────────
+    if vram >= LOCAL_LLM_MIN_VRAM:
         tags.append("로컬 LLM 입문")
 
     # ── 화이트 감성: 케이스 색상 화이트 ──────────────────────────
