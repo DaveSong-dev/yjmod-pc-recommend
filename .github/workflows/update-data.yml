@@ -107,7 +107,23 @@ jobs:
           echo "===== 분류 엔진 시작 ====="
           python3 scripts/classify_products.py
           echo "===== 분류 엔진 완료 ====="
-        continue-on-error: true  # 분류 실패해도 기존 데이터 유지
+
+      # ─── 7-1. best_for_tags 검증 (분류 실패 시 커밋 차단) ────────
+      - name: best_for_tags 검증
+        run: |
+          MISSING=$(python3 -c "
+          import json
+          d = json.load(open('data/pc_data.json'))
+          products = d.get('products', d) if isinstance(d, dict) else d
+          missing = sum(1 for p in products if 'best_for_tags' not in p)
+          print(missing)
+          ")
+          echo "best_for_tags 미설정 제품: ${MISSING}개"
+          if [ "$MISSING" -gt "0" ]; then
+            echo "❌ best_for_tags 미설정 제품 ${MISSING}개 — 분류 실패, 커밋 차단"
+            exit 1
+          fi
+          echo "✅ 모든 제품 best_for_tags 설정 완료"
 
       # ─── 8. Node 설치 (esbuild용) ─────────────────────────────
       - name: Node.js 설치
