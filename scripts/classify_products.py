@@ -77,7 +77,7 @@ GPU_VRAM = {
     "RTX 6000": 48, "RTX A100": 80, "AMD 라데온 AI PRO": 32,
 }
 
-# ─── 게임별 타이틀 키워드 ─────────────────────────────────────────────
+# ─── 게임별 타이틀 키워드 ────────────────────────────────────────────
 # 판매자가 직접 게임명을 언급한 경우만 해당 게임으로 분류
 GAME_TITLE_KEYWORDS = {
     "발로란트":       ["발로란트", "valorant", "발로"],
@@ -194,7 +194,7 @@ def classify_game_tags(product: dict) -> list:
     return sorted(set(tags))
 
 
-# ─── best_for_tags 분류 ───────────────────────────────────────────────
+# ─── best_for_tags 분류 ──────────────────────────────────────────────
 def classify_best_for_tags(product: dict) -> list:
     """
     타이틀 키워드 우선 + GPU 티어 폴백으로 best_for_tags 생성.

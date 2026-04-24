@@ -107,7 +107,23 @@ jobs:
           echo "===== 분류 엔진 시작 ====="
           python3 scripts/classify_products.py
           echo "===== 분류 엔진 완료 ====="
-        continue-on-error: true  # 분류 실패해도 기존 데이터 유지
+
+      # ─── 7-1. best_for_tags 검증 (분류 실패 시 커밋 차단) ────────
+      - name: best_for_tags 검증
+        run: |
+          MISSING=$(python3 -c "
+          import json
+          d = json.load(open('data/pc_data.json'))
+          products = d.get('products', d) if isinstance(d, dict) else d
+          missing = sum(1 for p in products if 'best_for_tags' not in p)
+          print(missing)
+          ")
+          echo "best_for_tags 미설정 제품: ${MISSING}개"
+          if [ "$MISSING" -gt "0" ]; then
+            echo "❌ best_for_tags 미설정 제품 ${MISSING}개 — 분류 실패, 커밋 차단"
+            exit 1
+          fi
+          echo "✅ 모든 제품 best_for_tags 설정 완료"
 
       # ─── 8. Node 설치 (esbuild용) ─────────────────────────────
       - name: Node.js 설치
@@ -144,7 +160,8 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add data/pc_data.json data/cafe_posts.json build/
+          git add data/pc_data.json data/cafe_posts.json
+          git add -f build/ || true
           TIMESTAMP=$(TZ='Asia/Seoul' date '+%Y-%m-%d %H:%M KST')
           git commit -m "data: 자동 갱신 - ${TIMESTAMP}"
 
@@ -154,16 +171,18 @@ jobs:
 
       # ─── 11. Vercel 프로덕션 배포 (VERCEL_TOKEN 시크릿 설정 시 자동 실행) ───
       - name: Vercel 프로덕션 배포
-        if: steps.push_data.outputs.pushed == 'true'
+        if: "!cancelled()"
         env:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: team_X3eWYFqphyxSVOpHc28X646G
+          VERCEL_PROJECT_ID: prj_6zumP6G6QawTzvFTAap5UfLv5UUI
         run: |
           if [ -z "$VERCEL_TOKEN" ]; then
             echo "VERCEL_TOKEN 미설정 — Vercel 배포 건너뜀"
             exit 0
           fi
           npm install -g vercel
-          vercel --prod --yes --token "$VERCEL_TOKEN" --scope davesong-devs-projects
+          vercel --prod --yes --token "$VERCEL_TOKEN"
           echo "✅ Vercel 배포 완료"
 
       # ─── 12. 변경 없을 때 알림 ──────────────────────────────
