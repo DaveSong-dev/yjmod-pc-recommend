@@ -7155,14 +7155,6 @@ footer::before {
     "4K \uD558\uC774\uC5D4\uB4DC": "\uD558\uC774\uC5D4\uB4DC(4K)"
   };
   var COLOR_KR = { white: "\uD654\uC774\uD2B8", black: "\uBE14\uB799", other: null };
-  var USAGE_TAG_NORMALIZE = {
-    "\uC0AC\uBB34\uC6A9": "\uC0AC\uBB34/\uB514\uC790\uC778",
-    "AI\xB7\uB525\uB7EC\uB2DD": "AI/\uB525\uB7EC\uB2DD",
-    "\uBC29\uC1A1\xB7\uC2A4\uD2B8\uB9AC\uBC0D": "\uBC29\uC1A1/\uC2A4\uD2B8\uB9AC\uBC0D"
-  };
-  function normalizeUsageTag(tag) {
-    return USAGE_TAG_NORMALIZE[tag] || tag;
-  }
   async function loadRecoEnrichment() {
     var _a;
     let feedPath = FALLBACK_FEED;
@@ -7205,24 +7197,18 @@ footer::before {
     return { feedMap, consultMap, version };
   }
   function enrichProduct(rawProduct, recoItem) {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c;
     if (!recoItem) {
       return { ...rawProduct, v2: null };
     }
     const enriched = { ...rawProduct };
-    const rawGames = new Set(((_a = enriched.categories) == null ? void 0 : _a.games) || []);
-    const rawUsage = new Set(((_b = enriched.categories) == null ? void 0 : _b.usage) || []);
-    (recoItem.frontend_game_tags || []).forEach((g) => rawGames.add(g));
-    (recoItem.frontend_usage_tags || []).map(normalizeUsageTag).forEach((u) => rawUsage.add(u));
     enriched.categories = {
       ...enriched.categories,
-      games: [...rawGames],
-      usage: [...rawUsage],
-      tier: SPEC_BAND_TO_TIER[recoItem.frontend_spec_band] || ((_c = enriched.categories) == null ? void 0 : _c.tier) || "",
-      price_range: recoItem.frontend_price_band || ((_d = enriched.categories) == null ? void 0 : _d.price_range) || ""
+      tier: SPEC_BAND_TO_TIER[recoItem.frontend_spec_band] || ((_a = enriched.categories) == null ? void 0 : _a.tier) || "",
+      price_range: recoItem.frontend_price_band || ((_b = enriched.categories) == null ? void 0 : _b.price_range) || ""
     };
     if (!enriched.case_color && recoItem.case_color) {
-      enriched.case_color = (_e = COLOR_KR[recoItem.case_color]) != null ? _e : null;
+      enriched.case_color = (_c = COLOR_KR[recoItem.case_color]) != null ? _c : null;
     }
     enriched.specs = { ...enriched.specs };
     if (!enriched.specs.cpu_short && recoItem.cpu_norm) {
@@ -7742,9 +7728,11 @@ footer::before {
       if (key === "installment") {
         fallbackProducts = state.products.filter((p) => (p.installment_months || 0) === Number(value));
       } else if (key === "bestFor") {
+        fallbackProducts = state.products.filter((p) => (p.best_for_tags || []).includes(String(value)));
+      } else if (key === "game") {
         fallbackProducts = state.products.filter((p) => {
-          var _a, _b;
-          return (_b = (_a = p.v2) == null ? void 0 : _a.best_for_tags) == null ? void 0 : _b.includes(String(value));
+          var _a;
+          return (((_a = p.categories) == null ? void 0 : _a.games) || []).includes(String(value));
         });
       } else {
         fallbackProducts = state.products.filter((p) => {

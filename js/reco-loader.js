@@ -90,16 +90,11 @@ export function enrichProduct(rawProduct, recoItem) {
 
   const enriched = { ...rawProduct };
 
-  // categories: reco 태그를 raw에 합산
-  const rawGames = new Set(enriched.categories?.games || []);
-  const rawUsage = new Set(enriched.categories?.usage || []);
-  (recoItem.frontend_game_tags || []).forEach(g => rawGames.add(g));
-  (recoItem.frontend_usage_tags || []).map(normalizeUsageTag).forEach(u => rawUsage.add(u));
-
+  // categories: tier/price_range만 reco로 보강. games/usage는 원본 분류 유지.
+  // frontend_game_tags, frontend_usage_tags는 v2.*에만 보존 (카드 문구·배지용).
+  // 필터는 categories.games/usage(크롤러+classify) 기준으로만 동작해야 함.
   enriched.categories = {
     ...enriched.categories,
-    games: [...rawGames],
-    usage: [...rawUsage],
     tier: SPEC_BAND_TO_TIER[recoItem.frontend_spec_band] || enriched.categories?.tier || '',
     price_range: recoItem.frontend_price_band || enriched.categories?.price_range || ''
   };
