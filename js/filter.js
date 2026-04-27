@@ -184,8 +184,12 @@ export function isInStock(product, soldoutIds = null) {
   // 썸네일 없는 상품 차단 (크롤러에서 null로 세팅된 경우)
   if (!product.thumbnail) return false;
   if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
-  // v2 enrichment가 있으면 recommendable도 교차 확인
-  if (product.v2 && product.v2.recommendable === false) return false;
+  // v2 enrichment 품절·경고 신호 — 어느 하나라도 true면 차단
+  if (product.v2) {
+    if (product.v2.recommendable === false) return false;
+    if (product.v2.raw_soldout === true) return false;
+    if (product.v2.inventory_sync_warning === true) return false;
+  }
   return true;
 }
 

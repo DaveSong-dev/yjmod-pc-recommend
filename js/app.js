@@ -511,13 +511,13 @@ function handleGroupFilter(key, value) {
 
     let fallbackProducts;
     if (key === 'installment') {
-      fallbackProducts = state.products.filter(p => (p.installment_months || 0) === Number(value));
+      fallbackProducts = state.products.filter(p => isInStock(p) && (p.installment_months || 0) === Number(value));
     } else if (key === 'bestFor') {
-      fallbackProducts = state.products.filter(p => (p.best_for_tags || []).includes(String(value)));
+      fallbackProducts = state.products.filter(p => isInStock(p) && (p.best_for_tags || []).includes(String(value)));
     } else if (key === 'game') {
-      fallbackProducts = state.products.filter(p => (p.categories?.games || []).includes(String(value)));
+      fallbackProducts = state.products.filter(p => isInStock(p) && (p.categories?.games || []).includes(String(value)));
     } else {
-      fallbackProducts = state.products.filter(p => (p.categories?.usage || []).includes(String(value)));
+      fallbackProducts = state.products.filter(p => isInStock(p) && (p.categories?.usage || []).includes(String(value)));
     }
 
     renderProductGrid(grid, fallbackProducts, getActiveSelectedGame(), state.fpsData, filterState);

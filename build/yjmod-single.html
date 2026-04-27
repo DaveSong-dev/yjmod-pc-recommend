@@ -4055,7 +4055,11 @@ footer::before {
     if (soldoutIds && soldoutIds.has(String(product.id))) return false;
     if (!product.thumbnail) return false;
     if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
-    if (product.v2 && product.v2.recommendable === false) return false;
+    if (product.v2) {
+      if (product.v2.recommendable === false) return false;
+      if (product.v2.raw_soldout === true) return false;
+      if (product.v2.inventory_sync_warning === true) return false;
+    }
     return true;
   }
   function isIntegratedGpu(product) {
@@ -7726,18 +7730,18 @@ footer::before {
       if (cardCount > 0 || hasEmptyState) return;
       let fallbackProducts;
       if (key === "installment") {
-        fallbackProducts = state.products.filter((p) => (p.installment_months || 0) === Number(value));
+        fallbackProducts = state.products.filter((p) => isInStock(p) && (p.installment_months || 0) === Number(value));
       } else if (key === "bestFor") {
-        fallbackProducts = state.products.filter((p) => (p.best_for_tags || []).includes(String(value)));
+        fallbackProducts = state.products.filter((p) => isInStock(p) && (p.best_for_tags || []).includes(String(value)));
       } else if (key === "game") {
         fallbackProducts = state.products.filter((p) => {
           var _a;
-          return (((_a = p.categories) == null ? void 0 : _a.games) || []).includes(String(value));
+          return isInStock(p) && (((_a = p.categories) == null ? void 0 : _a.games) || []).includes(String(value));
         });
       } else {
         fallbackProducts = state.products.filter((p) => {
           var _a;
-          return (((_a = p.categories) == null ? void 0 : _a.usage) || []).includes(String(value));
+          return isInStock(p) && (((_a = p.categories) == null ? void 0 : _a.usage) || []).includes(String(value));
         });
       }
       renderProductGrid(grid2, fallbackProducts, getActiveSelectedGame(), state.fpsData, filterState);
