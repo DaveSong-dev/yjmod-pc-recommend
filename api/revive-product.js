@@ -31,7 +31,7 @@ module.exports = async (req, res) => {
 
   const token = String(process.env.GH_TOKEN || '').trim();
   const repoSpec = String(process.env.GH_REPO || '').trim();
-  const branch = String(process.env.GH_BRANCH || 'main').trim();
+  const branch = String(process.env.GH_BRANCH || 'master').trim();
 
   if (!token || !repoSpec.includes('/')) {
     res.status(500).json({ error: 'GitHub env not configured' });

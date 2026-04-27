@@ -40,6 +40,7 @@ const state = {
   recoFeedMap: null,
   recoConsultMap: null,
   soldoutIds: new Set(),
+  revivedIds: new Set(),
   currentView: 'main',
   bootPromise: null,
   shellBound: false,
@@ -198,10 +199,15 @@ async function loadCatalogData({ force = false, source = 'init' } = {}) {
       state.recoConsultMap = consultMap;
 
       const soldoutIds = new Set();
+      const revivedIds = new Set();
       try {
         const soldoutLog = await fetchJson('./data/soldout_log.json');
         for (const entry of soldoutLog?.soldout ?? []) {
-          if (entry.revived !== true) soldoutIds.add(String(entry.id));
+          if (entry.revived === true) {
+            revivedIds.add(String(entry.id));
+          } else {
+            soldoutIds.add(String(entry.id));
+          }
         }
       } catch (error) {
         appLog('catalog:soldout-fallback', {
@@ -210,14 +216,15 @@ async function loadCatalogData({ force = false, source = 'init' } = {}) {
         });
       }
       state.soldoutIds = soldoutIds;
+      state.revivedIds = revivedIds;
 
       const rawFiltered = pcData.products.filter((product) =>
-        isInStock(product, soldoutIds) && isReasonableInstallmentPrice(product)
+        isInStock(product, soldoutIds, revivedIds) && isReasonableInstallmentPrice(product)
       );
 
       state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
       // v2 병합 후 재필터: raw_soldout/inventory_sync_warning 등 v2 품절 신호 반영
-      state.products = state.products.filter(p => isInStock(p, soldoutIds));
+      state.products = state.products.filter(p => isInStock(p, soldoutIds, revivedIds));
 
       // Supabase product_codes 카테고리 로드 → 각 상품에 supaCat 첨부
       try {
@@ -937,14 +944,14 @@ function initUpdateTickers() {
         state.lastUpdated = nextUpdated;
 
         const rawFiltered = pcData.products.filter(p =>
-          isInStock(p, state.soldoutIds) && isReasonableInstallmentPrice(p)
+          isInStock(p, state.soldoutIds, state.revivedIds) && isReasonableInstallmentPrice(p)
         );
 
         const feedMap = state.recoFeedMap || new Map();
         const consultMap = state.recoConsultMap || new Map();
         state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
         // v2 병합 후 재필터 (자동 갱신 경로)
-        state.products = state.products.filter(p => isInStock(p, state.soldoutIds));
+        state.products = state.products.filter(p => isInStock(p, state.soldoutIds, state.revivedIds));
         syncWizardCatalog();
 
         updateLastUpdatedTime(nextUpdated);

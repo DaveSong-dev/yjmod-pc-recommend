@@ -173,22 +173,28 @@ export const SOLD_OUT_PRODUCT_IDS = ['2741770843'];
  */
 const MIN_PC_PRICE = 500000;
 
-export function isInStock(product, soldoutIds = null) {
+export function isInStock(product, soldoutIds = null, revivedIds = null) {
   if (!product) return false;
   if (product.price_crawl_error === true) return false;
-  // raw in_stock이 source of truth (크롤러가 품절 이미 제외)
+  // raw in_stock이 source of truth — revived도 이 조건은 우회 불가
   if (product.in_stock !== true) return false;
+  // 하드코딩 품절 목록 — 우회 불가
   if (SOLD_OUT_PRODUCT_IDS.includes(product.id)) return false;
-  // soldout_log.json 기반 추가 차단
-  if (soldoutIds && soldoutIds.has(String(product.id))) return false;
-  // 썸네일 없는 상품 차단 (크롤러에서 null로 세팅된 경우)
+  // soldout_log.json 기반 차단 — admin revived면 우회
+  const isRevived = revivedIds != null && revivedIds.has(String(product.id));
+  if (!isRevived && soldoutIds && soldoutIds.has(String(product.id))) return false;
+  // 품질 차단 (썸네일, 가격) — revived여도 우회 불가
   if (!product.thumbnail) return false;
   if (product.price > 0 && product.price < MIN_PC_PRICE && !product.installment_months) return false;
-  // v2 enrichment 품절·경고 신호 — 어느 하나라도 true면 차단
+  // v2 enrichment 신호
   if (product.v2) {
+    // recommendable=false는 품질 판단이므로 우회 불가
     if (product.v2.recommendable === false) return false;
-    if (product.v2.raw_soldout === true) return false;
-    if (product.v2.inventory_sync_warning === true) return false;
+    // stale 품절 신호 — admin revived면 우회
+    if (!isRevived) {
+      if (product.v2.raw_soldout === true) return false;
+      if (product.v2.inventory_sync_warning === true) return false;
+    }
   }
   return true;
 }
