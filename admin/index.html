@@ -331,7 +331,7 @@
         });
       }
 
-      function renderRows(log) {
+      function renderRows(log, pcDataMap) {
         tbody.innerHTML = '';
         var list = (log && log.soldout) || [];
         if (!list.length) {
@@ -349,7 +349,13 @@
           var purl = productUrl(id);
           var turl = thumbUrl(id);
           var stub = isStubName(p.name, id);
-          var displayName = stub ? '(이름 미확인)' : esc(p.name);
+          // pc_data에서 이름 보강 시도
+          var resolvedName = p.name;
+          if (stub && pcDataMap && pcDataMap[id] && !isStubName(pcDataMap[id].name, id)) {
+            resolvedName = pcDataMap[id].name;
+            stub = false;
+          }
+          var displayName = stub ? '(이름 미수집)' : esc(resolvedName);
           var stubNote = stub ? '<div class="stub-note">⚠ 상품 페이지가 삭제·변경된 것으로 추정</div>' : '';
 
           var statusHtml = revived
@@ -418,7 +424,18 @@
             return;
           }
           var log = await r.json();
-          renderRows(log);
+          // pc_data.json 병행 로드 — 이름 미수집 항목 보강용
+          var pcDataMap = {};
+          try {
+            var pr = await fetch('/data/pc_data.json?t=' + Date.now(), { cache: 'no-store' });
+            if (pr.ok) {
+              var pcData = await pr.json();
+              (pcData.products || []).forEach(function (p) {
+                if (p.id != null) pcDataMap[String(p.id)] = p;
+              });
+            }
+          } catch (_) { /* pc_data 없어도 계속 진행 */ }
+          renderRows(log, pcDataMap);
         } catch (e) {
           loadMsg.textContent = '불러오기 실패: ' + (e.message || e);
           loadMsg.className = 'msg err';
