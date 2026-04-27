@@ -216,6 +216,8 @@ async function loadCatalogData({ force = false, source = 'init' } = {}) {
       );
 
       state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+      // v2 병합 후 재필터: raw_soldout/inventory_sync_warning 등 v2 품절 신호 반영
+      state.products = state.products.filter(p => isInStock(p, soldoutIds));
 
       // Supabase product_codes 카테고리 로드 → 각 상품에 supaCat 첨부
       try {
@@ -941,6 +943,8 @@ function initUpdateTickers() {
         const feedMap = state.recoFeedMap || new Map();
         const consultMap = state.recoConsultMap || new Map();
         state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+        // v2 병합 후 재필터 (자동 갱신 경로)
+        state.products = state.products.filter(p => isInStock(p, state.soldoutIds));
         syncWizardCatalog();
 
         updateLastUpdatedTime(nextUpdated);

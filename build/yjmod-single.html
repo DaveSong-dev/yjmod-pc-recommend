@@ -7481,6 +7481,7 @@ footer::before {
           (product) => isInStock(product, soldoutIds) && isReasonableInstallmentPrice(product)
         );
         state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+        state.products = state.products.filter((p) => isInStock(p, soldoutIds));
         try {
           const catMap = await loadCategoryMap();
           state.products.forEach((p) => {
@@ -8107,6 +8108,7 @@ footer::before {
           const feedMap = state.recoFeedMap || /* @__PURE__ */ new Map();
           const consultMap = state.recoConsultMap || /* @__PURE__ */ new Map();
           state.products = mergeRawWithReco(rawFiltered, feedMap, consultMap);
+          state.products = state.products.filter((p) => isInStock(p, state.soldoutIds));
           syncWizardCatalog();
           updateLastUpdatedTime(nextUpdated);
           renderView();
