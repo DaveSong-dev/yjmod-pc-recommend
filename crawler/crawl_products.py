@@ -186,7 +186,7 @@ def update_soldout_log(soldout_products, products_list=None):
         for p in products_list:
             pid = str(p.get("id", ""))
             if pid:
-                crawled_stock[pid] = bool(p.get("in_stock", False))
+                crawled_stock[pid] = p.get("in_stock") is True
 
     # 기존 품절 항목 reconcile — 재입고·재품절 자동 처리
     revived_count = 0
@@ -1581,9 +1581,9 @@ def main(category_phase_limit=None):
                     "tier": cats.get("tier", ""),
                 }
             )
-    if soldout_slice:
-        update_soldout_log(soldout_slice, products_list)
-        safe_print(f"[INFO] 품절/보류 로그 {len(soldout_slice)}건 기록·reconcile → {SOLDOUT_LOG_PATH}")
+    # soldout_slice가 비어 있어도 호출: reconcile(재입고 자동해소)은 항상 실행돼야 함
+    update_soldout_log(soldout_slice, products_list)
+    safe_print(f"[INFO] 품절/보류 로그 {len(soldout_slice)}건 기록·reconcile → {SOLDOUT_LOG_PATH}")
 
     output = {
         "last_updated": datetime.now(timezone(timedelta(hours=9))).isoformat(),
