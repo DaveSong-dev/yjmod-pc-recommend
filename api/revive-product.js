@@ -100,9 +100,15 @@ module.exports = async (req, res) => {
       payload.sha = sha;
     }
 
-    await octokit.repos.createOrUpdateFileContents(payload);
+    const { data: commitData } = await octokit.repos.createOrUpdateFileContents(payload);
 
-    res.json({ success: true, productId });
+    // 최신 로그를 응답에 포함 — admin은 정적 파일 재조회 없이 즉시 re-render 가능
+    res.json({
+      success: true,
+      productId,
+      log: content,
+      commitSha: commitData && commitData.commit && commitData.commit.sha,
+    });
   } catch (err) {
     const msg = err && err.message ? err.message : 'unknown_error';
     res.status(500).json({ error: msg });

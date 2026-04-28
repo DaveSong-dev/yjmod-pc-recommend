@@ -400,19 +400,22 @@
           var purl = productUrl(id);
           var turl = thumbUrl(id);
           var stub = isStubName(p.name, id);
+          // pcDataMap은 { id → { in_stock, name } } 형태 (API 응답)
           var pcEntry = pcDataMap && pcDataMap[id];
+          var pcEntryName = pcEntry ? (pcEntry.name || '') : '';
+          var pcInStockRaw = pcEntry ? pcEntry.in_stock : null;
 
           // pc_data에서 이름 보강 시도
           var resolvedName = p.name;
-          if (stub && pcEntry && !isStubName(pcEntry.name, id)) {
-            resolvedName = pcEntry.name;
+          if (stub && pcEntryName && !isStubName(pcEntryName, id)) {
+            resolvedName = pcEntryName;
             stub = false;
           }
           var displayName = stub ? '(이름 미수집)' : esc(resolvedName);
           var stubNote = stub ? '<div class="stub-note">⚠ 상품 페이지가 삭제·변경된 것으로 추정</div>' : '';
 
           // 현재 재고 컬럼
-          var pcInStock = pcEntry ? pcEntry.in_stock : null;
+          var pcInStock = pcInStockRaw;
           var stockHtml;
           var isWarn = false;
           if (pcInStock === null || pcInStock === undefined) {
@@ -505,54 +508,69 @@
         });
       }
 
+      // GitHub 최신 데이터를 직접 읽는 API 호출 (Vercel 정적 파일 우회)
       async function loadLog() {
         loadMsg.textContent = '불러오는 중…';
         loadMsg.className = 'msg';
-        tbody.innerHTML = '';
+        btnRefresh.disabled = true;
+        btnRefresh.textContent = '새로고침 중…';
         try {
-          var r = await fetch('/data/soldout_log.json?t=' + Date.now(), { cache: 'no-store' });
-          if (!r.ok) {
-            loadMsg.textContent = 'soldout_log.json을 불러올 수 없습니다 (' + r.status + ').';
+          var res = await postJson('/api/admin-soldout-log', { adminPin: adminPin });
+          if (!res.ok || !res.data || !res.data.log) {
+            var errMsg = (res.data && res.data.error) || ('오류 ' + res.status);
+            loadMsg.textContent = 'GitHub 최신 로그를 불러오지 못했습니다: ' + errMsg;
             loadMsg.className = 'msg err';
             return;
           }
-          var log = await r.json();
-          // pc_data.json 병행 로드 — 이름 미수집 항목 보강용
-          var pcDataMap = {};
-          try {
-            var pr = await fetch('/data/pc_data.json?t=' + Date.now(), { cache: 'no-store' });
-            if (pr.ok) {
-              var pcData = await pr.json();
-              (pcData.products || []).forEach(function (p) {
-                if (p.id != null) pcDataMap[String(p.id)] = p;
-              });
-            }
-          } catch (_) { /* pc_data 없어도 계속 진행 */ }
+          var log = res.data.log;
+          var pcDataMap = res.data.pcMap || {};  // id → { in_stock, name }
+          _lastLog = log;
+          _lastPcMap = pcDataMap;
+          var now = new Date().toLocaleString('ko-KR');
+          document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now;
           renderRows(log, pcDataMap);
         } catch (e) {
           loadMsg.textContent = '불러오기 실패: ' + (e.message || e);
           loadMsg.className = 'msg err';
+        } finally {
+          btnRefresh.disabled = false;
+          btnRefresh.textContent = '새로고침';
         }
       }
+
+      // 복원 직전 스냅샷 (re-render용)
+      var _lastLog = null;
+      var _lastPcMap = null;
 
       async function reviveProduct(productId, btn) {
         if (!adminPin || !productId) return;
         btn.disabled = true;
+        btn.textContent = '복원 중…';
         try {
           var res = await postJson('/api/revive-product', {
             productId: productId,
             adminPin: adminPin,
           });
           if (res.ok && res.data && res.data.success) {
-            await loadLog();
+            // API 응답에 포함된 최신 로그로 즉시 re-render (정적 파일 재조회 없음)
+            if (res.data.log) {
+              _lastLog = res.data.log;
+              renderRows(_lastLog, _lastPcMap || {});
+            } else {
+              await loadLog();
+            }
           } else {
             var err = (res.data && res.data.error) || ('오류 ' + res.status);
-            alert(err);
+            loadMsg.textContent = '복원 실패: ' + err;
+            loadMsg.className = 'msg err';
             btn.disabled = false;
+            btn.textContent = '복원';
           }
         } catch (e) {
-          alert('요청 실패: ' + (e.message || e));
+          loadMsg.textContent = '요청 실패: ' + (e.message || e);
+          loadMsg.className = 'msg err';
           btn.disabled = false;
+          btn.textContent = '복원';
         }
       }
 
