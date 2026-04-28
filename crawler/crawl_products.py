@@ -160,8 +160,13 @@ HEADERS = {
 }
 
 
-def update_soldout_log(soldout_products):
-    """품절·보류(in_stock=False) 상품을 soldout_log.json에 기록 (복원 가능한 형태)."""
+def update_soldout_log(soldout_products, products_list=None):
+    """품절·보류(in_stock=False) 상품을 soldout_log.json에 기록 및 재입고 자동 해소.
+
+    products_list: 이번 크롤 전체 결과 (재입고 reconcile용).
+      - 기존 active(revived=False) 항목이 이번 크롤에서 in_stock=True → revived=True 자동 처리
+      - 기존 revived=True 항목이 이번 크롤에서 in_stock=False → 재활성화(revived=False)
+    """
     if SOLDOUT_LOG_PATH.exists():
         with open(SOLDOUT_LOG_PATH, "r", encoding="utf-8") as f:
             log = json.load(f)
@@ -173,8 +178,50 @@ def update_soldout_log(soldout_products):
     if "revived" not in log or not isinstance(log["revived"], list):
         log["revived"] = []
 
-    existing_ids = {str(p.get("id")) for p in log["soldout"] if p.get("id") is not None}
+    now_kst = datetime.now(timezone(timedelta(hours=9))).isoformat()
 
+    # 현재 크롤 결과에서 재고 상태 맵 빌드 (id str → in_stock bool)
+    crawled_stock = {}
+    if products_list:
+        for p in products_list:
+            pid = str(p.get("id", ""))
+            if pid:
+                crawled_stock[pid] = bool(p.get("in_stock", False))
+
+    # 기존 품절 항목 reconcile — 재입고·재품절 자동 처리
+    revived_count = 0
+    reactivated_count = 0
+    for entry in log["soldout"]:
+        pid = str(entry.get("id", ""))
+        if not pid or pid not in crawled_stock:
+            continue
+        is_in_stock_now = crawled_stock[pid]
+        was_revived = entry.get("revived", False)
+
+        if not was_revived and is_in_stock_now:
+            # 품절 → 재입고: revived=True 자동 전환
+            entry["revived"] = True
+            entry["resolved_by_crawler"] = True
+            entry["revived_at"] = now_kst
+            revived_count += 1
+            safe_print(f"  [재입고 자동해소] {pid} {entry.get('name', '')[:30]}")
+        elif was_revived and not is_in_stock_now:
+            # 재입고였는데 다시 품절: 재활성화
+            entry["revived"] = False
+            entry.pop("resolved_by_crawler", None)
+            entry.pop("revived_at", None)
+            entry["soldout_at"] = now_kst
+            reactivated_count += 1
+            safe_print(f"  [재품절 재활성화] {pid} {entry.get('name', '')[:30]}")
+
+    if revived_count:
+        safe_print(f"[INFO] 재입고 자동해소: {revived_count}건")
+    if reactivated_count:
+        safe_print(f"[INFO] 재품절 재활성화: {reactivated_count}건")
+
+    # 신규 품절 추가 (기존 항목에 없는 것만)
+    existing_ids = {str(p.get("id")) for p in log["soldout"] if p.get("id") is not None}
+    added = 0
     for product in soldout_products:
         pid = str(product.get("id", ""))
         if not pid or pid in existing_ids:
@@ -185,11 +232,15 @@ def update_soldout_log(soldout_products):
                 "name": product.get("name", ""),
                 "price": product.get("price", 0),
                 "tier": product.get("tier", ""),
-                "soldout_at": datetime.now(timezone(timedelta(hours=9))).isoformat(),
+                "soldout_at": now_kst,
                 "revived": False,
             }
         )
         existing_ids.add(pid)
+        added += 1
+
+    if added:
+        safe_print(f"[INFO] 신규 품절 추가: {added}건")
 
     SOLDOUT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
     with open(SOLDOUT_LOG_PATH, "w", encoding="utf-8") as f:
@@ -1382,9 +1433,9 @@ def parse_product_detail(item_id, category, session, list_in_stock_hint=None):
         else:
             price_display_str = format_price_display(display_price)
 
-    buy_btn = soup.find(string=re.compile(r"구매|바로구매|장바구니", re.I))
+    # buy_btn_real: 위에서 이미 정의된 태그 기반 구매 버튼 (헤더 네비 오탐 없음)
     in_stock = not force_soldout and not price_crawl_error
-    if not force_soldout and list_in_stock_hint is False and not buy_btn:
+    if not force_soldout and list_in_stock_hint is False and not buy_btn_real:
         in_stock = False
 
     product = {
@@ -1531,8 +1582,8 @@ def main(category_phase_limit=None):
                 }
             )
     if soldout_slice:
-        update_soldout_log(soldout_slice)
-        safe_print(f"[INFO] 품절/보류 로그 {len(soldout_slice)}건 기록 → {SOLDOUT_LOG_PATH}")
+        update_soldout_log(soldout_slice, products_list)
+        safe_print(f"[INFO] 품절/보류 로그 {len(soldout_slice)}건 기록·reconcile → {SOLDOUT_LOG_PATH}")
 
     output = {
         "last_updated": datetime.now(timezone(timedelta(hours=9))).isoformat(),

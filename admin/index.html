@@ -157,6 +157,36 @@
     .name-text { min-width: 0; }
     .name-text .pname { font-size: 0.82rem; line-height: 1.4; word-break: keep-all; }
     .name-text .stub-note { font-size: 0.72rem; color: var(--danger); margin-top: 0.15rem; }
+    .badge-warn {
+      background: rgba(251, 191, 36, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(251, 191, 36, 0.35);
+    }
+    .badge-ok-stock {
+      background: rgba(74, 222, 128, 0.1);
+      color: var(--ok);
+      border: 1px solid rgba(74, 222, 128, 0.25);
+    }
+    .badge-soldout-stock {
+      background: rgba(248, 113, 113, 0.08);
+      color: var(--muted);
+      border: 1px solid rgba(248, 113, 113, 0.2);
+    }
+    tr.row-warn td { background: rgba(251, 191, 36, 0.04); }
+    tr.row-warn:hover td { background: rgba(251, 191, 36, 0.08); }
+    .filter-bar { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin-bottom: 0.75rem; }
+    .filter-btn {
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.3rem 0.7rem;
+      font-size: 0.8rem;
+      background: transparent;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    .filter-btn.active { background: rgba(108,158,255,0.15); color: var(--accent); border-color: rgba(108,158,255,0.4); }
   </style>
 </head>
 <body>
@@ -183,6 +213,13 @@
       </div>
       <div class="card">
         <p id="load-msg" class="msg"></p>
+        <div class="filter-bar">
+          <span style="font-size:0.8rem;color:var(--muted)">필터:</span>
+          <button type="button" class="filter-btn active" id="filter-all">전체</button>
+          <button type="button" class="filter-btn" id="filter-warn">⚠ 재확인 필요</button>
+          <button type="button" class="filter-btn" id="filter-active">보류 중</button>
+          <button type="button" class="filter-btn" id="filter-revived">복원됨</button>
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -193,7 +230,8 @@
                 <th>가격</th>
                 <th>티어</th>
                 <th>기록일시</th>
-                <th>상태</th>
+                <th>soldout_log 상태</th>
+                <th>현재 재고</th>
                 <th></th>
               </tr>
             </thead>
@@ -331,6 +369,8 @@
         });
       }
 
+      var currentFilter = 'all';
+
       function renderRows(log, pcDataMap) {
         tbody.innerHTML = '';
         var list = (log && log.soldout) || [];
@@ -339,8 +379,19 @@
           loadMsg.className = 'msg';
           return;
         }
-        loadMsg.textContent = '총 ' + list.length + '건';
-        loadMsg.className = 'msg ok';
+
+        var warnCount = 0;
+        list.forEach(function (p) {
+          var id = String(p.id != null ? p.id : '');
+          var revived = !!p.revived;
+          var pcEntry = pcDataMap && pcDataMap[id];
+          // 경고 조건: soldout_log에 active(보류)이지만 pc_data에서 in_stock=true
+          var pcInStock = pcEntry ? pcEntry.in_stock : null;
+          if (!revived && pcInStock === true) warnCount++;
+        });
+
+        loadMsg.textContent = '총 ' + list.length + '건' + (warnCount ? ' · ⚠ 재확인 필요 ' + warnCount + '건' : '');
+        loadMsg.className = warnCount ? 'msg' : 'msg ok';
 
         list.forEach(function (p) {
           var tr = document.createElement('tr');
@@ -349,18 +400,41 @@
           var purl = productUrl(id);
           var turl = thumbUrl(id);
           var stub = isStubName(p.name, id);
+          var pcEntry = pcDataMap && pcDataMap[id];
+
           // pc_data에서 이름 보강 시도
           var resolvedName = p.name;
-          if (stub && pcDataMap && pcDataMap[id] && !isStubName(pcDataMap[id].name, id)) {
-            resolvedName = pcDataMap[id].name;
+          if (stub && pcEntry && !isStubName(pcEntry.name, id)) {
+            resolvedName = pcEntry.name;
             stub = false;
           }
           var displayName = stub ? '(이름 미수집)' : esc(resolvedName);
           var stubNote = stub ? '<div class="stub-note">⚠ 상품 페이지가 삭제·변경된 것으로 추정</div>' : '';
 
+          // 현재 재고 컬럼
+          var pcInStock = pcEntry ? pcEntry.in_stock : null;
+          var stockHtml;
+          var isWarn = false;
+          if (pcInStock === null || pcInStock === undefined) {
+            stockHtml = '<span class="badge" style="background:rgba(139,147,167,0.15);color:var(--muted);border:1px solid var(--border)">확인불가</span>';
+          } else if (pcInStock === true) {
+            stockHtml = '<span class="badge badge-ok-stock">현재 판매중</span>';
+            if (!revived) isWarn = true;
+          } else {
+            stockHtml = '<span class="badge badge-soldout-stock">현재 품절</span>';
+          }
+
+          if (isWarn) tr.classList.add('row-warn');
+
+          // 필터 data 속성
+          tr.dataset.filter = revived ? 'revived' : 'active';
+          if (isWarn) tr.dataset.warn = '1';
+
           var statusHtml = revived
             ? '<span class="badge badge-revived">복원됨</span>'
-            : '<span class="badge badge-soldout">보류</span>';
+            : (isWarn
+                ? '<span class="badge badge-soldout">보류</span> <span class="badge badge-warn" title="pc_data에서 판매중으로 확인됨 — 수동 복원 또는 다음 크롤에서 자동 해소">⚠ 재확인</span>'
+                : '<span class="badge badge-soldout">보류</span>');
 
           var linkCell =
             '<a class="product-link" href="' + esc(purl) + '" target="_blank" rel="noopener">' +
@@ -391,6 +465,7 @@
             '<td>' + esc(p.tier) + '</td>' +
             '<td>' + esc(p.soldout_at || '') + '</td>' +
             '<td>' + statusHtml + '</td>' +
+            '<td>' + stockHtml + '</td>' +
             '<td></td>';
 
           var copyBtn = tr.querySelector('.btn-copy');
@@ -409,6 +484,24 @@
           btn.addEventListener('click', function () { reviveProduct(id, btn); });
           tdBtn.appendChild(btn);
           tbody.appendChild(tr);
+        });
+
+        applyFilter(currentFilter);
+      }
+
+      function applyFilter(f) {
+        currentFilter = f;
+        document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
+        var activeBtn = document.getElementById('filter-' + f);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        var rows = tbody.querySelectorAll('tr');
+        rows.forEach(function (tr) {
+          var show = true;
+          if (f === 'warn') show = tr.dataset.warn === '1';
+          else if (f === 'active') show = tr.dataset.filter === 'active';
+          else if (f === 'revived') show = tr.dataset.filter === 'revived';
+          tr.style.display = show ? '' : 'none';
         });
       }
 
@@ -479,6 +572,11 @@
       });
       btnRefresh.addEventListener('click', loadLog);
       btnLogout.addEventListener('click', logout);
+
+      ['all', 'warn', 'active', 'revived'].forEach(function (f) {
+        var b = document.getElementById('filter-' + f);
+        if (b) b.addEventListener('click', function () { applyFilter(f); });
+      });
     })();
   </script>
 </body>
