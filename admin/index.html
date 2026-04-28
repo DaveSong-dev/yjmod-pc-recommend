@@ -371,12 +371,15 @@
 
       var currentFilter = 'all';
 
-      function renderRows(log, pcDataMap) {
+      function renderRows(log, pcDataMap, options) {
+        var preserveMessage = options && options.preserveMessage;
         tbody.innerHTML = '';
         var list = (log && log.soldout) || [];
         if (!list.length) {
-          loadMsg.textContent = '기록된 품절·보류 상품이 없습니다.';
-          loadMsg.className = 'msg';
+          if (!preserveMessage) {
+            loadMsg.textContent = '기록된 품절·보류 상품이 없습니다.';
+            loadMsg.className = 'msg';
+          }
           return;
         }
 
@@ -390,8 +393,10 @@
           if (!revived && pcInStock === true) warnCount++;
         });
 
-        loadMsg.textContent = '총 ' + list.length + '건' + (warnCount ? ' · ⚠ 재확인 필요 ' + warnCount + '건' : '');
-        loadMsg.className = warnCount ? 'msg' : 'msg ok';
+        if (!preserveMessage) {
+          loadMsg.textContent = '총 ' + list.length + '건' + (warnCount ? ' · ⚠ 재확인 필요 ' + warnCount + '건' : '');
+          loadMsg.className = warnCount ? 'msg' : 'msg ok';
+        }
 
         list.forEach(function (p) {
           var tr = document.createElement('tr');
@@ -569,7 +574,7 @@
             loadMsg.className = 'msg ok';
             if (res.data.log) {
               _lastLog = res.data.log;
-              renderRows(_lastLog, _lastPcMap || {});
+              renderRows(_lastLog, _lastPcMap || {}, { preserveMessage: true });
             } else {
               await loadLog();
             }
