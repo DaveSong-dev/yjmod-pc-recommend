@@ -544,6 +544,16 @@
 
       async function reviveProduct(productId, btn) {
         if (!adminPin || !productId) return;
+
+        // 실수 방지 확인 모달
+        var productName = btn.closest('tr') &&
+          btn.closest('tr').querySelector('.pname') &&
+          btn.closest('tr').querySelector('.pname').textContent;
+        var confirmMsg = '상품 ' + productId +
+          (productName ? ' (' + productName.trim().slice(0, 30) + ')' : '') +
+          '\n\n복원(판매중) 처리하시겠습니까?\nGitHub soldout_log.json에 즉시 반영됩니다.';
+        if (!window.confirm(confirmMsg)) return;
+
         btn.disabled = true;
         btn.textContent = '복원 중…';
         try {
@@ -553,6 +563,10 @@
           });
           if (res.ok && res.data && res.data.success) {
             // API 응답에 포함된 최신 로그로 즉시 re-render (정적 파일 재조회 없음)
+            var sha = res.data.commitSha;
+            var shaLabel = sha ? ' · commit: ' + sha.slice(0, 7) : '';
+            loadMsg.textContent = '✅ 복원 완료' + shaLabel;
+            loadMsg.className = 'msg ok';
             if (res.data.log) {
               _lastLog = res.data.log;
               renderRows(_lastLog, _lastPcMap || {});

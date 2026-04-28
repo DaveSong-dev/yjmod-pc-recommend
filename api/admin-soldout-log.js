@@ -43,30 +43,35 @@ module.exports = async (req, res) => {
   const octokit = new Octokit({ auth: token });
 
   async function fetchJson(path) {
-    try {
-      const { data: fileData } = await octokit.repos.getContent({
-        owner,
-        repo,
-        path,
-        ref: branch,
-      });
-      if (fileData.type !== 'file' || !fileData.content) return null;
-      return JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
-    } catch (e) {
-      return null;
+    const { data: fileData } = await octokit.repos.getContent({
+      owner,
+      repo,
+      path,
+      ref: branch,
+    });
+    if (fileData.type !== 'file' || !fileData.content) {
+      throw new Error(`Unexpected GitHub response for ${path}`);
     }
+    return JSON.parse(Buffer.from(fileData.content, 'base64').toString('utf8'));
   }
 
   try {
-    // soldout_log는 필수, pc_data는 실패해도 계속
-    const [log, pcData] = await Promise.all([
-      fetchJson(LOG_PATH),
-      fetchJson(PC_DATA_PATH),
-    ]);
-
-    if (!log) {
-      res.status(500).json({ error: 'soldout_log.json을 읽을 수 없습니다' });
+    // soldout_log는 필수 (실패 시 오류 반환), pc_data는 실패해도 계속
+    let log, pcData;
+    try {
+      log = await fetchJson(LOG_PATH);
+    } catch (e) {
+      const st = e && (e.status || (e.response && e.response.status));
+      const detail = e && e.message ? e.message : String(e);
+      res.status(500).json({
+        error: `soldout_log.json 읽기 실패 (HTTP ${st || '?'}): ${detail}`,
+      });
       return;
+    }
+    try {
+      pcData = await fetchJson(PC_DATA_PATH);
+    } catch (_) {
+      pcData = null; // pc_data는 없어도 진행
     }
 
     // pc_data에서 id → { in_stock, name } 맵만 추출 (크기 절감)
