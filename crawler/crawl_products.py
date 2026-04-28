@@ -387,7 +387,10 @@ def collect_installment_item_ids(session):
 
 
 def collect_recommend_item_ids(session):
-    """Recommend 페이지 POST — stock 0·1 둘 다 조회해 품절 제외 목록에 없는 ID까지 수집"""
+    """Recommend 페이지 POST — stock 0·1 둘 다 조회해 품절 제외 목록에 없는 ID까지 수집
+    stock=0(품절제외)에만 있는 ID → 판매중 힌트(True)
+    stock=1(품절포함)에만 있는 ID → 품절 힌트(False)
+    """
     results = {}
     safe_print(f"\n[Recommend] {len(RECOMMEND_PAGES)}개 페이지 수집 시작")
     for page in RECOMMEND_PAGES:
@@ -396,7 +399,9 @@ def collect_recommend_item_ids(session):
             f"?ca_id=h0&ca_id_vi={page['vi']}&ca_id_index={page['idx']}"
         )
         try:
-            merged = set()
+            ids_exclude = set()  # stock=0: 품절제외 목록 (판매중)
+            ids_include = set()  # stock=1: 품절포함 목록
+
             for stock in (LIST_STOCK_EXCLUDE, LIST_STOCK_INCLUDE_SOLDOUT):
                 resp = session.post(
                     url,
@@ -405,17 +410,30 @@ def collect_recommend_item_ids(session):
                 )
                 resp.encoding = "utf-8"
                 html = resp.text
-                merged.update(re.findall(r"go_item\(['\"](\d+)['\"]\)", html))
-                merged.update(re.findall(r"item\.php\?it_id=(\d+)", html))
-                merged.update(re.findall(r"/data/item/(\d+)_", html))
+                found = set()
+                found.update(re.findall(r"go_item\(['\"](\d+)['\"]\)", html))
+                found.update(re.findall(r"item\.php\?it_id=(\d+)", html))
+                found.update(re.findall(r"/data/item/(\d+)_", html))
+                if stock == LIST_STOCK_EXCLUDE:
+                    ids_exclude = found
+                else:
+                    ids_include = found
+
+            merged = ids_exclude | ids_include
             for item_id in merged:
+                # stock=0에 있으면 판매중 힌트, stock=1에만 있으면 품절 힌트
+                hint = True if item_id in ids_exclude else False
                 if item_id not in results:
                     results[item_id] = {
                         "name": page["name"],
                         "games": page.get("games", []),
                         "usage": page.get("usage", []),
+                        "list_in_stock_hint": hint,
                     }
-            safe_print(f"  {page['name']}: {len(merged)}개")
+                elif not hint:
+                    # 이미 등록된 항목이라도 품절 힌트가 강하면 교정
+                    results[item_id]["list_in_stock_hint"] = False
+            safe_print(f"  {page['name']}: 판매중={len(ids_exclude)} 품절전용={len(ids_include - ids_exclude)}")
         except Exception as e:
             safe_print(f"  [ERROR] {page['name']}: {e}")
         time.sleep(1.0)
@@ -1139,36 +1157,48 @@ def parse_product_detail(item_id, category, session, list_in_stock_hint=None):
             print(f"    [SKIP] PC 아님 (모니터/주변기기): {name[:40]}")
             return None
 
-    # ── 재고 판단 (페이지 신호 → force_soldout, 상세 우선·구매 버튼 있으면 해제) ──
+    # ── 재고 판단 (페이지 신호 → force_soldout, 실제 구매 버튼 있으면 해제) ──
     page_text = soup.get_text()
     force_soldout = False
 
     # 1) h2가 정확히 "품절"이면 품절
     h2 = soup.find("h2")
     if h2 and h2.get_text(strip=True) == "품절":
-        print(f"    [품절] {name[:40]}")
+        print(f"    [품절] h2: {name[:40]}")
         force_soldout = True
 
-    # 2) 특정 품절 클래스 존재 시
-    if soup.find(class_=re.compile(r"sold.?out|it_soldout", re.I)):
-        print(f"    [품절] {name[:40]}")
+    # 2) 품절 클래스/이미지 신호
+    if soup.find(class_=re.compile(r"sold.?out|it_soldout|item_soldout", re.I)):
+        print(f"    [품절] class: {name[:40]}")
         force_soldout = True
 
-    # 3) "재고확인" 배너만 품절 처리 (공통 문구 "재고 확인 완료"는 제외)
+    # 3) 품절 버튼 이미지 신호 (nlist_soldout_btn.jpg, soldout_btn 등)
+    if soup.find("img", {"src": re.compile(r"nlist_soldout_btn|soldout_btn|it_soldout", re.I)}):
+        print(f"    [품절] soldout_btn img: {name[:40]}")
+        force_soldout = True
+
+    # 4) "재고확인" 배너만 품절 처리 (공통 문구 "재고 확인 완료"는 제외)
     if "재고확인" in page_text and re.search(r"재고확인\s*[\d~\-만원]", page_text):
         print(f"    [품절] 재고확인: {name[:40]}")
         force_soldout = True
 
-    # 4) 품절/재고없음 키워드 + 구매 버튼 없음
+    # 5) 품절/재고없음 키워드 + 실제 구매 버튼 없음
     soldout_keywords = ["품절", "일시품절", "재고없음", "재고 없음", "sold out", "out of stock"]
     page_text_low = page_text.lower()
     sold_kw = any(kw in page_text_low for kw in [k.lower() for k in soldout_keywords])
-    buy_btn_early = soup.find(string=re.compile(r"구매|바로구매|장바구니", re.I))
-    if sold_kw and not buy_btn_early:
-        print(f"    [품절] {name[:40]}")
+    if sold_kw and not force_soldout:
+        print(f"    [품절] keyword: {name[:40]}")
         force_soldout = True
 
-    if force_soldout and buy_btn_early:
+    # 실제 구매 가능 버튼: 상품 구매 폼/버튼만 인정 (헤더·네비 "장바구니" 텍스트 제외)
+    # soup.find(string=...) 는 헤더 포함 전체 페이지를 검색해 오탐이 많으므로 태그 기반으로 교체
+    buy_btn_real = (
+        soup.find("button", string=re.compile(r"바로구매|지금구매|구매하기", re.I)) or
+        soup.find("input", {"type": "submit", "value": re.compile(r"바로구매|구매하기", re.I)}) or
+        soup.find("a", class_=re.compile(r"btn.?buy|buy.?btn|it_buy|btn_buy", re.I))
+    )
+
+    if force_soldout and buy_btn_real:
         force_soldout = False
 
     # 5) 가격 없음은 아래 파싱 단계에서 SKIP 처리 (품절 강제 시 완화)
@@ -1460,8 +1490,16 @@ def main(category_phase_limit=None):
     # 3단계: Recommend 페이지
     recommend_data = collect_recommend_item_ids(session)
     run_parallel_detail_fetch(
-        list(recommend_data.items()), all_products, "Recommend"
+        [(iid, cat_info, cat_info.get("list_in_stock_hint")) for iid, cat_info in recommend_data.items()],
+        all_products, "Recommend"
     )
+    # 이미 수집된 상품 중 Recommend에서 품절 힌트가 나온 것은 in_stock=False로 교정
+    for iid, cat_info in recommend_data.items():
+        if cat_info.get("list_in_stock_hint") is False and iid in all_products:
+            if all_products[iid].get("in_stock") is not False:
+                safe_print(f"  [품절교정] Recommend 힌트로 재고 없음 처리: {iid}")
+                all_products[iid]["in_stock"] = False
+                all_products[iid]["price_display"] = "품절"
 
     # 4단계: 카테고리 — list_content.inc.php 이중 POST(stock 0+1)로 ID·재고 힌트
     for cat in merged_categories:
