@@ -211,14 +211,21 @@
           <button type="button" class="btn-ghost" id="btn-logout">로그아웃</button>
         </div>
       </div>
+      <!-- 통계 패널 -->
+      <div id="stats-bar" class="card" style="display:flex;flex-wrap:wrap;gap:1.5rem;padding:1rem 1.25rem;margin-bottom:0.75rem;">
+        <div><div style="font-size:0.72rem;color:var(--muted)">전체 크롤링</div><div id="stat-total" style="font-size:1.4rem;font-weight:700">—</div></div>
+        <div><div style="font-size:0.72rem;color:var(--ok)">판매중</div><div id="stat-active" style="font-size:1.4rem;font-weight:700;color:var(--ok)">—</div></div>
+        <div><div style="font-size:0.72rem;color:var(--danger)">현재 품절</div><div id="stat-soldout" style="font-size:1.4rem;font-weight:700;color:var(--danger)">—</div></div>
+        <div><div style="font-size:0.72rem;color:var(--purple)">복원 처리됨</div><div id="stat-revived" style="font-size:1.4rem;font-weight:700;color:var(--purple)">—</div></div>
+        <div><div style="font-size:0.72rem;color:var(--muted)">미처리</div><div id="stat-pending" style="font-size:1.4rem;font-weight:700">—</div></div>
+      </div>
       <div class="card">
         <p id="load-msg" class="msg"></p>
         <div class="filter-bar">
           <span style="font-size:0.8rem;color:var(--muted)">필터:</span>
-          <button type="button" class="filter-btn active" id="filter-all">전체</button>
-          <button type="button" class="filter-btn" id="filter-warn">⚠ 재확인 필요</button>
-          <button type="button" class="filter-btn" id="filter-active">보류 중</button>
-          <button type="button" class="filter-btn" id="filter-revived">복원됨</button>
+          <button type="button" class="filter-btn active" id="filter-all">전체 품절</button>
+          <button type="button" class="filter-btn" id="filter-pending">미처리</button>
+          <button type="button" class="filter-btn" id="filter-revived">복원 처리됨</button>
         </div>
         <div class="table-wrap">
           <table>
@@ -229,9 +236,7 @@
                 <th>상품코드</th>
                 <th>가격</th>
                 <th>티어</th>
-                <th>기록일시</th>
-                <th>soldout_log 상태</th>
-                <th>현재 재고</th>
+                <th>처리 상태</th>
                 <th></th>
               </tr>
             </thead>
@@ -244,6 +249,12 @@
 
   <script>
     (function () {
+    /* ====================================================
+     * Admin 품절 관리 — 단순화 재설계
+     * 주 목록: pc_data.in_stock=false 상품 (현재 크롤링 기준 품절)
+     * 보조 상태: soldout_log.revived (복원 처리 여부)
+     * GitHub API: 복원 버튼 액션에만 사용
+     * ==================================================== */
       var adminPin = '';
       var pinInput = document.getElementById('pin-input');
       var btnLogin = document.getElementById('btn-login');
@@ -255,25 +266,20 @@
       var btnRefresh = document.getElementById('btn-refresh');
       var btnLogout = document.getElementById('btn-logout');
 
+      // ── 유틸 ──────────────────────────────────────────────────
       function esc(s) {
         return String(s == null ? '' : s)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/"/g, '&quot;');
+          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
       }
-
       function formatPrice(n) {
         var x = Number(n);
-        if (!isFinite(x)) return '-';
-        return x.toLocaleString('ko-KR') + '원';
+        return isFinite(x) && x > 0 ? x.toLocaleString('ko-KR') + '원' : '-';
       }
-
       function showPinErr(t) {
         pinMsg.textContent = t || '';
         pinMsg.classList.toggle('hidden', !t);
         pinMsg.classList.toggle('err', !!t);
       }
-
       async function postJson(url, body) {
         var r = await fetch(url, {
           method: 'POST',
@@ -285,211 +291,105 @@
         return { ok: r.ok, status: r.status, data: data };
       }
 
-      async function verifyPin() {
-        var pin = String(pinInput.value || '').trim();
-        showPinErr('');
-        if (!pin) {
-          showPinErr('PIN을 입력하세요.');
-          return;
-        }
-        btnLogin.disabled = true;
-        try {
-          var res = await postJson('/api/admin-auth', { adminPin: pin });
-          if (res.ok && res.data && res.data.ok) {
-            adminPin = pin;
-            pinPanel.classList.add('hidden');
-            dashPanel.classList.remove('hidden');
-            await loadLog();
-          } else {
-            showPinErr('PIN이 올바르지 않습니다.');
-          }
-        } catch (e) {
-          showPinErr('네트워크 오류: ' + (e.message || e));
-        } finally {
-          btnLogin.disabled = false;
-        }
-      }
-
       var SHOP_BASE = 'https://www.youngjaecomputer.com/shop';
       var THUMB_BASE = 'https://admin.youngjaecomputer.com/data/item';
-
-      // GY111, VY113, HY263, GY182_W 등 영문2~3자 + 숫자3~4자리 패턴
       var CODE_PATTERN = /\b([A-Z]{2,3}\d{3,4}(?:_[A-Z0-9]+)?)\b/g;
-      // 제외할 일반 약어 (CPU 스펙 표기 등)
       var CODE_EXCLUDE = /^(RTX|GTX|RX|CPU|GPU|RAM|SSD|HDD|DDR|USB|LCD|LED|PSU|NVMe|ATX|ITX|OC|TDP|FPS|QHD|FHD|UHD|B2B|RGB|PC|AI|VGA|SIO|DIY)$/i;
 
-      function extractProductCode(name) {
+      function extractCode(name) {
         if (!name) return '';
-        var matches = [];
-        var m;
         CODE_PATTERN.lastIndex = 0;
-        while ((m = CODE_PATTERN.exec(name)) !== null) {
-          if (!CODE_EXCLUDE.test(m[1])) {
-            matches.push(m[1]);
-          }
-        }
-        return matches.length ? matches[0] : '';
+        var m, found = [];
+        while ((m = CODE_PATTERN.exec(name)) !== null)
+          if (!CODE_EXCLUDE.test(m[1])) found.push(m[1]);
+        return found[0] || '';
       }
-
-      function productUrl(id) {
-        return SHOP_BASE + '/item.php?it_id=' + encodeURIComponent(id);
-      }
-
-      function thumbUrl(id) {
-        return THUMB_BASE + '/' + encodeURIComponent(id) + '_m';
-      }
-
-      function isStubName(name, id) {
-        return !name || name === '상품 ' + id || name.trim() === '';
-      }
-
       function copyToClipboard(text, btn) {
         navigator.clipboard.writeText(text).then(function () {
-          btn.textContent = '복사됨!';
-          btn.classList.add('copied');
-          setTimeout(function () {
-            btn.textContent = '복사';
-            btn.classList.remove('copied');
-          }, 1500);
+          btn.textContent = '복사됨!'; btn.classList.add('copied');
+          setTimeout(function () { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1500);
         }).catch(function () {
           var ta = document.createElement('textarea');
-          ta.value = text;
-          ta.style.position = 'fixed';
-          ta.style.opacity = '0';
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand('copy');
-          document.body.removeChild(ta);
-          btn.textContent = '복사됨!';
-          btn.classList.add('copied');
-          setTimeout(function () {
-            btn.textContent = '복사';
-            btn.classList.remove('copied');
-          }, 1500);
+          ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+          document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta);
+          btn.textContent = '복사됨!'; btn.classList.add('copied');
+          setTimeout(function () { btn.textContent = '복사'; btn.classList.remove('copied'); }, 1500);
         });
       }
 
+      // ── 상태 ──────────────────────────────────────────────────
       var currentFilter = 'all';
+      var _revivedMap = {};   // id → true (soldout_log.revived=true 목록)
+      var _soldoutList = [];  // pc_data.in_stock=false 상품 배열 (주 목록)
+      var _canWrite = false;  // GitHub API 사용 가능 여부
 
-      function renderRows(log, pcDataMap, options) {
-        var preserveMessage = options && options.preserveMessage;
+      // ── 통계 패널 ──────────────────────────────────────────────
+      function updateStats(total, inStock, soldoutCount, revivedCount) {
+        document.getElementById('stat-total').textContent = total;
+        document.getElementById('stat-active').textContent = inStock;
+        document.getElementById('stat-soldout').textContent = soldoutCount;
+        document.getElementById('stat-revived').textContent = revivedCount;
+        document.getElementById('stat-pending').textContent = soldoutCount - revivedCount;
+      }
+
+      // ── 테이블 렌더 ───────────────────────────────────────────
+      function renderRows(soldoutProducts, revivedMap, preserveMsg) {
         tbody.innerHTML = '';
-        var list = (log && log.soldout) || [];
-        if (!list.length) {
-          if (!preserveMessage) {
-            loadMsg.textContent = '기록된 품절·보류 상품이 없습니다.';
-            loadMsg.className = 'msg';
-          }
+        if (!soldoutProducts.length) {
+          if (!preserveMsg) { loadMsg.textContent = '현재 크롤링 기준 품절 상품이 없습니다.'; loadMsg.className = 'msg ok'; }
           return;
         }
-
-        var warnCount = 0;
-        list.forEach(function (p) {
-          var id = String(p.id != null ? p.id : '');
-          var revived = !!p.revived;
-          var pcEntry = pcDataMap && pcDataMap[id];
-          // 경고 조건: soldout_log에 active(보류)이지만 pc_data에서 in_stock=true
-          var pcInStock = pcEntry ? pcEntry.in_stock : null;
-          if (!revived && pcInStock === true) warnCount++;
-        });
-
-        if (!preserveMessage) {
-          loadMsg.textContent = '총 ' + list.length + '건' + (warnCount ? ' · ⚠ 재확인 필요 ' + warnCount + '건' : '');
-          loadMsg.className = warnCount ? 'msg' : 'msg ok';
+        if (!preserveMsg) {
+          var pending = soldoutProducts.filter(function (p) { return !revivedMap[String(p.id)]; }).length;
+          loadMsg.textContent = '품절 ' + soldoutProducts.length + '개 · 미처리 ' + pending + '개';
+          loadMsg.className = pending ? 'msg' : 'msg ok';
         }
 
-        list.forEach(function (p) {
-          var tr = document.createElement('tr');
+        soldoutProducts.forEach(function (p) {
           var id = String(p.id != null ? p.id : '');
-          var revived = !!p.revived;
-          var purl = productUrl(id);
-          var turl = thumbUrl(id);
-          var stub = isStubName(p.name, id);
-          // pcDataMap은 { id → { in_stock, name } } 형태 (API 응답)
-          var pcEntry = pcDataMap && pcDataMap[id];
-          var pcEntryName = pcEntry ? (pcEntry.name || '') : '';
-          var pcInStockRaw = pcEntry ? pcEntry.in_stock : null;
-
-          // pc_data에서 이름 보강 시도
-          var resolvedName = p.name;
-          if (stub && pcEntryName && !isStubName(pcEntryName, id)) {
-            resolvedName = pcEntryName;
-            stub = false;
-          }
-          var displayName = stub ? '(이름 미수집)' : esc(resolvedName);
-          var stubNote = stub ? '<div class="stub-note">⚠ 상품 페이지가 삭제·변경된 것으로 추정</div>' : '';
-
-          // 현재 재고 컬럼
-          var pcInStock = pcInStockRaw;
-          var stockHtml;
-          var isWarn = false;
-          if (pcInStock === null || pcInStock === undefined) {
-            stockHtml = '<span class="badge" style="background:rgba(139,147,167,0.15);color:var(--muted);border:1px solid var(--border)">확인불가</span>';
-          } else if (pcInStock === true) {
-            stockHtml = '<span class="badge badge-ok-stock">현재 판매중</span>';
-            if (!revived) isWarn = true;
-          } else {
-            stockHtml = '<span class="badge badge-soldout-stock">현재 품절</span>';
-          }
-
-          if (isWarn) tr.classList.add('row-warn');
-
-          // 필터 data 속성
-          tr.dataset.filter = revived ? 'revived' : 'active';
-          if (isWarn) tr.dataset.warn = '1';
+          var revived = !!revivedMap[id];
+          var purl = SHOP_BASE + '/item.php?it_id=' + encodeURIComponent(id);
+          var turl = THUMB_BASE + '/' + encodeURIComponent(id) + '_m';
+          var name = (p.name && p.name !== '상품 ' + id) ? p.name : '';
+          var displayName = name ? esc(name) : '<span style="color:var(--muted);font-size:0.78rem">(이름 미수집)</span>';
+          var tier = (p.categories && p.categories.tier) || p.tier || '';
+          var price = p.price || 0;
+          var productCode = extractCode(name);
 
           var statusHtml = revived
-            ? '<span class="badge badge-revived">복원됨</span>'
-            : (isWarn
-                ? '<span class="badge badge-soldout">보류</span> <span class="badge badge-warn" title="pc_data에서 판매중으로 확인됨 — 수동 복원 또는 다음 크롤에서 자동 해소">⚠ 재확인</span>'
-                : '<span class="badge badge-soldout">보류</span>');
+            ? '<span class="badge badge-revived">복원 처리됨</span><br><span style="font-size:0.7rem;color:var(--muted)">다음 크롤에서 반영</span>'
+            : '<span class="badge badge-soldout">미처리</span>';
 
-          var linkCell =
-            '<a class="product-link" href="' + esc(purl) + '" target="_blank" rel="noopener">' +
-              'it_id: ' + esc(id) +
-              '<br><span style="font-size:0.7rem;opacity:0.6">↗ 상품 페이지 열기</span>' +
-            '</a>';
+          var tr = document.createElement('tr');
+          tr.dataset.filter = revived ? 'revived' : 'pending';
 
-          var nameCell =
-            '<div class="name-cell">' +
-              '<img class="thumb" src="' + esc(turl) + '" alt="" loading="lazy" ' +
-                'onerror="this.classList.add(\'thumb-broken\');this.src=\'\';" />' +
-              '<div class="name-text">' +
-                '<div class="pname">' + displayName + '</div>' +
-                stubNote +
-              '</div>' +
-            '</div>';
-
-          var productCode = extractProductCode(stub ? '' : (p.name || ''));
           var codeCell = productCode
             ? '<div class="code-cell"><span class="code-badge">' + esc(productCode) + '</span><button type="button" class="btn-copy" data-code="' + esc(productCode) + '">복사</button></div>'
             : '<span class="code-none">-</span>';
 
           tr.innerHTML =
-            '<td>' + linkCell + '</td>' +
-            '<td>' + nameCell + '</td>' +
+            '<td><a class="product-link" href="' + esc(purl) + '" target="_blank" rel="noopener">it_id: ' + esc(id) +
+              '<br><span style="font-size:0.7rem;opacity:0.6">↗ 상품 페이지 열기</span></a></td>' +
+            '<td><div class="name-cell">' +
+              '<img class="thumb" src="' + esc(turl) + '" alt="" loading="lazy" onerror="this.classList.add(\'thumb-broken\');this.src=\'\';" />' +
+              '<div class="name-text"><div class="pname">' + displayName + '</div></div></div></td>' +
             '<td>' + codeCell + '</td>' +
-            '<td class="price">' + esc(formatPrice(p.price)) + '</td>' +
-            '<td>' + esc(p.tier) + '</td>' +
-            '<td>' + esc(p.soldout_at || '') + '</td>' +
+            '<td class="price">' + esc(formatPrice(price)) + '</td>' +
+            '<td>' + esc(tier) + '</td>' +
             '<td>' + statusHtml + '</td>' +
-            '<td>' + stockHtml + '</td>' +
             '<td></td>';
 
           var copyBtn = tr.querySelector('.btn-copy');
-          if (copyBtn) {
-            copyBtn.addEventListener('click', function () {
-              copyToClipboard(this.dataset.code, this);
-            });
-          }
+          if (copyBtn) copyBtn.addEventListener('click', function () { copyToClipboard(this.dataset.code, this); });
+
           var tdBtn = tr.querySelector('td:last-child');
           var btn = document.createElement('button');
-          btn.type = 'button';
-          btn.className = 'btn-revive';
-          btn.textContent = '복원';
+          btn.type = 'button'; btn.className = 'btn-revive';
+          btn.textContent = revived ? '복원됨' : '복원';
           btn.disabled = revived;
-          btn.dataset.id = id;
-          btn.addEventListener('click', function () { reviveProduct(id, btn); });
+          btn.addEventListener('click', (function (pid, b) {
+            return function () { reviveProduct(pid, b); };
+          })(id, btn));
           tdBtn.appendChild(btn);
           tbody.appendChild(tr);
         });
@@ -500,152 +400,148 @@
       function applyFilter(f) {
         currentFilter = f;
         document.querySelectorAll('.filter-btn').forEach(function (b) { b.classList.remove('active'); });
-        var activeBtn = document.getElementById('filter-' + f);
-        if (activeBtn) activeBtn.classList.add('active');
-
-        var rows = tbody.querySelectorAll('tr');
-        rows.forEach(function (tr) {
-          var show = true;
-          if (f === 'warn') show = tr.dataset.warn === '1';
-          else if (f === 'active') show = tr.dataset.filter === 'active';
-          else if (f === 'revived') show = tr.dataset.filter === 'revived';
+        var ab = document.getElementById('filter-' + f);
+        if (ab) ab.classList.add('active');
+        tbody.querySelectorAll('tr').forEach(function (tr) {
+          var show = (f === 'all') || (f === 'pending' && tr.dataset.filter === 'pending') || (f === 'revived' && tr.dataset.filter === 'revived');
           tr.style.display = show ? '' : 'none';
         });
       }
 
-      var _isReadOnly = false; // GitHub API 실패 시 읽기 전용 모드
-
-      // GitHub 최신 데이터를 직접 읽는 API 호출 (Vercel 정적 파일 우회)
-      // GitHub env 미설정 등으로 실패 시 정적 파일 fallback (읽기 전용)
+      // ── 데이터 로딩 ───────────────────────────────────────────
+      // 주 목록: 정적 /data/pc_data.json (항상 가능)
+      // 복원 상태: 정적 /data/soldout_log.json
+      // GitHub API는 복원 액션에만 사용
       async function loadLog() {
         loadMsg.textContent = '불러오는 중…';
         loadMsg.className = 'msg';
-        btnRefresh.disabled = true;
-        btnRefresh.textContent = '새로고침 중…';
+        btnRefresh.disabled = true; btnRefresh.textContent = '새로고침 중…';
         try {
-          var res = await postJson('/api/admin-soldout-log', { adminPin: adminPin });
-          if (res.ok && res.data && res.data.log) {
-            _isReadOnly = false;
-            var log = res.data.log;
-            var pcDataMap = res.data.pcMap || {};
-            _lastLog = log;
-            _lastPcMap = pcDataMap;
-            var now = new Date().toLocaleString('ko-KR');
-            document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now;
-            renderRows(log, pcDataMap);
-            return;
-          }
-          // GitHub API 실패 → 정적 파일 fallback
-          var apiErr = (res.data && res.data.error) || ('오류 ' + res.status);
-          await loadLogFallback(apiErr);
-        } catch (e) {
-          await loadLogFallback(e.message || String(e));
-        } finally {
-          btnRefresh.disabled = false;
-          btnRefresh.textContent = '새로고침';
-        }
-      }
+          // 1) pc_data.json — 품절 목록의 주 소스
+          var pcResp = await fetch('/data/pc_data.json?t=' + Date.now(), { cache: 'no-store' });
+          if (!pcResp.ok) throw new Error('pc_data.json ' + pcResp.status);
+          var pcData = await pcResp.json();
+          var products = pcData.products || [];
+          _soldoutList = products.filter(function (p) { return p.in_stock !== true; });
 
-      async function loadLogFallback(reason) {
-        _isReadOnly = true;
-        try {
-          var r = await fetch('/data/soldout_log.json?t=' + Date.now(), { cache: 'no-store' });
-          if (!r.ok) throw new Error('soldout_log.json ' + r.status);
-          var log = await r.json();
-          var pcDataMap = {};
+          // 2) soldout_log.json — 복원 상태 보조 소스
+          _revivedMap = {};
           try {
-            var pr = await fetch('/data/pc_data.json?t=' + Date.now(), { cache: 'no-store' });
-            if (pr.ok) {
-              var pcRaw = await pr.json();
-              (pcRaw.products || []).forEach(function (p) {
-                if (p.id != null) pcDataMap[String(p.id)] = { in_stock: p.in_stock, name: p.name || '' };
+            var logResp = await fetch('/data/soldout_log.json?t=' + Date.now(), { cache: 'no-store' });
+            if (logResp.ok) {
+              var logData = await logResp.json();
+              (logData.soldout || []).forEach(function (e) {
+                if (e.revived === true) _revivedMap[String(e.id)] = true;
               });
             }
           } catch (_) {}
-          _lastLog = log;
-          _lastPcMap = pcDataMap;
-          loadMsg.textContent = '⚠ GitHub 최신 로그 불러오기 실패 (' + reason + ') — 정적 데이터 표시 중 (읽기 전용)';
+
+          // 3) GitHub API 사용 가능 여부 탐색 (복원 버튼 활성화 여부)
+          _canWrite = false;
+          try {
+            var probe = await postJson('/api/admin-soldout-log', { adminPin: adminPin });
+            _canWrite = !!(probe.ok && probe.data && probe.data.log);
+            // GitHub에서 더 최신 revived 상태 가져오기
+            if (_canWrite && probe.data.log) {
+              _revivedMap = {};
+              (probe.data.log.soldout || []).forEach(function (e) {
+                if (e.revived === true) _revivedMap[String(e.id)] = true;
+              });
+            }
+          } catch (_) {}
+
+          var total = products.length;
+          var inStock = products.filter(function (p) { return p.in_stock === true; }).length;
+          var revivedCount = _soldoutList.filter(function (p) { return _revivedMap[String(p.id)]; }).length;
+          updateStats(total, inStock, _soldoutList.length, revivedCount);
+
+          var now = new Date().toLocaleString('ko-KR');
+          document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now + (_canWrite ? '' : ' · ⚠ 읽기 전용');
+          renderRows(_soldoutList, _revivedMap, false);
+        } catch (e) {
+          loadMsg.textContent = '데이터 로드 실패: ' + (e.message || e);
           loadMsg.className = 'msg err';
-          renderRows(log, pcDataMap, { preserveMessage: true });
-        } catch (e2) {
-          loadMsg.textContent = '데이터 로드 실패: ' + (e2.message || e2);
-          loadMsg.className = 'msg err';
+        } finally {
+          btnRefresh.disabled = false; btnRefresh.textContent = '새로고침';
         }
       }
 
-      // 복원 직전 스냅샷 (re-render용)
-      var _lastLog = null;
-      var _lastPcMap = null;
-
+      // ── 복원 액션 ─────────────────────────────────────────────
       async function reviveProduct(productId, btn) {
         if (!adminPin || !productId) return;
-        if (_isReadOnly) {
-          loadMsg.textContent = 'GitHub 환경변수 미설정 — 복원 불가 (읽기 전용 모드). Vercel에 GH_TOKEN, GH_REPO 설정 후 새로고침 하세요.';
-          loadMsg.className = 'msg err';
-          return;
+        if (!_canWrite) {
+          loadMsg.textContent = '⚠ 읽기 전용 모드 — Vercel에 GH_TOKEN, GH_REPO 설정 후 새로고침 하세요.';
+          loadMsg.className = 'msg err'; return;
         }
+        var pname = btn.closest('tr') && btn.closest('tr').querySelector('.pname');
+        var nameText = pname ? pname.textContent.trim().slice(0, 30) : '';
+        if (!window.confirm('상품 ' + productId + (nameText ? ' (' + nameText + ')' : '') +
+            '\n\n복원 처리하시겠습니까?\n다음 크롤링에서 in_stock=true 확인 시 메인 노출됩니다.')) return;
 
-        // 실수 방지 확인 모달
-        var productName = btn.closest('tr') &&
-          btn.closest('tr').querySelector('.pname') &&
-          btn.closest('tr').querySelector('.pname').textContent;
-        var confirmMsg = '상품 ' + productId +
-          (productName ? ' (' + productName.trim().slice(0, 30) + ')' : '') +
-          '\n\n복원(판매중) 처리하시겠습니까?\nGitHub soldout_log.json에 즉시 반영됩니다.';
-        if (!window.confirm(confirmMsg)) return;
-
-        btn.disabled = true;
-        btn.textContent = '복원 중…';
+        btn.disabled = true; btn.textContent = '복원 중…';
         try {
-          var res = await postJson('/api/revive-product', {
-            productId: productId,
-            adminPin: adminPin,
-          });
+          var res = await postJson('/api/revive-product', { productId: productId, adminPin: adminPin });
           if (res.ok && res.data && res.data.success) {
-            // API 응답에 포함된 최신 로그로 즉시 re-render (정적 파일 재조회 없음)
             var sha = res.data.commitSha;
-            var shaLabel = sha ? ' · commit: ' + sha.slice(0, 7) : '';
-            loadMsg.textContent = '✅ 복원 완료' + shaLabel;
+            loadMsg.textContent = '✅ 복원 처리 완료' + (sha ? ' · commit: ' + sha.slice(0, 7) : '');
             loadMsg.className = 'msg ok';
+            // soldout_log 최신 상태로 revivedMap 갱신
             if (res.data.log) {
-              _lastLog = res.data.log;
-              renderRows(_lastLog, _lastPcMap || {}, { preserveMessage: true });
+              _revivedMap = {};
+              (res.data.log.soldout || []).forEach(function (e) {
+                if (e.revived === true) _revivedMap[String(e.id)] = true;
+              });
             } else {
-              await loadLog();
+              _revivedMap[String(productId)] = true;
             }
+            var revivedCount = _soldoutList.filter(function (p) { return _revivedMap[String(p.id)]; }).length;
+            var inStock = document.getElementById('stat-active') && parseInt(document.getElementById('stat-active').textContent) || 0;
+            updateStats(_soldoutList.length + inStock, inStock, _soldoutList.length, revivedCount);
+            renderRows(_soldoutList, _revivedMap, true);
           } else {
-            var err = (res.data && res.data.error) || ('오류 ' + res.status);
-            loadMsg.textContent = '복원 실패: ' + err;
+            loadMsg.textContent = '복원 실패: ' + ((res.data && res.data.error) || '오류 ' + res.status);
             loadMsg.className = 'msg err';
-            btn.disabled = false;
-            btn.textContent = '복원';
+            btn.disabled = false; btn.textContent = '복원';
           }
         } catch (e) {
           loadMsg.textContent = '요청 실패: ' + (e.message || e);
           loadMsg.className = 'msg err';
-          btn.disabled = false;
-          btn.textContent = '복원';
+          btn.disabled = false; btn.textContent = '복원';
         }
       }
 
-      function logout() {
-        adminPin = '';
-        pinInput.value = '';
-        dashPanel.classList.add('hidden');
-        pinPanel.classList.remove('hidden');
+      // ── PIN 인증 ──────────────────────────────────────────────
+      async function verifyPin() {
+        var pin = String(pinInput.value || '').trim();
         showPinErr('');
-        tbody.innerHTML = '';
-        loadMsg.textContent = '';
+        if (!pin) { showPinErr('PIN을 입력하세요.'); return; }
+        btnLogin.disabled = true;
+        try {
+          var res = await postJson('/api/admin-auth', { adminPin: pin });
+          if (res.ok && res.data && res.data.ok) {
+            adminPin = pin;
+            pinPanel.classList.add('hidden');
+            dashPanel.classList.remove('hidden');
+            await loadLog();
+          } else { showPinErr('PIN이 올바르지 않습니다.'); }
+        } catch (e) { showPinErr('네트워크 오류: ' + (e.message || e)); }
+        finally { btnLogin.disabled = false; }
       }
 
+      function logout() {
+        adminPin = ''; pinInput.value = '';
+        dashPanel.classList.add('hidden'); pinPanel.classList.remove('hidden');
+        showPinErr(''); tbody.innerHTML = ''; loadMsg.textContent = '';
+        _soldoutList = []; _revivedMap = {}; _canWrite = false;
+        updateStats('—', '—', '—', '—');
+      }
+
+      // ── 이벤트 바인딩 ─────────────────────────────────────────
       btnLogin.addEventListener('click', verifyPin);
-      pinInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') verifyPin();
-      });
+      pinInput.addEventListener('keydown', function (e) { if (e.key === 'Enter') verifyPin(); });
       btnRefresh.addEventListener('click', loadLog);
       btnLogout.addEventListener('click', logout);
-
-      ['all', 'warn', 'active', 'revived'].forEach(function (f) {
+      ['all', 'pending', 'revived'].forEach(function (f) {
         var b = document.getElementById('filter-' + f);
         if (b) b.addEventListener('click', function () { applyFilter(f); });
       });
