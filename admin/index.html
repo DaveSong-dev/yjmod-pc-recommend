@@ -513,7 +513,10 @@
         });
       }
 
+      var _isReadOnly = false; // GitHub API 실패 시 읽기 전용 모드
+
       // GitHub 최신 데이터를 직접 읽는 API 호출 (Vercel 정적 파일 우회)
+      // GitHub env 미설정 등으로 실패 시 정적 파일 fallback (읽기 전용)
       async function loadLog() {
         loadMsg.textContent = '불러오는 중…';
         loadMsg.className = 'msg';
@@ -521,25 +524,52 @@
         btnRefresh.textContent = '새로고침 중…';
         try {
           var res = await postJson('/api/admin-soldout-log', { adminPin: adminPin });
-          if (!res.ok || !res.data || !res.data.log) {
-            var errMsg = (res.data && res.data.error) || ('오류 ' + res.status);
-            loadMsg.textContent = 'GitHub 최신 로그를 불러오지 못했습니다: ' + errMsg;
-            loadMsg.className = 'msg err';
+          if (res.ok && res.data && res.data.log) {
+            _isReadOnly = false;
+            var log = res.data.log;
+            var pcDataMap = res.data.pcMap || {};
+            _lastLog = log;
+            _lastPcMap = pcDataMap;
+            var now = new Date().toLocaleString('ko-KR');
+            document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now;
+            renderRows(log, pcDataMap);
             return;
           }
-          var log = res.data.log;
-          var pcDataMap = res.data.pcMap || {};  // id → { in_stock, name }
-          _lastLog = log;
-          _lastPcMap = pcDataMap;
-          var now = new Date().toLocaleString('ko-KR');
-          document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now;
-          renderRows(log, pcDataMap);
+          // GitHub API 실패 → 정적 파일 fallback
+          var apiErr = (res.data && res.data.error) || ('오류 ' + res.status);
+          await loadLogFallback(apiErr);
         } catch (e) {
-          loadMsg.textContent = '불러오기 실패: ' + (e.message || e);
-          loadMsg.className = 'msg err';
+          await loadLogFallback(e.message || String(e));
         } finally {
           btnRefresh.disabled = false;
           btnRefresh.textContent = '새로고침';
+        }
+      }
+
+      async function loadLogFallback(reason) {
+        _isReadOnly = true;
+        try {
+          var r = await fetch('/data/soldout_log.json?t=' + Date.now(), { cache: 'no-store' });
+          if (!r.ok) throw new Error('soldout_log.json ' + r.status);
+          var log = await r.json();
+          var pcDataMap = {};
+          try {
+            var pr = await fetch('/data/pc_data.json?t=' + Date.now(), { cache: 'no-store' });
+            if (pr.ok) {
+              var pcRaw = await pr.json();
+              (pcRaw.products || []).forEach(function (p) {
+                if (p.id != null) pcDataMap[String(p.id)] = { in_stock: p.in_stock, name: p.name || '' };
+              });
+            }
+          } catch (_) {}
+          _lastLog = log;
+          _lastPcMap = pcDataMap;
+          loadMsg.textContent = '⚠ GitHub 최신 로그 불러오기 실패 (' + reason + ') — 정적 데이터 표시 중 (읽기 전용)';
+          loadMsg.className = 'msg err';
+          renderRows(log, pcDataMap, { preserveMessage: true });
+        } catch (e2) {
+          loadMsg.textContent = '데이터 로드 실패: ' + (e2.message || e2);
+          loadMsg.className = 'msg err';
         }
       }
 
@@ -549,6 +579,11 @@
 
       async function reviveProduct(productId, btn) {
         if (!adminPin || !productId) return;
+        if (_isReadOnly) {
+          loadMsg.textContent = 'GitHub 환경변수 미설정 — 복원 불가 (읽기 전용 모드). Vercel에 GH_TOKEN, GH_REPO 설정 후 새로고침 하세요.';
+          loadMsg.className = 'msg err';
+          return;
+        }
 
         // 실수 방지 확인 모달
         var productName = btn.closest('tr') &&

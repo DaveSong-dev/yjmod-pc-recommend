@@ -190,11 +190,9 @@ export function isInStock(product, soldoutIds = null, revivedIds = null) {
   if (product.v2) {
     // recommendable=false는 품질 판단이므로 우회 불가
     if (product.v2.recommendable === false) return false;
-    // stale 품절 신호 — admin revived면 우회
-    if (!isRevived) {
-      if (product.v2.raw_soldout === true) return false;
-      if (product.v2.inventory_sync_warning === true) return false;
-    }
+    // raw_soldout / inventory_sync_warning: feed 생성 시점에 과도하게 True로 찍힌
+    // stale 신호. pc_data.in_stock(크롤러 1차 판단)이 이미 통과했으므로
+    // 여기서 hard block하면 정상 판매 상품을 오차단함 → 제거.
   }
   return true;
 }
