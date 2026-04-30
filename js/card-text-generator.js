@@ -19,6 +19,8 @@ const GROUP_TO_SECTION = {
   'bestFor:QHD 게이밍':    'qhd_gaming',
   'bestFor:4K 게이밍':     '4k_gaming',
   'bestFor:화이트 감성':   'white',
+  'tierGaming:퍼포먼스(QHD)': 'qhd_gaming',
+  'tierGaming:하이엔드(4K)':  '4k_gaming',
 };
 
 export function groupToSectionKey(groupKey, groupValue) {

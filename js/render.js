@@ -612,8 +612,8 @@ const GROUPS = [
   { key: 'bestFor',     value: 'AI 공부용',     label: '🤖 AI 공부용 PC',     desc: 'AI 입문 · CUDA 학습 · 딥러닝 시작' },
   { key: 'bestFor',     value: '로컬 LLM 입문', label: '🧠 로컬 LLM 입문 PC', desc: '로컬 AI · LLM 추론 가능' },
   { key: 'usage',       value: '영상편집',       label: '🎬 영상편집 PC',       desc: '4K 편집 · 렌더링 특화' },
-  { key: 'bestFor',     value: 'QHD 게이밍',    label: '🖥️ QHD 게이밍 PC',    desc: 'QHD 해상도 쾌적 게이밍' },
-  { key: 'bestFor',     value: '4K 게이밍',     label: '🏆 4K 게이밍 PC',     desc: '4K UHD 최고 화질 게이밍' },
+  { key: 'tierGaming',  value: '퍼포먼스(QHD)', label: '🖥️ QHD 게이밍 PC',    desc: 'QHD 해상도 쾌적 게이밍' },
+  { key: 'tierGaming',  value: '하이엔드(4K)',  label: '🏆 4K 게이밍 PC',     desc: '4K UHD 최고 화질 게이밍' },
   { key: 'usage',       value: '사무/디자인',    label: '💼 사무 · 디자인 PC',  desc: '업무 · 문서 · 디자인 최적화' },
   { key: 'usage',       value: '3D 모델링',     label: '🎨 3D 모델링 PC',      desc: 'CAD · 블렌더 · 솔리드웍스' },
   { key: 'usage',       value: '방송/스트리밍',  label: '📺 방송 · 스트리밍 PC', desc: 'OBS · 원컴방송 · 라이브' },
@@ -692,6 +692,15 @@ function collectGroupProducts(group, allProducts) {
     return allProducts.filter(p => (p.installment_months || 0) === group.value);
   }
 
+  if (group.key === 'tierGaming') {
+    return allProducts
+      .filter(p =>
+        p.categories?.tier === group.value &&
+        (p.categories?.usage || []).includes('게이밍')
+      )
+      .sort((a, b) => (b.price || 0) - (a.price || 0));
+  }
+
   if (group.key === 'bestFor') {
     // best_for_tags가 배열로 설정된 경우(빈 배열 포함) → DB 태그만 사용
     // best_for_tags가 null/undefined → 아직 미분류 → 스펙 기반 추론 폴백
@@ -702,10 +711,6 @@ function collectGroupProducts(group, allProducts) {
       }
       return inferBestForTags(p).includes(group.value);  // 미분류 제품만 추론
     });
-    // 4K/QHD 게이밍은 가격 내림차순 정렬 (고사양 먼저)
-    if (group.value === '4K 게이밍' || group.value === 'QHD 게이밍') {
-      matched.sort((a, b) => (b.price || 0) - (a.price || 0));
-    }
     return matched;
   }
 

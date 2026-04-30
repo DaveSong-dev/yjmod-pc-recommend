@@ -353,10 +353,22 @@ function filterProducts(products, filters = filterState) {
     // 케이스 색상 필터: tags.design만 사용 (title contains 금지)
     if (filters.caseColor && tags.design !== filters.caseColor) return false;
 
-    // bestFor 필터: 루트 레벨 best_for_tags 우선, 없으면 v2.best_for_tags fallback
+    // bestFor 필터: 해상도/성능처럼 명확한 분류는 pc_data 기준만 사용한다.
+    // v2 best_for_tags의 FHD/QHD/4K 게이밍 태그는 과하게 넓어질 수 있어 필터 source로 쓰지 않음.
     if (filters.bestFor) {
-      const productTags = product.best_for_tags || product.v2?.best_for_tags || [];
-      if (!productTags.some(t => t === filters.bestFor)) return false;
+      if (filters.bestFor === 'FHD 게이밍') {
+        if (product.categories?.tier !== '가성비(FHD)') return false;
+        if (!(product.categories?.usage || []).includes('게이밍')) return false;
+      } else if (filters.bestFor === 'QHD 게이밍') {
+        if (product.categories?.tier !== '퍼포먼스(QHD)') return false;
+        if (!(product.categories?.usage || []).includes('게이밍')) return false;
+      } else if (filters.bestFor === '4K 게이밍') {
+        if (product.categories?.tier !== '하이엔드(4K)') return false;
+        if (!(product.categories?.usage || []).includes('게이밍')) return false;
+      } else {
+        const productTags = product.best_for_tags || product.v2?.best_for_tags || [];
+        if (!productTags.some(t => t === filters.bestFor)) return false;
+      }
     }
 
     // 검색어: title/specs + v2 태그/사유 contains 최후 fallback

@@ -241,13 +241,23 @@ export function userSelectionsFromGroup(group) {
       purpose: null
     };
   }
+  if (group.key === 'tierGaming') {
+    return {
+      game: null,
+      usage: '게이밍',
+      priceRange: null,
+      tier: String(group.value),
+      caseColor: null,
+      design: null,
+      installment: null,
+      purpose: null
+    };
+  }
   if (group.key === 'bestFor') {
     const val = String(group.value);
     const BESTFOR_MAP = {
       'AI 공부용':     { usage: 'AI/딥러닝', purpose: 'ai_study' },
       '로컬 LLM 입문': { usage: 'AI/딥러닝', purpose: 'local_llm' },
-      'QHD 게이밍':    { usage: '게이밍', tier: '퍼포먼스(QHD)' },
-      '4K 게이밍':     { usage: '게이밍', tier: '하이엔드(4K)' },
       '화이트 감성':   { design: 'white', caseColor: '화이트' },
     };
     const mapped = BESTFOR_MAP[val] || {};

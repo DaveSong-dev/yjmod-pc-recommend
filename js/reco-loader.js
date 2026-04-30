@@ -14,12 +14,6 @@ import { fetchJson } from './utils.js';
 const RECO_BASE = './data/reco';
 const FALLBACK_FEED = `${RECO_BASE}/v2.0.0/feed.json`;
 
-const SPEC_BAND_TO_TIER = {
-  'FHD 가성비': '가성비(FHD)',
-  'QHD 퍼포먼스': '퍼포먼스(QHD)',
-  '4K 하이엔드': '하이엔드(4K)'
-};
-
 const COLOR_KR = { white: '화이트', black: '블랙', other: null };
 
 const USAGE_TAG_NORMALIZE = {
@@ -90,12 +84,14 @@ export function enrichProduct(rawProduct, recoItem) {
 
   const enriched = { ...rawProduct };
 
-  // categories: tier/price_range만 reco로 보강. games/usage는 원본 분류 유지.
+  // categories: pc_data의 크롤러/classify 분류가 source of truth.
+  // v2 frontend_spec_band는 product.v2에만 보존하고 categories.tier를 덮어쓰지 않는다.
+  // price_range만 카드/예산 보조용으로 없을 때 보강한다.
   // frontend_game_tags, frontend_usage_tags는 v2.*에만 보존 (카드 문구·배지용).
-  // 필터는 categories.games/usage(크롤러+classify) 기준으로만 동작해야 함.
+  // 필터는 categories.tier/games/usage(크롤러+classify) 기준으로만 동작해야 함.
   enriched.categories = {
     ...enriched.categories,
-    tier: SPEC_BAND_TO_TIER[recoItem.frontend_spec_band] || enriched.categories?.tier || '',
+    tier: enriched.categories?.tier || '',
     price_range: recoItem.frontend_price_band || enriched.categories?.price_range || ''
   };
 
