@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-02T11:21:45.466054+09:00",
+  "last_updated": "2026-05-02T22:48:24.665569+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -14,7 +14,7 @@
       "id": "2",
       "title": "댓글수[3]",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/51?boardtype=L&menuid=1&referrerAllArticles=false&page=1&commentFocus=true",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfMTUz/MDAxNzIxMTE3MTEyMTc5.BC8WVF86ldaCUt-m6fT0LjfRszku7b7KVG10EhEe7Bsg.8v0WeV1AdnGSJHkK8qN_EDbjDvFYu8e5W8gb37R9Vxkg.JPEG/%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84_%EB%B0%B0%EC%86%A1_%EC%84%9C%EB%B9%84%EC%8A%A4_%EB%B0%9C%EB%A0%89%EC%8A%A4_%281160%29.jpg?type=w1600",
       "date": "2026-05-02",
       "tags": []
     },
@@ -102,7 +102,7 @@
       "id": "13",
       "title": "[조립컴퓨터]이*섭님 (010-****-5149) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7195?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA0MjlfMjMy/MDAxNzc3NDU2NTA0NTIz.XG9bK6m27QtLBvIYA1jEAH4Z25YPrbKMPc-eFbnrm50g.Yy61yYFvKTB443i_IC547Zrc4GngITx7Bb-wMWIS7F4g.JPEG/KakaoTalk_20260429_111659778_01.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-05-02",
       "tags": []
     },
