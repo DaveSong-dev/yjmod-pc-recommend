@@ -68,23 +68,32 @@ module.exports = async (req, res) => {
     if (!Array.isArray(log.soldout)) log.soldout = [];
     if (!Array.isArray(log.revived)) log.revived  = [];
 
-    // ── soldout_log 갱신 ──────────────────────────────────────
-    const soldoutEntry = log.soldout.find(p => String(p.id) === productId);
-    if (!soldoutEntry) {
-      res.status(404).json({ error: 'soldout_log에 해당 상품 없음' }); return;
-    }
-    soldoutEntry.revived      = true;
-    soldoutEntry.revived_by   = 'admin';
-    soldoutEntry.revived_at   = new Date().toISOString();
-
-    // ── pc_data 갱신: in_stock=true ───────────────────────────
+    // ── pc_data 갱신: in_stock=true (필수) ───────────────────
     const pcProducts = Array.isArray(pcJson) ? pcJson : (pcJson.products || []);
     const pcEntry    = pcProducts.find(p => String(p.id) === productId);
     if (!pcEntry) {
-      // pc_data에 없으면 soldout_log만 바꿔선 메인 노출이 안 살아남 → 실패 처리
       res.status(404).json({ error: 'pc_data에 해당 상품 없음 — 크롤러 재실행 후 재시도하세요.' }); return;
     }
     pcEntry.in_stock = true;
+
+    // ── soldout_log 갱신 (선택적) ─────────────────────────────
+    // soldout_log에 있으면 revived=true 표시, 없으면 새 항목 추가
+    let soldoutEntry = log.soldout.find(p => String(p.id) === productId);
+    if (soldoutEntry) {
+      soldoutEntry.revived    = true;
+      soldoutEntry.revived_by = 'admin';
+      soldoutEntry.revived_at = new Date().toISOString();
+    } else {
+      // pc_data에만 있던 품절 상품 — soldout_log에 revived 항목으로 신규 추가
+      log.soldout.push({
+        id:          productId,
+        name:        pcEntry.name || '',
+        soldout_at:  pcEntry.soldout_at || new Date().toISOString(),
+        revived:     true,
+        revived_by:  'admin',
+        revived_at:  new Date().toISOString(),
+      });
+    }
     // pc_data의 루트 구조 보존
     const updatedPcJson = Array.isArray(pcJson) ? pcProducts : { ...pcJson, products: pcProducts };
 
