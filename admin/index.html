@@ -456,7 +456,7 @@
           updateStats(total, inStock, _soldoutList.length, revivedCount);
 
           var now = new Date().toLocaleString('ko-KR');
-          document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now + (_canWrite ? '' : ' · ⚠ 읽기 전용');
+          document.getElementById('dash-welcome').textContent = '마지막 갱신: ' + now + (_canWrite ? '' : ' · ⚠ 복원 기능 대기 중');
           renderRows(_soldoutList, _revivedMap, false);
         } catch (e) {
           loadMsg.textContent = '데이터 로드 실패: ' + (e.message || e);
@@ -470,20 +470,20 @@
       async function reviveProduct(productId, btn) {
         if (!adminPin || !productId) return;
         if (!_canWrite) {
-          loadMsg.textContent = '⚠ 읽기 전용 모드 — Vercel에 GH_TOKEN, GH_REPO 설정 후 새로고침 하세요.';
+          loadMsg.textContent = '복원 기능을 사용할 수 없습니다. 관리자에게 문의하세요.';
           loadMsg.className = 'msg err'; return;
         }
         var pname = btn.closest('tr') && btn.closest('tr').querySelector('.pname');
         var nameText = pname ? pname.textContent.trim().slice(0, 30) : '';
         if (!window.confirm('상품 ' + productId + (nameText ? ' (' + nameText + ')' : '') +
-            '\n\n복원 처리하시겠습니까?\n다음 크롤링에서 in_stock=true 확인 시 메인 노출됩니다.')) return;
+            '\n\n상품 페이지를 직접 확인하셨나요?\n\n복원 처리하면 메인 사이트에 즉시 노출됩니다.')) return;
 
         btn.disabled = true; btn.textContent = '복원 중…';
         try {
           var res = await postJson('/api/revive-product', { productId: productId, adminPin: adminPin });
           if (res.ok && res.data && res.data.success) {
             var sha = res.data.commitSha;
-            loadMsg.textContent = '✅ 복원 처리 완료' + (sha ? ' · commit: ' + sha.slice(0, 7) : '');
+            loadMsg.textContent = '✅ 복원 완료 — 배포 후 메인 사이트에 반영됩니다' + (sha ? ' (' + sha.slice(0, 7) + ')' : '');
             loadMsg.className = 'msg ok';
             // soldout_log 최신 상태로 revivedMap 갱신
             if (res.data.log) {
@@ -499,12 +499,19 @@
             updateStats(_soldoutList.length + inStock, inStock, _soldoutList.length, revivedCount);
             renderRows(_soldoutList, _revivedMap, true);
           } else {
-            loadMsg.textContent = '복원 실패: ' + ((res.data && res.data.error) || '오류 ' + res.status);
+            var errCode = res.data && res.data.error;
+            // 쓰기 권한 문제는 실무자 언어로
+            var userMsg = (errCode === 'write_unavailable')
+              ? '복원 기능을 사용할 수 없습니다. 관리자에게 문의하세요.'
+              : '복원 처리 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.';
+            console.error('[revive] error:', errCode, res.data && res.data.detail);
+            loadMsg.textContent = userMsg;
             loadMsg.className = 'msg err';
             btn.disabled = false; btn.textContent = '복원';
           }
         } catch (e) {
-          loadMsg.textContent = '요청 실패: ' + (e.message || e);
+          console.error('[revive] exception:', e);
+          loadMsg.textContent = '복원 처리 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.';
           loadMsg.className = 'msg err';
           btn.disabled = false; btn.textContent = '복원';
         }
