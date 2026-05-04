@@ -80,9 +80,11 @@ module.exports = async (req, res) => {
     // ── pc_data 갱신: in_stock=true ───────────────────────────
     const pcProducts = Array.isArray(pcJson) ? pcJson : (pcJson.products || []);
     const pcEntry    = pcProducts.find(p => String(p.id) === productId);
-    if (pcEntry) {
-      pcEntry.in_stock = true;
+    if (!pcEntry) {
+      // pc_data에 없으면 soldout_log만 바꿔선 메인 노출이 안 살아남 → 실패 처리
+      res.status(404).json({ error: 'pc_data에 해당 상품 없음 — 크롤러 재실행 후 재시도하세요.' }); return;
     }
+    pcEntry.in_stock = true;
     // pc_data의 루트 구조 보존
     const updatedPcJson = Array.isArray(pcJson) ? pcProducts : { ...pcJson, products: pcProducts };
 
