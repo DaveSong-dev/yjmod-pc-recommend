@@ -52,11 +52,12 @@ async function loadStaticShippingShowcase() {
 
 function shouldUseShippingApiFirst() {
   try {
-    if (window.__YJMOD_USE_SHIPPING_API__ === true) return true;
+    if (window.__YJMOD_USE_SHIPPING_API__ === false) return false;
     const params = new URLSearchParams(window.location.search || '');
-    return params.get('shippingApi') === '1';
+    if (params.get('shippingApi') === '0') return false;
+    return true; // API 우선 (503 시 자동 fallback → recent_shipping.json)
   } catch {
-    return false;
+    return true;
   }
 }
 
@@ -163,6 +164,14 @@ export async function initRecentShipping() {
       img.className =
         'absolute inset-0 w-full h-full object-cover transition-transform duration-300 group-hover:scale-[1.03]';
       if (index === 0) img.fetchPriority = 'low';
+      img.onerror = function () {
+        this.onerror = null;
+        this.style.display = 'none';
+        const ph = document.createElement('div');
+        ph.className = 'recent-shipping-card__ph';
+        ph.setAttribute('aria-hidden', 'true');
+        media.appendChild(ph);
+      };
       media.appendChild(img);
     } else {
       const placeholder = document.createElement('div');

@@ -5,18 +5,22 @@
       "name": "쿨러마스터브랜드 PC QUBE 540 스타더스트 아이언",
       "price": 0,
       "tier": "가성비(FHD)",
-      "soldout_at": "2026-03-27T20:16:33.549615+09:00",
-      "revived": false,
-      "price_display": "348만 원"
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": true,
+      "price_display": "348만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-07T14:55:30.146239+09:00"
     },
     {
       "id": "2758539966",
       "name": "쿨러마스터브랜드 PC QUBE 540 문스톤",
       "price": 0,
       "tier": "가성비(FHD)",
-      "soldout_at": "2026-03-27T20:16:33.549615+09:00",
-      "revived": false,
-      "price_display": "348만 원"
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": true,
+      "price_display": "348만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-07T14:55:30.146239+09:00"
     },
     {
       "id": "2740038792",
@@ -72,7 +76,9 @@
       "price": 0,
       "tier": "퍼포먼스(QHD)",
       "soldout_at": "2026-03-27T20:16:33.549615+09:00",
-      "revived": false
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
     },
     {
       "id": "2719476003",
@@ -88,7 +94,9 @@
       "price": 0,
       "tier": "하이엔드(4K)",
       "soldout_at": "2026-03-31T10:43:09.891259+09:00",
-      "revived": false
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2706692653",
@@ -96,8 +104,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.903920+09:00",
-      "revived": false,
-      "price_display": "132만 원"
+      "revived": true,
+      "price_display": "132만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2691401504",
@@ -114,8 +124,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "1165만 원"
+      "revived": true,
+      "price_display": "1165만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2696929594",
@@ -123,8 +135,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "195만 원"
+      "revived": true,
+      "price_display": "195만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2707194048",
@@ -132,8 +146,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "444만 원"
+      "revived": true,
+      "price_display": "444만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2685005764",
@@ -141,8 +157,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "125만 원"
+      "revived": true,
+      "price_display": "125만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": "2708067463",
@@ -150,8 +168,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "103만 원"
+      "revived": true,
+      "price_display": "103만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2756951912",
@@ -159,8 +179,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "229만 원"
+      "revived": true,
+      "price_display": "229만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2702540366",
@@ -168,8 +190,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-03T21:04:06.904919+09:00",
-      "revived": false,
-      "price_display": "215만 원"
+      "revived": true,
+      "price_display": "215만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2706773533",
@@ -195,8 +219,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-11T15:07:17.999742+09:00",
-      "revived": false,
-      "price_display": "178만 원"
+      "revived": true,
+      "price_display": "178만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2712027707",
@@ -204,8 +230,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-11T15:07:18.000755+09:00",
-      "revived": false,
-      "price_display": "133만 원"
+      "revived": true,
+      "price_display": "133만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": "2768274166",
@@ -213,8 +241,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-11T15:07:18.000755+09:00",
-      "revived": false,
-      "price_display": "145만 원"
+      "revived": true,
+      "price_display": "145만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2770797351",
@@ -222,8 +252,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-11T15:07:18.000755+09:00",
-      "revived": false,
-      "price_display": "243만 원"
+      "revived": true,
+      "price_display": "243만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2749116130",
@@ -231,15 +263,17 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-12T09:06:07.504203+09:00",
-      "revived": false,
-      "price_display": "135만 원"
+      "revived": true,
+      "price_display": "135만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2768281581",
       "name": "엔비디아 AI YJ-NVIDIA System 5090-AI03",
       "price": 0,
       "tier": "가성비(FHD)",
-      "soldout_at": "2026-04-12T09:06:07.504203+09:00",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
       "revived": false,
       "price_display": "1264만 원"
     },
@@ -249,8 +283,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-12T09:06:07.504203+09:00",
-      "revived": false,
-      "price_display": "월 27만 원"
+      "revived": true,
+      "price_display": "월 27만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2750755986",
@@ -258,8 +294,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-12T09:06:07.504203+09:00",
-      "revived": false,
-      "price_display": "월 22만 원"
+      "revived": true,
+      "price_display": "월 22만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2747648002",
@@ -267,8 +305,10 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-12T21:03:37.893945+09:00",
-      "revived": false,
-      "price_display": "274만 원"
+      "revived": true,
+      "price_display": "274만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2747648274",
@@ -285,17 +325,21 @@
       "price": 0,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-04-12T21:03:37.894943+09:00",
-      "revived": false,
-      "price_display": "496만 원"
+      "revived": true,
+      "price_display": "496만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T02:52:19.740943+09:00"
     },
     {
       "id": "2766135308",
       "name": "3D 모델링 최고사양 PC",
       "price": 0,
       "tier": "가성비(FHD)",
-      "soldout_at": "2026-04-12T21:03:37.894943+09:00",
-      "revived": false,
-      "price_display": "535만 원"
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": true,
+      "price_display": "535만 원",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-04T20:52:26.730900+09:00"
     },
     {
       "id": 2767925587,
@@ -311,9 +355,11 @@
       "name": "QHD 게이밍특화 화이트 PC 7500X3D RX 9060 XT   QHD 발로란트 300 프레임 , 배틀그라운드 160 프레임 , 로스트아크 ",
       "price": 2190000,
       "price_display": "219만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2764661806,
@@ -338,36 +384,44 @@
       "name": "커세어브랜드 PC 6500X블랙",
       "price": 5110000,
       "price_display": "511만 원",
-      "revived": false,
-      "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "revived": true,
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-04T20:52:26.730900+09:00"
     },
     {
       "id": 2767926975,
       "name": "커세어브랜드 PC 4500LX 블랙",
       "price": 5220000,
       "price_display": "522만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
     },
     {
       "id": 2729128184,
       "name": "마닥개검증 발로란트 초저가 게이밍PC 12100F / RX 580 2048 FHD 150 프레임 이상 GY100",
       "price": 960000,
       "price_display": "96만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2774592524,
       "name": "리그오브레전드 FHD 최소사양 12100F / GT 1030  FHD 리그오브레전드 국민옵 144 프레임",
       "price": 870000,
       "price_display": "87만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2749539911,
@@ -375,7 +429,7 @@
       "price": 4280000,
       "price_display": "428만 원",
       "revived": false,
-      "soldout_at": "2026-04-28T16:04:21.971976+09:00",
+      "soldout_at": "2026-05-11T14:53:19.709023+09:00",
       "source": "manual_check_nlist_soldout_btn"
     },
     {
@@ -393,7 +447,7 @@
       "price": 7860000,
       "price_display": "월 32만 원",
       "revived": false,
-      "soldout_at": "2026-04-28T16:04:21.971976+09:00",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
       "source": "manual_check_nlist_soldout_btn"
     },
     {
@@ -401,9 +455,11 @@
       "name": "2749612618 - 영재컴퓨터 AI 학습 이지스타터 가성비 PC3 285K RTX 5090 32GB",
       "price": 6820000,
       "price_display": "682만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2722829671,
@@ -419,18 +475,22 @@
       "name": "36개월 무이자PC 커세어 AIR 5400 트리플챔버로 극한의 쿨링 제공 4K 게임마스터 – 9800X3D RTX 5080",
       "price": 7730000,
       "price_display": "월 21만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
     },
     {
       "id": 2770273933,
       "name": "24개월 무이자 PC 커세어 하이엔드 9800X3D RTX 5080",
       "price": 5860000,
       "price_display": "월 24만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
     },
     {
       "id": 2756459829,
@@ -446,18 +506,22 @@
       "name": "엔비디아 AI YJ-NVIDIA System RTX5060TI-AI01",
       "price": 3210000,
       "price_display": "321만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2767759581,
       "name": "엔비디아 AI YJ-NVIDIA System RTX5050-AI01",
       "price": 2790000,
       "price_display": "279만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2742300124,
@@ -473,27 +537,33 @@
       "name": "엔비디아 AI YJ-NVIDIA System RTX5060-AI01",
       "price": 2790000,
       "price_display": "279만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2743571305,
       "name": "AI 이미지생성용 PC AMD 9700X RTX 5070",
       "price": 2190000,
       "price_display": "219만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2743573543,
       "name": "AI 이미지생성용 PC 인텔울트라 285K RTX 5080",
       "price": 5070000,
       "price_display": "507만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2770706659,
@@ -519,7 +589,7 @@
       "price": 5580000,
       "price_display": "558만 원",
       "revived": false,
-      "soldout_at": "2026-04-28T16:04:21.971976+09:00",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
       "source": "manual_check_nlist_soldout_btn"
     },
     {
@@ -527,9 +597,11 @@
       "name": "이달의 MD추천 게이밍PC 12100F / GTX 1660 SUPER  FHD 리그오브레전드 144 프레임 , 발로란트 144 프레임 , 배틀그",
       "price": 1060000,
       "price_display": "106만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2770094711,
@@ -545,9 +617,11 @@
       "name": "4K 하이엔드 화이트 게이밍 PC 7800X3D RTX 5080",
       "price": 5070000,
       "price_display": "507만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
     },
     {
       "id": 2776922877,
@@ -572,9 +646,11 @@
       "name": "HYTE 특가판매! QHD게이밍 화이트 PC 7500X3D RX 9060 XT   QHD 발로란트 300 프레임 , 배틀그라운드 160 프레임 ",
       "price": 2190000,
       "price_display": "219만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
     },
     {
       "id": 2730791967,
@@ -608,9 +684,11 @@
       "name": "발로란트 풀옵션사양 게이밍PC  FHD 발로란트 240 프레임 , 배틀그라운드 180 프레임 , 오버워치  240 프레임",
       "price": 2190000,
       "price_display": "219만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
     },
     {
       "id": 2746163090,
@@ -743,9 +821,11 @@
       "name": "YJMOD 홈오피스 (13100 + 내장 VGA) OY74",
       "price": 830000,
       "price_display": "83만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T14:52:53.609984+09:00"
     },
     {
       "id": 2650276037,
@@ -764,6 +844,1056 @@
       "revived": false,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
       "source": "manual_check_nlist_soldout_btn"
+    },
+    {
+      "id": "2765271652",
+      "name": "쿨러마스터브랜드 PC Frame600 LCD",
+      "price": 4640000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2706863518",
+      "name": "리안리 하이엔드 인피니티 미러 에디션 블랙",
+      "price": 5110000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2757421313",
+      "name": "리안리브랜드 에디션 PC 미니화이트",
+      "price": 4690000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
+    },
+    {
+      "id": "2741770843",
+      "name": "역대급 미친 성능 9950X3D RTX 5090",
+      "price": 13190000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-04T20:52:26.730900+09:00"
+    },
+    {
+      "id": "2767932970",
+      "name": "쿨러마스터브랜드 PC ELITE600 화이트",
+      "price": 4840000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
+    },
+    {
+      "id": "2767862399",
+      "name": "리안리 하이엔드 인피니티 미러 에디션 화이트",
+      "price": 4240000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2750919709",
+      "name": "리안리브랜드 에디션 PC o11컴팩트 화이트",
+      "price": 6020000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2767874888",
+      "name": "리안리브랜드 에디션 PC o11 EVO 블랙",
+      "price": 5380000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2767875459",
+      "name": "리안리브랜드 에디션 PC o11 EVO 화이트",
+      "price": 11700000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2736924099",
+      "name": "THE ALL 리안리 데스크테리어 끝판왕! 화이트 게이밍PC 9800X3D / RTX 5080 HY13",
+      "price": 6660000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-04T20:52:26.730900+09:00"
+    },
+    {
+      "id": "2767874592",
+      "name": "리안리브랜드 에디션 PC o11컴팩트 블랙",
+      "price": 5880000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2672828060",
+      "name": "발로란트 극가성비 게이밍PC  FHD 발로란트 140 프레임 , 배틀그라운드 60 프레임 , 오버워치 120 프레임",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
+    },
+    {
+      "id": "2772087199",
+      "name": "이달의 MD추천 게이밍PC 9800X3D/32GB/RTX5070 Ti  QHD 로스트아크 240 프레임 , 디아4 200 프레임 , 배틀그라운드",
+      "price": 3330000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-07T14:55:30.146239+09:00"
+    },
+    {
+      "id": "2770707347",
+      "name": "레지던트 이블 레퀴엠 지포스 RTX 50 시리즈 번들 9950X3D RTX 5090",
+      "price": 10730000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2766556927",
+      "name": "FHD게이밍 엔트리라인업 롤 110프레임,배그 117프레임,아이온 100프레임 유지 14100F RTX 3050 GY170",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770707211",
+      "name": "레지던트 이블 레퀴엠 지포스 RTX 50 시리즈 번들 9800X3D RTX 5070 Ti",
+      "price": 3470000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770625074",
+      "name": "붉은사막 게임 증정 9950X3D RX 9070 XT",
+      "price": 4430000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2767000707",
+      "name": "QHD풀옵션 및 4K 게이밍 PC 배그 388프레임, 아이온2 168프레임 9800X3D RTX5080 GY173 화이트",
+      "price": 4570000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2744856016",
+      "name": "외모지상주의PC 7800X3D RX 9070XT QHD 롤 220 배그 320 몬헌와일즈 122 싸펑 175 가능",
+      "price": 2800000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.356665+09:00",
+      "revived": false
+    },
+    {
+      "id": "2768280048",
+      "name": "엔비디아 AI YJ-NVIDIA System RTX5060-AI02",
+      "price": 2830000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770624401",
+      "name": "붉은사막 게임 증정 9950X3D RX 9070",
+      "price": 4000000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770094379",
+      "name": "월간견적 GY179 9800X3D RTX 5070  4K 리그오브레전드 400 프레임 , 배틀그라운드 180 프레임 ., 발로란트 600 프레임",
+      "price": 3310000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2768281487",
+      "name": "엔비디아 AI YJ-NVIDIA System 5090-AI02",
+      "price": 7390000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770706372",
+      "name": "레지던트 이블 레퀴엠 지포스 RTX 50 시리즈 번들 9800X3D RTX 5080",
+      "price": 4410000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-07T14:55:30.146239+09:00"
+    },
+    {
+      "id": "2767865376",
+      "name": "리안리 브랜드 에디션 PC 207 화이트",
+      "price": 2790000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
+    },
+    {
+      "id": "2711010844",
+      "name": "강력추천 미니ITX 고스펙 PC",
+      "price": 3750000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2750925628",
+      "name": "리안리브랜드 에디션 PC Vactor 화이트",
+      "price": 3790000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
+    },
+    {
+      "id": "2763360746",
+      "name": "로스트아크 권장사양 게이밍PC  FHD 로스트아크 144 프레임 , 오버워치 240 프레임 디아4 120 프레임",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
+    },
+    {
+      "id": "2765183263",
+      "name": "MSI PMB 에센셜 PC 4번",
+      "price": 3460000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2705449846",
+      "name": "윈도우 패키지 PC 어도비프리미어 유튜브 롱폼,쇼츠,자막,플러그인 가능 14500 RTX 3060",
+      "price": 2060000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2743139119",
+      "name": "NUKE 4K샷,합성VFX 상급 285K / RTX 5070 Ti",
+      "price": 2190000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2675739264",
+      "name": "포토샵 중급,일러스트 기본 , 라이트툼 저사양 작업 가능 5600 GT1030",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2752633156",
+      "name": "포토샵 중급,일러스트 기본 , 라이트툼 저사양 작업 가능 5600 GT1030",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2738655008",
+      "name": "캡컷,프리미어프로,필모라 FHD 유튜브 롱폼 제작 가능 12400 인텔내장VGA",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2766130694",
+      "name": "CAD 2D 위주 + 가벼운 3D, 학습/도면 작업용 14100 GTX 1660S",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-29T14:52:53.609984+09:00"
+    },
+    {
+      "id": "2766133515",
+      "name": "CAD 대형도면,3D,복잡한 뷰포트 작업용 PC",
+      "price": 4220000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2747648331",
+      "name": "5060 탑재 게이밍 PC 7500F RTX 5060 화이트",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2747648594",
+      "name": "5060 탑재 게이밍 PC 14600KF RTX 5060 블랙 화이트",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2725954540",
+      "name": "서린 완제PC 14700K RTX 5070 Ti 4K 영상편집 고사양 게이밍 둘다잡은 갓벽 컴퓨터",
+      "price": 4000000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2725954829",
+      "name": "서린 완제PC 9950X RTX 4080 SUPER 하이엔드 게이밍 컴퓨터",
+      "price": 3500000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2571133354",
+      "name": "YJMOD 디자이너 (12400 + 1660S) DY75",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2740037381",
+      "name": "수족관느낌의 어항케이스! 9800X3D RTX5070 Ti",
+      "price": 3900000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2741770734",
+      "name": "라이젠9 신제품 출시 9900X3D RTX 5070 Ti",
+      "price": 2950000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2763535431",
+      "name": "MD추천_실속게이밍PC 7400F RTX 5050",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2752036475",
+      "name": "Phanteks QHD 고성능 게이밍PC 7800X3D RTX 5070 Ti XT VIEW",
+      "price": 4100000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2771571765",
+      "name": "24개월 GY176 14400F RTX 5060 베스트셀러 게이밍 PC",
+      "price": 2500000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2756952286",
+      "name": "2025 최고의 공동구매 PC 2 7800X3D RTX 5070",
+      "price": 2440000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2647502520",
+      "name": "YJMOD 포카리에디션 Vol.1",
+      "price": 8970000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2733972465",
+      "name": "리안리 브랜드기획전 9700X RTX 5070 게이밍 본체",
+      "price": 3050000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2765416999",
+      "name": "QHD 밸런스 화이트 게이밍 PC 9600 RTX 5060 Ti GY165",
+      "price": 2830000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-07T14:55:30.146239+09:00"
+    },
+    {
+      "id": "2764319838",
+      "name": "현존 게이밍 최강! 화이트 감성 끝판왕 (라이젠 9800X3D + RTX 5070 Ti ) MSI01",
+      "price": 3150000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2761268393",
+      "name": "24개월 무이자PC 9800X3D RX 9070 XT",
+      "price": 3440000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2732253776",
+      "name": "커세어 화이트 하이엔드 게이밍 9800X3D / RTX 4080 컴퓨터",
+      "price": 2190000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2651825328",
+      "name": "잘만 화이트 게이밍PC 9700X / 4080 SUPER GY94",
+      "price": 3750000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2710409010",
+      "name": "▶윈도우 패키지◀ 7500F + GT1030 OY83",
+      "price": 2030000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2615979497",
+      "name": "영재컴퓨터 X 무릎 방송용 추천 컴퓨터",
+      "price": 7110000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2741918995",
+      "name": "HYTE 완본체 PC - 285K RTX 5080",
+      "price": 5260000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2741075133",
+      "name": "2025년 추천PC QHD 종결급 게이밍PC 7800X3D RTX 5070 Ti GY334 QHD 기준 배그 200 호그와트 300 프레임 유지",
+      "price": 2270000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
+    },
+    {
+      "id": "2733984536",
+      "name": "리안리 브랜드기획전 7500F RTX5070 게이밍 본체",
+      "price": 2190000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2639122807",
+      "name": "YJMOD / 14700K / RTX 4090 커스텀 수냉 컴퓨터! 포카리에디션 Vol.1",
+      "price": 5950000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2639478532",
+      "name": "YJMOD / 14900K / RTX 4090 커스텀 수냉 컴퓨터! FRACTAL",
+      "price": 7070000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2639649716",
+      "name": "YJMOD / 14900KF / RTX 5070 커스텀 수냉 컴퓨터! MINI-ITX",
+      "price": 3710000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2639726202",
+      "name": "YJMOD / 14900K / 눈처럼 하얀!! NZXT 커스텀 수냉 컴퓨터!",
+      "price": 5720000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2742449421",
+      "name": "HAVEN 브랜드 PC 9600X RTX 5070",
+      "price": 3540000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2742364973",
+      "name": "SMKX 써멀테이크 브랜드 PC 7800X3D RX 9070 XT",
+      "price": 2790000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2649057010",
+      "name": "리안리 PC-O11D XL LOL 영혼의 꽃 아리 에디션!",
+      "price": 6710000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2677556956",
+      "name": "25년도 검증완료 TOP5 PC 13600KF/RTX4060Ti GY98 배그 250 프레임 사이버펑크 110 프레임 가능",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2731064399",
+      "name": "왁물원 콜라보 게이밍 PC 7500F RX 7700 XT 화이트",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2650966235",
+      "name": "4K 8K 영상 프리미어 / 에펙 전문작업용 추천 컴퓨터 13900K / RTX 4090",
+      "price": 2190000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2653643851",
+      "name": "인텔 I3-13100F / RTX 5060 가성비 롤/발로란트 풀옵션 추천 컴퓨터",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2651822051",
+      "name": "14600KF / RTX 3060 / Q58 MINI ITX 추천 게이밍 컴퓨터!",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2651825882",
+      "name": "12400F / RTX 2060 배그 국민옵션 추천 게이밍 컴퓨터!",
+      "price": 6130000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2653881345",
+      "name": "미니ITX PC 7500F RTX 5060",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-28T20:52:55.357663+09:00",
+      "revived": false
+    },
+    {
+      "id": "2704771850",
+      "name": "인텔 14세대 14400F / RTX 4060 Ti 화이트 게이밍 PC",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-29T02:52:19.740943+09:00",
+      "revived": false
+    },
+    {
+      "id": "2655199668",
+      "name": "12900K / RTX 3090 Ti 2WAY 4K 게이밍, 영상편집, 하이엔드 컴퓨터!",
+      "price": 4080000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-29T02:52:19.740943+09:00",
+      "revived": false
+    },
+    {
+      "id": "2774510679",
+      "name": "최신 인텔 CPU 탑재 프리미어,애펙 다 잘되는 만능PC 270K RTX 5060 Ti 16GB 추천PC VY114",
+      "price": 2450000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2747116283",
+      "name": "2025 게이밍 PC 9700X RTX 5060Ti 16GB 인조이 배그 몬헌 로아",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-29T14:52:53.609984+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-04T14:53:24.568066+09:00"
+    },
+    {
+      "id": "2749612127",
+      "name": "영재컴퓨터 AI 학습 이지스타터 가성비 PC2 14400 RTX 5060Ti 16GB",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-04-29T14:52:53.609984+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T14:52:53.594987+09:00"
+    },
+    {
+      "id": "2655799690",
+      "name": "9950X3D RTX 5090 쿨러마스터 초고사양 하이엔드 게이밍 컴퓨터",
+      "price": 4750000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-29T14:52:53.609984+09:00",
+      "revived": false
+    },
+    {
+      "id": "2767878414",
+      "name": "MSI PMB 에센 PC 3번",
+      "price": 2390000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2751950713",
+      "name": "Phanteks 4K 고성능 게이밍PC 9950X3D RTX 5090 EVOLV X2 HY274",
+      "price": 13280000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T14:52:53.594987+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-04-30T20:53:16.909031+09:00"
+    },
+    {
+      "id": "2765182938",
+      "name": "MSI PMB 어드밴스드 PC 3번",
+      "price": 2390000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2761620382",
+      "name": "ASUS브랜드 ROG 하이페리온 에디션 블랙 HY273",
+      "price": 14390000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-04T20:52:26.730900+09:00"
+    },
+    {
+      "id": "2762333156",
+      "name": "36개월무이자PC ASUS ROG 블랙 프레스티지 4K 게이밍 플래그십 – 9950X3D & RTX 5090",
+      "price": 16070000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": false
+    },
+    {
+      "id": "2767876425",
+      "name": "ASUS브랜드 ROG 하이페리온 에디션 화이트",
+      "price": 8870000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": false
+    },
+    {
+      "id": "2742301744",
+      "name": "NON-RGB PC 9950X3D RTX5080 BLACK",
+      "price": 5420000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": false
+    },
+    {
+      "id": "2742301034",
+      "name": "NON-RGB PC 9800X3D RTX 5080 BLACK",
+      "price": 6080000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": false
+    },
+    {
+      "id": "2767876955",
+      "name": "ASUS브랜드 ProArt 에디션",
+      "price": 5720000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": false
+    },
+    {
+      "id": "2764578914",
+      "name": "쿨러마스터브랜드 PC MINI ITX",
+      "price": 4480000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-04-30T20:53:16.909031+09:00",
+      "revived": false
+    },
+    {
+      "id": "2768356654",
+      "name": "24개월 무이자 9950x3d RTX 5090",
+      "price": 14240000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-05-01T02:52:37.495010+09:00",
+      "revived": false
+    },
+    {
+      "id": "2749629272",
+      "name": "24개월 무이자 HAVN 하이엔드 PC  9800X3D RTX 5090",
+      "price": 13350000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": false
+    },
+    {
+      "id": "2766555122",
+      "name": "크리에이터 프로 프리미어프로,에펙 동시작업 가능  265K RTX 5060 Ti 16GB VY109",
+      "price": 3190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": false
+    },
+    {
+      "id": "2756129843",
+      "name": "NUKE 4K샷,합성VFX 상급 285K RTX 5070Ti 화이트 VY105",
+      "price": 3680000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-04T14:53:24.568066+09:00",
+      "revived": false
+    },
+    {
+      "id": "2776921299",
+      "name": "듀얼 3D V-캐시를 적용 적용 궁극의 작업용 PC 9950X3D2 RTX5090",
+      "price": 13730000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-05-04T20:52:26.730900+09:00",
+      "revived": false
+    },
+    {
+      "id": "2748416561",
+      "name": "QHD 및 4K 플레이가능 화이트 게이밍PC 9800X3D RTX 5070 Ti GY135 배그 3울트라 430프레임, 몬헌 와일즈 울트라 14",
+      "price": 3960000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-06T08:52:42.308753+09:00",
+      "revived": false
+    },
+    {
+      "id": "2741252539",
+      "name": "라데온 RX 9070XT 탑재 QHD 풀옵션 게이밍PC 7800X3D RX 9070XT QHD 풀옵션 240 프레임 이상 가능",
+      "price": 2980000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-06T14:53:01.069025+09:00",
+      "revived": false
+    },
+    {
+      "id": "2776921849",
+      "name": "듀얼 3D V-캐시를 적용 적용 전문작업자용 맞춤 워크스테이션 9950X3D2 RTX5080",
+      "price": 6280000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2716193561",
+      "name": "YJMOD 4GTIRTX-W",
+      "price": 92800000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-07T14:55:30.146239+09:00",
+      "revived": false
+    },
+    {
+      "id": "2716192492",
+      "name": "YJMOD 4GTIRTX",
+      "price": 92800000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-07T14:55:30.146239+09:00",
+      "revived": false
+    },
+    {
+      "id": "5743495033",
+      "name": "크로스오버 27FAW950 Fast-iPS 180 피벗 화이트 Ai게이밍 무결점",
+      "price": 0,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-07T14:55:30.146239+09:00",
+      "revived": false
+    },
+    {
+      "id": "2773991255",
+      "name": "ALL화이트 FULL RGB 게이밍 PC 7800X3D RTX 5070 Ti",
+      "price": 4010000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-07T14:55:30.146239+09:00",
+      "revived": false
+    },
+    {
+      "id": "2774509807",
+      "name": "최신 인텔 CPU 탑재 프리미어 중심 가성비 영상편집 PC 250K RTX 5060 추천PC VY113",
+      "price": 2680000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2774586909",
+      "name": "최신 인텔 CPU 탑재 프리미어,애펙 다 잘되는 만능PC 270K RTX 5060 Ti 16GB 추천PC VY114_W 화이트",
+      "price": 3290000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2767760305",
+      "name": "프리미어프로 FHD,QHD까지 강력한 성능의 편집 작업용PC",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2774586812",
+      "name": "최신 인텔 CPU 탑재 프리미어 중심 가성비 영상편집 PC 250K RTX 5060 추천PC VY113_W화이트",
+      "price": 2700000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2766131300",
+      "name": "디자인 작업 및 CAD 3D작업용 PC",
+      "price": 2550000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2766452840",
+      "name": "프리미어프로 FHD,QHD까지 강력한 성능의 편집 작업용 14600K RTX 5060 DDR4 VY107",
+      "price": 2550000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2766554099",
+      "name": "크리에이터 초이스 본격적인 영상 편집용 실무자 강력추천 245K RTX 5060 VY108",
+      "price": 2550000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2742289973",
+      "name": "NON-RGB PC 5600 RTX 5050 BLACK",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2768279815",
+      "name": "엔비디아 AI YJ-NVIDIA System RTX5050-AI03",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2766556239",
+      "name": "크리에이터 얼티밋 최고사양 전문가용 모션그래픽,VFX 전반 에펙 전용 285K / RTX 5070 Ti VY110",
+      "price": 5270000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2768281320",
+      "name": "엔비디아 AI YJ-NVIDIA System 5080-AI-A03",
+      "price": 5340000,
+      "tier": "하이엔드(4K)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2751430479",
+      "name": "7월 월간견적 고성능 화이트 PC [4번] 7800X3D RTX 5070 GY141",
+      "price": 2190000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2771916770",
+      "name": "200만원 후반대 작업용 추천PC VY112",
+      "price": 3440000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2774860226",
+      "name": "최신 인텔 CPU 탑재 프리미어,애펙 다 잘되는 만능PC 270K RTX 5060 Ti 16GB 추천PC VY114_W 화이트",
+      "price": 3290000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2774860100",
+      "name": "최신 인텔 CPU 탑재 프리미어 중심 가성비 영상편집 PC 250K RTX 5060 추천PC VY113_W화이트",
+      "price": 2700000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2755144326",
+      "name": "NUKE 4K샷,합성VFX 상급 285K RTX 5070Ti VY105",
+      "price": 5030000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": false
+    },
+    {
+      "id": "2771915936",
+      "name": "200만원초반대 작업용 추천PC VY111",
+      "price": 2550000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2774860035",
+      "name": "최신 인텔 CPU 탑재 프리미어 중심 가성비 영상편집 PC 250K RTX 5060 추천PC VY113",
+      "price": 2680000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-08T14:53:34.473082+09:00",
+      "revived": true,
+      "resolved_by_crawler": true,
+      "revived_at": "2026-05-08T20:52:35.917317+09:00"
+    },
+    {
+      "id": "2770358760",
+      "name": "네이버페이 2만원 증정 마이크로닉스 기획전PC 14600K RTX 5060",
+      "price": 2370000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-11T14:53:19.709023+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770357698",
+      "name": "네이버페이 2만원 증정 마이크로닉스 기획전PC 5600 RX 9060",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-11T14:53:19.709023+09:00",
+      "revived": false
+    },
+    {
+      "id": "2770358295",
+      "name": "네이버페이 2만원 증정 마이크로닉스 기획전PC 14400F RTX 5060 베스트셀러",
+      "price": 2190000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-11T14:53:19.709023+09:00",
+      "revived": false
+    },
+    {
+      "id": "2741675162",
+      "name": "24개월 무이자PC 게이밍 (9800X3D / RX 9070XT)",
+      "price": 2940000,
+      "tier": "퍼포먼스(QHD)",
+      "soldout_at": "2026-05-11T14:53:19.709023+09:00",
+      "revived": false
+    },
+    {
+      "id": "2762767986",
+      "name": "프리미어프로 전반,에펙 모션그래픽 가능 14600K RTX 5060 VY106 화이트",
+      "price": 2470000,
+      "tier": "가성비(FHD)",
+      "soldout_at": "2026-05-11T14:53:19.709023+09:00",
+      "revived": false
     }
   ],
   "revived": []
