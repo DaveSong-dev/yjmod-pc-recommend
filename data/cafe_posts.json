@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-16T11:31:19.737365+09:00",
+  "last_updated": "2026-05-16T22:25:25.530088+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -22,7 +22,7 @@
       "id": "3",
       "title": "[임무 수행]4/8 서버 직접 납품 및 설치",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7103?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA0MDhfMjI3/MDAxNzc1NjQyMDk0NDQ1.4fZdD4Eq2ZV9_VsdZYd9UNGgWqfy1ktEvaW8j74iSQkg.eVdglsqPJsaH3MN4LjzJ384liXgCPCgm0HgWek1FDZgg.JPEG/KakaoTalk_20260408_163909667_06.jpg?type=w1600",
       "date": "2026-05-16",
       "tags": []
     },
@@ -70,7 +70,7 @@
       "id": "9",
       "title": "[조립컴퓨터]정*교님 (010-****-1709) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7266?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MTVfMTE4/MDAxNzc4ODM5MTczODUw.4MPCQYy6T7qP9YAEtMXZaBFhwYdALwalRiEjcdV3Iy8g.PYf6YZKMECU7-6vrSGVQo-OlaMxk1QAb2uKLCyPCL2kg.JPEG/KakaoTalk_20260515_120154467_01.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-05-16",
       "tags": []
     },
