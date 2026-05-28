@@ -3,58 +3,58 @@
   "galleryMenuUrl": "https://cafe.naver.com/f-e/cafes/31248285/menus/1?viewType=I&page=1&size=20",
   "items": [
     {
-      "id": "ship-auto-7311",
+      "id": "ship-auto-7326",
+      "title": "워크스테이션 출고 완료",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjhfMTQ5/MDAxNzc5OTYyMTk1NTQy.6ry3ztppT1fx_Lf7JEF2viKj1ss0obdE7Xn46uk0pbUg.IEXM8cZmnKtZ_euGs7A2CapjE8tfvi_ZZk9DuZSp8Wog.JPEG/KakaoTalk_20260528_163956228_01.jpg?type=w1600",
+      "summary": "고성능 워크스테이션 완성 컷",
+      "date": "2026-05-28",
+      "specs": "워크스테이션",
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7326?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
+    },
+    {
+      "id": "ship-auto-7325",
       "title": "조립 PC 출고 완료",
-      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjdfMTIy/MDAxNzc5ODc1ODk4ODgz.UK00y1kmulSx5qGZeQOLP1ru_BRDVlg3L9MLlOZ7XLQg.sS9JL5bh13Lji8kI8LuYd3opAp0n4dvkURlN1WQxcDYg.JPEG/KakaoTalk_20260527_121600444_01.jpg?type=w1600",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjhfMjg4/MDAxNzc5OTYyMTcxNzQw.1qvKKeOQphkg3KBbJ6BFNFOVjnxZqZpFAW_8E-L9Fy0g.k711S8c6xAcG65fn_T1Ghy-DUhQs1UzXKlqOn5evZVog.JPEG/KakaoTalk_20260528_171853655_07.jpg?type=w1600",
       "summary": "케이스 내부 배선·완성 컷",
       "date": "2026-05-28",
       "specs": "맞춤 조립 PC",
-      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7311?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7325?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
     },
     {
-      "id": "ship-auto-7103",
-      "title": "현장 납품 및 설치 완료",
-      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA0MDhfMjI3/MDAxNzc1NjQyMDk0NDQ1.4fZdD4Eq2ZV9_VsdZYd9UNGgWqfy1ktEvaW8j74iSQkg.eVdglsqPJsaH3MN4LjzJ384liXgCPCgm0HgWek1FDZgg.JPEG/KakaoTalk_20260408_163909667_06.jpg?type=w1600",
-      "summary": "직접 납품·설치 현장 컷",
-      "date": "2026-05-28",
-      "specs": "현장 설치 PC",
-      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7103?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
-    },
-    {
-      "id": "ship-auto-7310",
+      "id": "ship-auto-7324",
       "title": "조립 PC 출고 완료",
-      "image": "",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjhfMTkg/MDAxNzc5OTYyMTQxOTc0.sb-9DlEu41V_QHsZj8F7D7YMeZyS0RW_vlfCHlkuUCsg.dzcYeQ8qg4LrYSp462oWEGzmWHSiJG5vcvOR9wmUwV4g.JPEG/KakaoTalk_20260528_152752104_01.jpg?type=w1600",
       "summary": "케이스 내부 배선·완성 컷",
       "date": "2026-05-28",
       "specs": "맞춤 조립 PC",
-      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7310?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7324?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
     },
     {
-      "id": "ship-auto-7309",
+      "id": "ship-auto-7323",
       "title": "조립 PC 출고 완료",
-      "image": "",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjhfMjY3/MDAxNzc5OTYyMDY4NzU2.jCM-E-jKGOhaPbkW0A2HzdlXotdHwSpWlgXFbvJXjSQg.U_xEuBz9EoHBbrOoADzdNvmo4ElLPmpKT6P7w6VHY5sg.JPEG/KakaoTalk_20260528_152529159_01.jpg?type=w1600",
       "summary": "케이스 내부 배선·완성 컷",
       "date": "2026-05-28",
       "specs": "맞춤 조립 PC",
-      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7309?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7323?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
     },
     {
-      "id": "ship-auto-7308",
+      "id": "ship-auto-7322",
       "title": "조립 PC 출고 완료",
-      "image": "",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjhfNiAg/MDAxNzc5OTYyMDQxNTYy.gEy-hCr1a0rSMf9qMVKvnzKnbQ4Xu6DhH-RXxbfrLAAg.7HNgLt1u1Aha0Cp0ecQhX8TckdFWGYPDoIWs9cV2WWwg.JPEG/KakaoTalk_20260528_152508755_01.jpg?type=w1600",
       "summary": "케이스 내부 배선·완성 컷",
       "date": "2026-05-28",
       "specs": "맞춤 조립 PC",
-      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7308?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7322?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
     },
     {
-      "id": "ship-auto-7307",
+      "id": "ship-auto-7321",
       "title": "조립 PC 출고 완료",
-      "image": "",
+      "image": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA1MjhfNjgg/MDAxNzc5OTYyMDIxNjY2.9qIbCLOVlyeGCPMeK2rtp-Wd5Tj9z-hi-744bqDKtDEg.gDyGui9XLlQPb3CojlmW0gOIVHYN4D543pDgbQkBwrQg.JPEG/KakaoTalk_20260528_134359435_01.jpg?type=w1600",
       "summary": "케이스 내부 배선·완성 컷",
       "date": "2026-05-28",
       "specs": "맞춤 조립 PC",
-      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7307?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
+      "cafeUrl": "https://cafe.naver.com/f-e/cafes/31248285/articles/7321?boardtype=L&menuid=1&referrerAllArticles=false&page=1"
     }
   ]
 }
