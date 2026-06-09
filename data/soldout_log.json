@@ -1894,6 +1894,14 @@
       "tier": "가성비(FHD)",
       "soldout_at": "2026-05-11T14:53:19.709023+09:00",
       "revived": false
+    },
+    {
+      "id": "2767921791",
+      "name": "커세어브랜드 PC 6500X화이트",
+      "soldout_at": "2026-06-09T10:06:06.316Z",
+      "revived": true,
+      "revived_by": "admin",
+      "revived_at": "2026-06-09T10:06:06.316Z"
     }
   ],
   "revived": []
