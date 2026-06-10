@@ -432,9 +432,11 @@
       "name": "화이트 어항PC는 이걸로 종결 9800X3D RTX 5080 HY268",
       "price": 4280000,
       "price_display": "428만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-05-11T14:53:19.709023+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "revived_by": "admin",
+      "revived_at": "2026-06-10T08:18:16.402Z"
     },
     {
       "id": 2749092493,
