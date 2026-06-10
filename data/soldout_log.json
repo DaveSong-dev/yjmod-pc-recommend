@@ -377,9 +377,11 @@
       "name": "커세어브랜드 PC 5400LX 화이트",
       "price": 5720000,
       "price_display": "572만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "revived_by": "admin",
+      "revived_at": "2026-06-10T08:03:37.097Z"
     },
     {
       "id": 2751006642,
