@@ -2077,7 +2077,7 @@
       "price_monthly": 0,
       "installment_months": 0,
       "price_display": "품절",
-      "in_stock": false,
+      "in_stock": true,
       "specs": {
         "cpu": "AMD 라이젠9-6세대 9950X3D2 (그래니트 릿지)  (멀티팩 정품)AMD 라이젠9-",
         "cpu_short": "R9 9950X3D",
