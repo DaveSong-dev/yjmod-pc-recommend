@@ -1669,7 +1669,9 @@
       "price": 2980000,
       "tier": "퍼포먼스(QHD)",
       "soldout_at": "2026-05-06T14:53:01.069025+09:00",
-      "revived": false
+      "revived": true,
+      "revived_by": "admin",
+      "revived_at": "2026-06-10T08:30:18.054Z"
     },
     {
       "id": "2776921849",
