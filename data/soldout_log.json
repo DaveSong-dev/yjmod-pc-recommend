@@ -441,9 +441,11 @@
       "name": "쿨러마스터브랜드 PC COSMOS ALPHA",
       "price": 7430000,
       "price_display": "743만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "revived_by": "admin",
+      "revived_at": "2026-06-10T08:16:48.047Z"
     },
     {
       "id": 2749628943,
