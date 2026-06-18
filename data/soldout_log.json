@@ -939,7 +939,9 @@
       "price": 11700000,
       "tier": "하이엔드(4K)",
       "soldout_at": "2026-04-28T20:52:55.356665+09:00",
-      "revived": false
+      "revived": true,
+      "revived_by": "admin",
+      "revived_at": "2026-06-18T00:50:49.043Z"
     },
     {
       "id": "2736924099",
