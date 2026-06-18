@@ -368,9 +368,11 @@
       "name": "커세어 AIR 5400 트리플챔버 설계로 발열걱정 NO! 9950X3D RTX 5090",
       "price": 4660000,
       "price_display": "466만 원",
-      "revived": false,
+      "revived": true,
       "soldout_at": "2026-04-28T16:04:21.971976+09:00",
-      "source": "manual_check_nlist_soldout_btn"
+      "source": "manual_check_nlist_soldout_btn",
+      "revived_by": "admin",
+      "revived_at": "2026-06-18T00:43:51.723Z"
     },
     {
       "id": 2767922839,
