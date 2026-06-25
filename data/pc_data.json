@@ -2797,7 +2797,7 @@
       "price_monthly": 0,
       "installment_months": 0,
       "price_display": "품절",
-      "in_stock": false,
+      "in_stock": true,
       "specs": {
         "cpu": "인텔 13600K (랩터레이크) (벌크)인텔 코어i5-14세대 14600KF (랩터레이크 ",
         "cpu_short": "i5-14600KF",
