@@ -6465,7 +6465,7 @@
       "price_monthly": 0,
       "installment_months": 0,
       "price_display": "품절",
-      "in_stock": false,
+      "in_stock": true,
       "specs": {
         "cpu": "인텔 코어 울트라7 시리즈2 265K (애로우레이크) (벌크)인텔 코어 울트라7 시리즈2 ",
         "cpu_short": "인텔 코어 울트라7 시",
