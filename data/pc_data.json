@@ -5490,7 +5490,7 @@
       "price_monthly": 0,
       "installment_months": 0,
       "price_display": "품절",
-      "in_stock": false,
+      "in_stock": true,
       "specs": {
         "cpu": "AMD 라이젠5-4세대 5600 (버미어) (멀티팩(정품))AMD 라이젠5-4세대 5600",
         "cpu_short": "R5 5600",

@@ -1797,7 +1797,9 @@
       "price": 2190000,
       "tier": "가성비(FHD)",
       "soldout_at": "2026-05-08T14:53:34.473082+09:00",
-      "revived": false
+      "revived": true,
+      "revived_by": "admin",
+      "revived_at": "2026-06-25T09:06:44.656Z"
     },
     {
       "id": "2768279815",
