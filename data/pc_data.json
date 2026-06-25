@@ -6360,7 +6360,7 @@
       "price_monthly": 0,
       "installment_months": 0,
       "price_display": "품절",
-      "in_stock": false,
+      "in_stock": true,
       "specs": {
         "cpu": "인텔 코어i3-14세대 14100F (랩터레이크 리프레시) (벌크)인텔 코어i5-14세대 ",
         "cpu_short": "i3-14100F",
