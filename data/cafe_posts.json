@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-10T12:51:29.381012+09:00",
+  "last_updated": "2026-10-11T01:57:18.873400+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -14,7 +14,7 @@
       "id": "2",
       "title": "댓글수[3]",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/51?boardtype=L&menuid=1&referrerAllArticles=false&page=1&commentFocus=true",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfMTUz/MDAxNzIxMTE3MTEyMTc5.BC8WVF86ldaCUt-m6fT0LjfRszku7b7KVG10EhEe7Bsg.8v0WeV1AdnGSJHkK8qN_EDbjDvFYu8e5W8gb37R9Vxkg.JPEG/%ED%94%84%EB%A6%AC%EB%AF%B8%EC%97%84_%EB%B0%B0%EC%86%A1_%EC%84%9C%EB%B9%84%EC%8A%A4_%EB%B0%9C%EB%A0%89%EC%8A%A4_%281160%29.jpg?type=w1600",
       "date": "2026-10-10",
       "tags": []
     },
@@ -46,7 +46,7 @@
       "id": "6",
       "title": "[조립컴퓨터]길*호님 (010-****-3936) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7650?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMDdfOTkg/MDAxNzkxMzY2NTQzMTY3.hjwm8G2lN3cU3yRvZiGaEYUgNGnLBlUowgDjv4nBk5gg.rb924eixlqV5xObzBfefoNn2GsJV4zMIIDJG5-URJS0g.JPEG/KakaoTalk_20261007_175757061_01.jpg?type=w1600",
       "date": "2026-10-10",
       "tags": []
     },
@@ -102,7 +102,7 @@
       "id": "13",
       "title": "[조립컴퓨터]이*범님 (010-****-6755) 총 2대 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7643?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMDJfOTMg/MDAxNzkwOTM0NjM2MTI1.oV9f6TixVmf6dps0m8MOFCCcXmHfv7zu_V5MH9joZwcg.d8F0T_EVZ6xvpRAZ5cPzF9dfWRdZWjdbzQ_2FyImFYog.JPEG/KakaoTalk_20261002_173814611.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-10-10",
       "tags": []
     },
@@ -110,7 +110,7 @@
       "id": "14",
       "title": "[조립컴퓨터]이*환님 (010-****-2749) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7642?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMDJfMTk4/MDAxNzkwOTM0NjE1OTYw.XND27uOsspOES9pkPpj8rgJ-xiuge3-MjEuvEkHRD8Ig.hfH5HLVjmMRJpnFJKdcC3o60045FrmCVoubC8WKcAsAg.JPEG/KakaoTalk_20261002_160557604_08.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-10-10",
       "tags": []
     },
