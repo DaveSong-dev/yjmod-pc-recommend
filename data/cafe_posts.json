@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-14T04:39:13.763485+09:00",
+  "last_updated": "2026-10-14T12:10:18.763448+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -7,7 +7,7 @@
       "title": "영재컴퓨터 프리미엄 배송 관련",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/51?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -15,23 +15,23 @@
       "title": "댓글수[3]",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/51?boardtype=L&menuid=1&referrerAllArticles=false&page=1&commentFocus=true",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "3",
       "title": "[임무 수행]4/8 서버 직접 납품 및 설치",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7103?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjA0MDhfMjI3/MDAxNzc1NjQyMDk0NDQ1.4fZdD4Eq2ZV9_VsdZYd9UNGgWqfy1ktEvaW8j74iSQkg.eVdglsqPJsaH3MN4LjzJ384liXgCPCgm0HgWek1FDZgg.JPEG/KakaoTalk_20260408_163909667_06.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "4",
       "title": "배송 받은 컴퓨터가 작동이 잘 안되신다구요?",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/52?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNDA3MTZfNDgg/MDAxNzIxMTE4MTE3MjAz.N44ZlGR2E7hbdXRKktDEPhXbOhWvIJXWUWxA5Xr8ZGcg.j_Mb2LPau1R3vTDUKNkoiSsp20yZIR0DaYRnzNwP0-Eg.JPEG/20231120163026_38db3.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -39,15 +39,15 @@
       "title": "배송, 출고 관련 공지사항",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/2752?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "6",
       "title": "[워크스테이션]뷰****지 (010-****-0500) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7660?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTNfMzEg/MDAxNzkxODg0NTk1ODU5.K6MOlFPENrUgKoNoEb9N9UWauFhHt8SDbbZvHxKjvk8g.ikFcnX9iN2gDz6t3XJjjMSGuUZUImlL-NuFl0RoRWuUg.JPEG/KakaoTalk_20261013_180231479_01.jpg?type=w1600",
-      "date": "2026-10-13",
+      "thumbnail": "",
+      "date": "2026-10-14",
       "tags": [
         "워크스테이션"
       ]
@@ -56,64 +56,64 @@
       "id": "7",
       "title": "[조립컴퓨터]김*한님 (010-****-7008) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7659?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTNfNDcg/MDAxNzkxODg0MzA2MzI3.r7u3stG0lPZPpvjAOZY3RreKeUzYaahO6Yn1VPGyYGsg.om0wWASs26oyTibVwXlrfThCryWMKeLWf-t7NHKpDMUg.JPEG/KakaoTalk_20261013_180504205_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "8",
       "title": "[조립컴퓨터]전*연님 (010-****-6853) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7658?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTNfNzIg/MDAxNzkxODg0MjgwNDgx.Y0jODXJIWFJGtrRum3iR3pLNHMXAlXB5yn6DSVVq-_kg.AHmIGy3IKQTs7VHgCDpeje44fbenovwWi1KLSOW1KgAg.JPEG/KakaoTalk_20261013_164049064_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "9",
       "title": "[조립컴퓨터]김*일님 (010-****-2701) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7657?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTNfNDYg/MDAxNzkxODg0MjU3NTE5.Y5Kc27Ug_NIYRZNE_F1V-fLP3Lx3YtGuaEPuAcZUSxgg.8V7QR098KUcUkZdHfTgnyZwRqxtqO9mNWzJ_BCXTU9Yg.JPEG/KakaoTalk_20261013_153130412_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "10",
       "title": "[조립컴퓨터]전*성님 (010-****-8886) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7656?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTNfMTQg/MDAxNzkxODg0MjI1MTU2.txIamrzUErsdHKLHHeN_XJjCcUmFwS4hepdBj817PIog.bJWyqm53G5lDRwdKkgBIVNssyMGTSwX1hFGQmt1pvKwg.JPEG/KakaoTalk_20261013_142310047_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "11",
       "title": "[조립컴퓨터]정*식님 (010-****-3703) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7655?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTJfMTYg/MDAxNzkxNzk4Nzc2ODY3.4_ci8QnqlMLFAZRshiVCSOFCpFfDjpeYutb4qpZy74Mg.FiVmmJxh_kmdOoyv58jbaD1vQO_4Bi6VLIpJJ6dvdKcg.JPEG/KakaoTalk_20261012_174559230_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "12",
       "title": "[조립컴퓨터]윤*모님 (010-****-7140)  출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7654?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTJfMjM0/MDAxNzkxNzk4NzU3NTUy.vE6KLXnzLJ1zvPrCq4O1t153lMkAuOeKqjiaNmTGwy8g.4t_7kbwYVWOYDkxGi3MMXX_LYZJuIiYlDGV_HWBwEBYg.JPEG/KakaoTalk_20261012_172706939_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "13",
       "title": "[조립컴퓨터]김*빈님 (010-****-3050) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7653?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTJfNzkg/MDAxNzkxNzk4NzM1OTg4.m4y3rLy6Cex15OvjCV8-ZeklcrgaCV-jkBXWiCPAaKkg._thQOC4fkFZ7zn7Gki7k7p0QYoXN9PFC3XyQ30TXPj4g.JPEG/KakaoTalk_20261012_170412384_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
       "id": "14",
       "title": "[조립컴퓨터]정*영님 (010-****-1114) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7652?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "",
-      "date": "2026-10-13",
+      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMTJfNzQg/MDAxNzkxNzk4NzE2MDA3.Rhj38L4z0lsSZ7u1PtR5ik2TWTESDRe3TwEDCWUxTs0g.0zSNNbcdal4CFuma6cEjiu_3JmJM6fMhuYKPpqVSPmsg.JPEG/KakaoTalk_20261012_161403371_01.jpg?type=w1600",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -121,7 +121,7 @@
       "title": "[조립컴퓨터]김*욱님 (010-****-7000) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7651?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -129,7 +129,7 @@
       "title": "[조립컴퓨터]길*호님 (010-****-3936) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7650?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -137,7 +137,7 @@
       "title": "[조립컴퓨터]양*식님 (010-****-2048) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7649?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -145,7 +145,7 @@
       "title": "[조립컴퓨터]김*석님 (010-****-8136) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7648?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -153,7 +153,7 @@
       "title": "[조립컴퓨터]최*재님 (010-****-2290) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7647?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     },
     {
@@ -161,7 +161,7 @@
       "title": "[조립컴퓨터]정*태님 (010-****-5766) 출고건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7646?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
       "thumbnail": "",
-      "date": "2026-10-13",
+      "date": "2026-10-14",
       "tags": []
     }
   ]
