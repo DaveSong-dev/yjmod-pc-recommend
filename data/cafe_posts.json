@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-10-26T11:49:40.540255+09:00",
+  "last_updated": "2026-10-27T03:20:20.830005+09:00",
   "_note": "이 파일은 crawl_cafe.py에 의해 6시간마다 자동 갱신됩니다.",
   "posts": [
     {
@@ -46,7 +46,7 @@
       "id": "6",
       "title": "[조립컴퓨터]가천대학교 납품건",
       "url": "https://cafe.naver.com/f-e/cafes/31248285/articles/7683?boardtype=L&menuid=1&referrerAllArticles=false&page=1",
-      "thumbnail": "https://cafeptthumb-phinf.pstatic.net/MjAyNjEwMjJfMjgx/MDAxNzkyNjYyMjM2NjMy.pnP85CsUXa6lgVdB6TX7jgFm17EfNhypuyC6r7rq8-Eg.Y7vXMQIFmuCwpM08g58xjqeCIHVGnbFW3fcTNkoNUMog.JPEG/KakaoTalk_20261022_183655112_01.jpg?type=w1600",
+      "thumbnail": "",
       "date": "2026-10-26",
       "tags": []
     },
